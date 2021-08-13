@@ -1,0 +1,18 @@
+{
+  "name": "cuibonobo.com",
+  "version": "1.0.0",
+  "description": "The website at cuibonobo.com",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuibonobo/cuibonobo.com.git"
+  },
+  "author": "Jen Garcia <jen@haverstack.com> (https://haverstack.com/)",
+  "license": "CC0-1.0",
+  "bugs": {
+    "url": "https://github.com/cuibonobo/cuibonobo.com/issues"
+  },
+  "homepage": "https://github.com/cuibonobo/cuibonobo.com#readme"
+}
