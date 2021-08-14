@@ -42,7 +42,7 @@ const getMarkdownItems = async (
 ): Promise<{ slug: string; fileData: GrayMatterFile<string> }[]> => {
   const dirPath = getDataPath(subDirs);
   const fileList = await getFiles(path.join(dirPath, '**', '*.md'));
-  return Promise.all(
+  const items = await Promise.all(
     fileList.map(async (filePath) => {
       const fileStr: string = await readFile(filePath, 'utf-8');
       return {
@@ -51,6 +51,7 @@ const getMarkdownItems = async (
       };
     })
   );
+  return items.sort((a, b) => b.fileData.data.published - a.fileData.data.published);
 };
 
 const getPageData = (
