@@ -10,7 +10,7 @@ I shouldn't have been surprised that it was taken. According to Social Security 
 
 Clearly, I needed an alternative.
 
-My then-husband was gracious enough to let me borrow his surname, so that's what I've been using since. I even registered 'Jen Montes LLC' so that people could write checks to this 'Jen Montes' without their banks raising a fit. It was _legit_.
+My then-husband was gracious enough to let me borrow his surname, so that's what I've been using since. I even registered 'Jen Montes LLC' so that people could write checks to this 'Jen Montes' without their banks raising a fit. It was *legit*.
 
 Things change though. I haven't been married for about 3 years now, so continuing to use the name feels... odd. I think it's time to move on.
 
@@ -18,10 +18,10 @@ Things change though. I haven't been married for about 3 years now, so continui
 
 I still can't use my 'real' name though. People have been squatting on that domain [since 2001](https://web.archive.org/web/*/jennifergarcia.com) and it doesn't look like that will change anytime soon. To remedy this, I've decided to go with the nickname I've been using privately for a few years now: cuibonobo.
 
-I'm proud of 'cuibonobo'. It's a (https://en.wikipedia.org/wiki/Portmanteau) of _cui bono_ and _bonobo_:
+I'm proud of 'cuibonobo'. It's a (https://en.wikipedia.org/wiki/Portmanteau) of *cui bono* and *bonobo*:
 
-* Cui bono (kwee-bow-no) roughly means, “Who benefits?” It's a useful tool for figuring out motive.
-* Bonobos are a species of ape closely related to the chimpanzee and best known for living in matriarchal societies and resolving disputes with casual sex.
+- Cui bono (kwee-bow-no) roughly means, “Who benefits?” It's a useful tool for figuring out motive.
+- Bonobos are a species of ape closely related to the chimpanzee and best known for living in matriarchal societies and resolving disputes with casual sex.
 
 Fitting, I think.
 
