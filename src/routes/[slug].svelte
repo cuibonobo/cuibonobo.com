@@ -22,6 +22,7 @@
 
 <script>
   import MetaTitle from '@components/MetaTitle.svelte';
+  import Markdown from '@components/Markdown.svelte';
 
   export let title: string, published: Date, content: string;
 </script>
@@ -30,4 +31,4 @@
 
 <h2>{title}</h2>
 <div>{published}</div>
-<div>{@html content}</div>
+<article><Markdown markdown={content} /></article>

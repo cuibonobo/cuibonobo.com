@@ -3,7 +3,6 @@ import util from 'util';
 import path from 'path';
 import glob from 'glob';
 import matter, { GrayMatterFile } from 'gray-matter';
-import marked from 'marked';
 
 const readFile = util.promisify(fs.readFile);
 const getFiles = util.promisify(glob);
@@ -58,7 +57,7 @@ const getPageData = (
   fileData: matter.GrayMatterFile<string>
 ): { content: string; title: string; published: Date } => {
   return {
-    content: marked(fileData.content),
+    content: fileData.content,
     title: fileData.data.title,
     published: new Date(fileData.data.published)
   };
@@ -68,7 +67,7 @@ const getEphemeraData = (
   fileData: matter.GrayMatterFile<string>
 ): { content: string; published: Date } => {
   return {
-    content: marked(fileData.content),
+    content: fileData.content,
     published: new Date(fileData.data.published)
   };
 };
@@ -77,7 +76,7 @@ const getArticleData = (
   fileData: matter.GrayMatterFile<string>
 ): { content: string; title: string; published: Date; tags: string } => {
   return {
-    content: marked(fileData.content),
+    content: fileData.content,
     title: fileData.data.title,
     published: new Date(fileData.data.published),
     tags: fileData.data.tags

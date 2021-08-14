@@ -23,6 +23,7 @@
 
 <script>
   import MetaTitle from '@components/MetaTitle.svelte';
+  import Markdown from '@components/Markdown.svelte';
 
   export let items: { published: Date; content: string }[];
 </script>
@@ -32,6 +33,6 @@
 <h2>Ephemera</h2>
 <ul>
   {#each items as item}
-    <li>{item.published}: {@html item.content}</li>
+    <li>{item.published}: <Markdown markdown={item.content} /></li>
   {/each}
 </ul>
