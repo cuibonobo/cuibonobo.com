@@ -7,8 +7,8 @@
       const files = await getMarkdownItems(['ephemera']);
       return {
         props: {
-          items: files.map(({ published, fileData }) => {
-            return { published, content: getEphemeraData(fileData).content };
+          items: files.map(({ fileData }) => {
+            return getEphemeraData(fileData);
           })
         }
       };

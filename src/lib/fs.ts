@@ -29,15 +29,6 @@ const getSlug = (filePath: string, basePath: string): string => {
   return relpath;
 };
 
-const getFilePathDate = (filePath: string, basePath: string): Date => {
-  const dateParts = getSlug(filePath, basePath).split('/');
-  const baseName = dateParts.pop().split('.')[0];
-  const dayParts = baseName.split('-');
-  return new Date(
-    `${dateParts[0]}-${dateParts[1]}-${dayParts[0]}T${dayParts[1]}:${dayParts[2]}:${dayParts[3]}`
-  );
-};
-
 const getMarkdownItem = async (
   subDirs: string[],
   slug: string
@@ -49,7 +40,7 @@ const getMarkdownItem = async (
 
 const getMarkdownItems = async (
   subDirs: string[]
-): Promise<{ slug: string; published: Date; fileData: GrayMatterFile<string> }[]> => {
+): Promise<{ slug: string; fileData: GrayMatterFile<string> }[]> => {
   const dirPath = getDataPath(subDirs);
   const fileList = await getFiles(path.join(dirPath, '**', '*.md'));
   return Promise.all(
@@ -57,7 +48,6 @@ const getMarkdownItems = async (
       const fileStr: string = await readFile(filePath, 'utf-8');
       return {
         slug: getSlug(filePath, dirPath),
-        published: getFilePathDate(filePath, dirPath),
         fileData: matter(fileStr)
       };
     })
@@ -74,9 +64,12 @@ const getPageData = (
   };
 };
 
-const getEphemeraData = (fileData: matter.GrayMatterFile<string>): { content: string } => {
+const getEphemeraData = (
+  fileData: matter.GrayMatterFile<string>
+): { content: string; published: Date } => {
   return {
-    content: marked(fileData.content)
+    content: marked(fileData.content),
+    published: new Date(fileData.data.published)
   };
 };
 
