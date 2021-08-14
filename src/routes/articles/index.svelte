@@ -32,9 +32,11 @@
 
 <MetaTitle title="Articles | cuibonobo" />
 
-<h2>Articles</h2>
-<ul>
-  {#each items as item}
-    <li><a href="/articles/{item.slug}/">{item.data.title}</a></li>
-  {/each}
-</ul>
+<main class="prose">
+  <h2>Articles</h2>
+  <ul>
+    {#each items as item}
+      <li><a href="/articles/{item.slug}/">{item.data.title}</a></li>
+    {/each}
+  </ul>
+</main>
