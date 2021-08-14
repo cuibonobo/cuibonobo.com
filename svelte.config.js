@@ -1,5 +1,6 @@
 import preprocess from 'svelte-preprocess';
 import adapter from '@sveltejs/adapter-static';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -21,6 +22,9 @@ const config = {
     adapter: adapter({
       fallback: null
     }),
+    vite: {
+      plugins: [tsconfigPaths()]
+    },
     hydrate: false,
     router: false,
     prerender: {

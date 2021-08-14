@@ -20,7 +20,7 @@
 </script>
 
 <script>
-  import MetaTitle from '../components/MetaTitle.svelte';
+  import MetaTitle from '@components/MetaTitle.svelte';
   export let status: string;
   export let message: string;
 </script>

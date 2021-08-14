@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   import type { Load } from '@sveltejs/kit';
-  import { getMarkdownItems, getArticleData } from '../../lib/fs';
+  import { getMarkdownItems, getArticleData } from '@lib/fs';
 
   export const load: Load = async ({ page }) => {
     try {
@@ -22,7 +22,7 @@
 </script>
 
 <script>
-  import MetaTitle from '../../components/MetaTitle.svelte';
+  import MetaTitle from '@components/MetaTitle.svelte';
 
   export let items: {
     slug: string;
