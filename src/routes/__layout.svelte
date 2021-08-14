@@ -1,5 +1,5 @@
 <script>
-  import MetaTitle from '@components/MetaTitle.svelte';
+  import MetaTitle from '../components/MetaTitle.svelte';
 </script>
 
 <MetaTitle title="cuibonobo" />
