@@ -8,6 +8,12 @@
     const { slug } = page.params;
     try {
       const fileData = await getMarkdownItem(['pages'], slug);
+      if ('redirect' in fileData.data) {
+        return {
+          status: 301,
+          redirect: fileData.data.redirect
+        };
+      }
       return {
         props: getPageData(fileData)
       };
