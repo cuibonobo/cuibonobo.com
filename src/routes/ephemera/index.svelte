@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   import type { Load } from '@sveltejs/kit';
-  import { getMarkdownItems, getEphemeraData } from '@lib/fs';
+  import { getMarkdownItems, getEphemeraData } from '../../lib/fs';
 
   export const load: Load = async ({ page }) => {
     try {
@@ -22,8 +22,8 @@
 </script>
 
 <script>
-  import MetaTitle from '@components/MetaTitle.svelte';
-  import Markdown from '@components/Markdown.svelte';
+  import MetaTitle from '../../components/MetaTitle.svelte';
+  import Markdown from '../../components/Markdown.svelte';
 
   export let items: { published: Date; content: string }[];
 </script>
