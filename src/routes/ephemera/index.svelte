@@ -22,15 +22,13 @@
 </script>
 
 <script>
-  import MetaTitle from '../../components/MetaTitle.svelte';
+  import Title from '../../components/Title.svelte';
   import Markdown from '../../components/Markdown.svelte';
 
   export let items: { published: Date; content: string }[];
 </script>
 
-<MetaTitle title="Ephemera" />
-
-<h2>Ephemera</h2>
+<Title title="Ephemera" />
 <ul>
   {#each items as item}
     <li>{item.published}: <Markdown markdown={item.content} /></li>

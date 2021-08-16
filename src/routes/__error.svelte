@@ -20,12 +20,10 @@
 </script>
 
 <script>
-  import MetaTitle from '../components/MetaTitle.svelte';
+  import Title from '../components/Title.svelte';
   export let status: string;
   export let message: string;
 </script>
 
-<MetaTitle title="Error: {status}" />
-
-<h1>Error: {status}</h1>
+<Title title="Error: {status}" />
 <p>{message}</p>

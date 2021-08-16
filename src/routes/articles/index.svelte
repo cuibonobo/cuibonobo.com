@@ -22,7 +22,7 @@
 </script>
 
 <script>
-  import MetaTitle from '../../components/MetaTitle.svelte';
+  import Title from '../../components/Title.svelte';
 
   export let items: {
     slug: string;
@@ -30,9 +30,7 @@
   }[];
 </script>
 
-<MetaTitle title="Articles" />
-
-<h2>Articles</h2>
+<Title title="Articles" />
 <ul>
   {#each items as item}
     <li><a href="/articles/{item.slug}/">{item.data.title}</a></li>
