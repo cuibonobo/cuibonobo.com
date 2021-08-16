@@ -33,10 +33,9 @@
 <ul>
   {#each items as item}
     <li>
-      <PublishedDate
-        published={item.published}
-        displayInline={true}
-      />: <Markdown markdown={item.content} />
+      <PublishedDate published={item.published} displayInline={true} />: <Markdown
+        markdown={item.content}
+      />
     </li>
   {/each}
 </ul>

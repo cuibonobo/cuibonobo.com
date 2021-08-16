@@ -8,7 +8,7 @@
 </script>
 
 <time
-  class={`${displayInline ? "" : "block "}italic text-gray-600`}
+  class={`${displayInline ? '' : 'block '}italic text-gray-600`}
   itemprop="datePublished"
   datetime={datetimeString}
   title={datetimeString}

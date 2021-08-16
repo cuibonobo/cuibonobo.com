@@ -27,13 +27,7 @@ const config = {
       crawl: true,
       enabled: true,
       onError: 'continue',
-      pages: [
-        '/',
-        '/about',
-        '/ephemera',
-        '/articles/drawing-from-the-public-domain',
-        '/articles/the-artist-formerly-known-as-jen-montes'
-      ]
+      pages: ['*']
     }
   }
 };
