@@ -21,7 +21,9 @@
 </header>
 
 <div class="bg-white container mx-auto p-4">
-  <slot />
+  <main class="prose">
+    <slot />
+  </main>
 </div>
 
 <footer class="container mx-auto p-4 md:px-0 grid grid-cols-1 md:grid-cols-2 text-sm text-gray-600">

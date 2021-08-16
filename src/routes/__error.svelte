@@ -27,7 +27,5 @@
 
 <MetaTitle title="Error: {status} | cuibonobo" />
 
-<main class="prose">
-  <h1>Error: {status}</h1>
-  <p>{message}</p>
-</main>
+<h1>Error: {status}</h1>
+<p>{message}</p>

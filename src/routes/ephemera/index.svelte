@@ -30,11 +30,9 @@
 
 <MetaTitle title="Ephemera | cuibonobo" />
 
-<main class="prose">
-  <h2>Ephemera</h2>
-  <ul>
-    {#each items as item}
-      <li>{item.published}: <Markdown markdown={item.content} /></li>
-    {/each}
-  </ul>
-</main>
+<h2>Ephemera</h2>
+<ul>
+  {#each items as item}
+    <li>{item.published}: <Markdown markdown={item.content} /></li>
+  {/each}
+</ul>

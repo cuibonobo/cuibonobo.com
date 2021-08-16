@@ -29,9 +29,7 @@
 
 <MetaTitle title="{title} | cuibonobo" />
 
-<main class="prose">
-  <h2>{title}</h2>
-  <div>{published}</div>
-  <div>{tags}</div>
-  <article><Markdown markdown={content} /></article>
-</main>
+<h2>{title}</h2>
+<div>{published}</div>
+<div>{tags}</div>
+<article><Markdown markdown={content} /></article>
