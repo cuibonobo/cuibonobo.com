@@ -3,7 +3,7 @@
   import MetaTitle from '../components/MetaTitle.svelte';
 </script>
 
-<MetaTitle title="cuibonobo" />
+<MetaTitle title="cuibonobo" overrideDefault={true} />
 
 <header
   id="top-bar"

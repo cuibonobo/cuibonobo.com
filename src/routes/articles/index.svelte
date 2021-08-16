@@ -30,7 +30,7 @@
   }[];
 </script>
 
-<MetaTitle title="Articles | cuibonobo" />
+<MetaTitle title="Articles" />
 
 <h2>Articles</h2>
 <ul>

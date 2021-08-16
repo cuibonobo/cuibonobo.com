@@ -25,7 +25,7 @@
   export let message: string;
 </script>
 
-<MetaTitle title="Error: {status} | cuibonobo" />
+<MetaTitle title="Error: {status}" />
 
 <h1>Error: {status}</h1>
 <p>{message}</p>

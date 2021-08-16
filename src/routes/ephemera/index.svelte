@@ -28,7 +28,7 @@
   export let items: { published: Date; content: string }[];
 </script>
 
-<MetaTitle title="Ephemera | cuibonobo" />
+<MetaTitle title="Ephemera" />
 
 <h2>Ephemera</h2>
 <ul>

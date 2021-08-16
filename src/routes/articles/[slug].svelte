@@ -27,7 +27,7 @@
   export let title: string, published: Date, tags: string, content: string;
 </script>
 
-<MetaTitle title="{title} | cuibonobo" />
+<MetaTitle {title} />
 
 <h2>{title}</h2>
 <div>{published}</div>
