@@ -23,6 +23,7 @@
 
 <script>
   import Title from '../../components/Title.svelte';
+  import PublishedDate from '../../components/PublishedDate.svelte';
   import Markdown from '../../components/Markdown.svelte';
 
   export let items: { published: Date; content: string }[];
@@ -31,6 +32,11 @@
 <Title title="Ephemera" />
 <ul>
   {#each items as item}
-    <li>{item.published}: <Markdown markdown={item.content} /></li>
+    <li>
+      <PublishedDate
+        published={item.published}
+        displayInline={true}
+      />: <Markdown markdown={item.content} />
+    </li>
   {/each}
 </ul>

@@ -22,12 +22,13 @@
 
 <script>
   import Title from '../../components/Title.svelte';
+  import PublishedDate from '../../components/PublishedDate.svelte';
   import Markdown from '../../components/Markdown.svelte';
 
   export let title: string, published: Date, tags: string, content: string;
 </script>
 
 <Title {title} />
-<div>{published}</div>
+<PublishedDate {published} />
 <div>{tags}</div>
 <article><Markdown markdown={content} /></article>
