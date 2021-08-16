@@ -1,0 +1,8 @@
+/* AUTHOR */
+Name: Jen Garcia
+Email: jen (at) cuibonobo (dot) com
+Twitter: cuibonobo
+Location: Atlanta, Georgia, USA
+                            
+/* COLOPHON */
+This site was made with Svelte Kit and written in Visual Studio Code on a Windows 10 PC.
