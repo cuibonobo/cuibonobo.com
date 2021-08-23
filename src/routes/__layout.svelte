@@ -26,8 +26,29 @@
   </main>
 </div>
 
-<footer class="container mx-auto p-4 md:px-0 grid grid-cols-1 md:grid-cols-2 text-sm text-gray-600">
-  <div class="mb-2">
+<footer class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 text-sm text-gray-600">
+  <div class="grid grid-rows-2 mb-2">
+    <nav class="mb-2">
+      <a class="mr-2" href="/ephemera/">Ephemera</a>
+      <a class="mr-2" href="/articles/">Articles</a>
+      <a class="mr-2" href="/about/">About</a>
+    </nav>
+    <div class="mb-2">
+      <a class="mr-2" href="https://twitter.com/cuibonobo" target="_blank" rel="noopener noreferrer"
+        >Twitter</a
+      >
+      <a class="mr-2" href="https://github.com/cuibonobo" target="_blank" rel="noopener noreferrer"
+        >GitHub</a
+      >
+      <a
+        class="mr-2"
+        href="https://instagram.com/cuibonobo"
+        target="_blank"
+        rel="noopener noreferrer">Instagram</a
+      >
+    </div>
+  </div>
+  <div class="md:text-right">
     Except where otherwise noted, everything by <a href="/">cuibonobo</a> on this website is
     <a
       title="Creative Commons CC0"
@@ -35,32 +56,5 @@
       target="_blank"
       rel="noopener noreferrer">dedicated to the public domain</a
     >.
-  </div>
-  <div class="grid grid-rows-2 md:text-right">
-    <nav class="mb-2 md:mb-0">
-      <a class="md:ml-2" href="/ephemera/">Ephemera</a>
-      <a class="md:ml-2" href="/articles/">Articles</a>
-      <a class="md:ml-2" href="/about/">About</a>
-    </nav>
-    <div>
-      <a
-        class="md:ml-2"
-        href="https://twitter.com/cuibonobo"
-        target="_blank"
-        rel="noopener noreferrer">Twitter</a
-      >
-      <a
-        class="md:ml-2"
-        href="https://github.com/cuibonobo"
-        target="_blank"
-        rel="noopener noreferrer">GitHub</a
-      >
-      <a
-        class="md:ml-2"
-        href="https://instagram.com/cuibonobo"
-        target="_blank"
-        rel="noopener noreferrer">Instagram</a
-      >
-    </div>
   </div>
 </footer>
