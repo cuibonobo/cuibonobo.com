@@ -3,7 +3,8 @@
 
   export let published: Date;
   export let displayInline = false;
-  const localeString = moment(published).format('MMMM Do YYYY, h:mm:ss a');
+  export let showTime = false;
+  const localeString = moment(published).format(`MMMM Do YYYY${showTime ? ', h:mm:ss a' : ''}`);
   const datetimeString = moment(published).format();
 </script>
 
@@ -13,5 +14,5 @@
   datetime={datetimeString}
   title={datetimeString}
 >
-  {localeString}
+  Published: {localeString}
 </time>

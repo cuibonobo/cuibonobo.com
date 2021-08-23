@@ -30,5 +30,5 @@
 
 <Title {title} />
 <PublishedDate {published} />
-<div>{tags}</div>
+<div class="italic text-gray-600">Tags: {tags}</div>
 <article><Markdown markdown={content} /></article>
