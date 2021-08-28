@@ -1,23 +1,32 @@
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
+import process from 'process';
 import { Command } from 'commander';
 import moment from 'moment';
 import { exec } from 'child_process';
 
 const dataDir = path.resolve('data');
 const writeFile = util.promisify(fs.writeFile);
-console.debug('dataDir', dataDir);
+
+const getDefaultEditor = (): string => {
+  switch (process.platform) {
+    case 'win32':
+      return 'start ""';
+    case 'darwin':
+      return 'open';
+    default:
+      return '${VISUAL-${EDITOR-nano}}';
+  }
+};
 
 const program = new Command();
 program
   .command('new <postType> <slug>')
   .description('Create a new post with the given post type')
   .action(async (postType, slug) => {
-    console.debug('starting new');
     let postDir: string;
     const postData = ['---'];
-    console.debug('input data', postType, slug);
     switch (postType) {
       case 'page':
         postDir = path.join(dataDir, 'pages');
@@ -41,11 +50,8 @@ program
     postData.push('---');
     postData.push('');
     const postPath = path.join(postDir, `${slug}.md`);
-    console.debug('postPath', postPath);
-    console.debug('postData', postData);
     await writeFile(postPath, postData.join('\n'));
-    exec(`code ${postPath}`);
-    console.debug('finished new');
+    exec(`${getDefaultEditor()} "${postPath}"`);
   });
 
 program.parse();
