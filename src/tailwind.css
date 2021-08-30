@@ -2,16 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-a {
-  text-decoration: underline;
-}
-a:hover {
-  background-color: #fde68a;
-}
-.prose hr {
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-#top-bar a {
-  text-decoration: none;
+@layer base {
+  a {
+    @apply underline;
+  }
+  a:hover {
+    @apply bg-yellow-200;
+  }
+  .prose hr {
+    @apply my-8;
+  }
+  #top-bar a {
+    @apply no-underline;
+  }
+  #footer a:hover {
+    @apply bg-white;
+  }
 }

@@ -12,7 +12,7 @@
   <div class="text-2xl font-bold inline-flex pl-2">
     <a class="px-2 py-1" href="/">cuibonobo</a>
   </div>
-  <nav id="main-menu" class="flex flex-wrap pr-2">
+  <nav id="main-menu" class="flex flex-wrap pr-2 leading-loose">
     <a class="mx-2 px-2 py-1" href="/">Home</a>
     <a class="mx-2 px-2 py-1" href="/ephemera/">Ephemera</a>
     <a class="mx-2 px-2 py-1" href="/articles/">Articles</a>
@@ -26,7 +26,10 @@
   </main>
 </div>
 
-<footer class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 text-sm text-gray-600">
+<footer
+  id="footer"
+  class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 text-sm text-gray-600"
+>
   <div class="grid grid-rows-2 mb-2">
     <nav class="mb-2">
       <a class="mr-2" href="/ephemera/">Ephemera</a>
