@@ -9,6 +9,16 @@
   a:hover {
     @apply bg-yellow-200;
   }
+  .prose {
+    @apply font-serif;
+  }
+  .prose h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    @apply font-sans;
+  }
   .prose hr {
     @apply my-8;
   }
