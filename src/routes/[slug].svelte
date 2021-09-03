@@ -28,12 +28,10 @@
 
 <script>
   import Title from '../components/Title.svelte';
-  import PublishedDate from '../components/PublishedDate.svelte';
   import Markdown from '../components/Markdown.svelte';
 
-  export let title: string, published: Date, content: string;
+  export let title: string, content: string;
 </script>
 
 <Title {title} />
-<PublishedDate {published} />
 <article><Markdown markdown={content} /></article>

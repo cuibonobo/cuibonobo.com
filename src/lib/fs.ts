@@ -75,11 +75,12 @@ const getEphemeraData = (
 
 const getArticleData = (
   fileData: matter.GrayMatterFile<string>
-): { content: string; title: string; published: Date; tags: string } => {
+): { content: string; title: string; published: Date; updated: Date | null; tags: string } => {
   return {
     content: fileData.content,
     title: fileData.data.title,
     published: new Date(fileData.data.published),
+    updated: fileData.data.updated ? new Date(fileData.data.published) : null,
     tags: fileData.data.tags
   };
 };

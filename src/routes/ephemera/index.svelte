@@ -23,7 +23,7 @@
 
 <script>
   import Title from '../../components/Title.svelte';
-  import PublishedDate from '../../components/PublishedDate.svelte';
+  import DisplayDate from '../../components/DisplayDate.svelte';
   import Markdown from '../../components/Markdown.svelte';
 
   export let items: { published: Date; content: string }[];
@@ -34,7 +34,7 @@
   <div class="collection-item">
     <Markdown markdown={item.content} />
     <div class="article-metadata">
-      <PublishedDate published={item.published} displayInline={true} showTime={true} />
+      <DisplayDate date={item.published} showTime={true} />
     </div>
   </div>
 {/each}
