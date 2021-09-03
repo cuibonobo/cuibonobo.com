@@ -28,7 +28,9 @@
   export let title: string, published: Date, tags: string, content: string;
 </script>
 
+<div class="article-metadata">
+  <PublishedDate {published} />
+  <div>{tags}</div>
+</div>
 <Title {title} />
-<PublishedDate {published} />
-<div class="italic text-gray-600">Tags: {tags}</div>
 <article><Markdown markdown={content} /></article>

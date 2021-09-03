@@ -9,10 +9,10 @@
 </script>
 
 <time
-  class={`${displayInline ? '' : 'block '}italic text-gray-600`}
+  class={`${displayInline ? '' : 'block '}`}
   itemprop="datePublished"
   datetime={datetimeString}
   title={datetimeString}
 >
-  Published: {localeString}
+  Published on {localeString}
 </time>

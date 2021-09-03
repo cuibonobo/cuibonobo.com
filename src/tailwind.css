@@ -22,6 +22,38 @@
   .prose hr {
     @apply my-8;
   }
+  .prose p {
+    @apply first:mt-0;
+    @apply last:mb-0;
+  }
+  .article-metadata {
+    @apply text-gray-600;
+    @apply text-sm;
+    @apply font-sans;
+    @apply h-4;
+  }
+  .article-metadata * {
+    @apply px-2;
+    @apply mb-2;
+    @apply border-r;
+    @apply border-gray-300;
+    @apply float-left;
+    @apply last:border-0;
+    @apply first:pl-0;
+  }
+  .main-title {
+    margin-top: 0 !important;
+    margin-bottom: 1rem !important;
+    @apply clear-both;
+  }
+  .collection-item {
+    @apply p-4;
+    @apply clear-both;
+    @apply border-b;
+    @apply border-gray-300;
+    @apply last:pb-0;
+    @apply last:border-0;
+  }
   #top-bar a {
     @apply no-underline;
   }

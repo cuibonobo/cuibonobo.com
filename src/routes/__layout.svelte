@@ -20,7 +20,7 @@
   </nav>
 </header>
 
-<div class="bg-white container mx-auto p-4">
+<div class="bg-white container mx-auto p-4 pb-8">
   <main class="prose">
     <slot />
   </main>

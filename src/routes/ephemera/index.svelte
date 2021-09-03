@@ -30,12 +30,11 @@
 </script>
 
 <Title title="Ephemera" />
-<ul>
-  {#each items as item}
-    <li>
-      <PublishedDate published={item.published} displayInline={true} showTime={true} />: <Markdown
-        markdown={item.content}
-      />
-    </li>
-  {/each}
-</ul>
+{#each items as item}
+  <div class="collection-item">
+    <Markdown markdown={item.content} />
+    <div class="article-metadata">
+      <PublishedDate published={item.published} displayInline={true} showTime={true} />
+    </div>
+  </div>
+{/each}
