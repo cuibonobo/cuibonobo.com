@@ -6,10 +6,51 @@ import matter, { GrayMatterFile } from 'gray-matter';
 
 const readFile = util.promisify(fs.readFile);
 const getFiles = util.promisify(glob);
+const writeFile = util.promisify(fs.writeFile);
+const mkDir = util.promisify(
+  (
+    path: string,
+    options: fs.MakeDirectoryOptions = {},
+    callback: (err: NodeJS.ErrnoException, path?: string) => void
+  ) => {
+    options.recursive = true;
+    return fs.mkdir(path, options, callback);
+  }
+);
+const lstat = util.promisify(fs.lstat);
+
+const getDefaultEditor = (): string => {
+  switch (process.platform) {
+    case 'win32':
+      return 'start ""';
+    case 'darwin':
+      return 'open';
+    default:
+      return '${VISUAL-${EDITOR-nano}}';
+  }
+};
+
+const ensureDir = async (path: string): Promise<void> => {
+  try {
+    const f = await lstat(path);
+    if (f.isFile()) {
+      await mkDir(path, { recursive: true });
+    }
+  } catch (e) {
+    if (e.code == 'ENOENT') {
+      await mkDir(path, { recursive: true });
+      return;
+    }
+    throw e;
+  }
+};
+
+const getDataDir = (): string => {
+  return path.resolve('data');
+};
 
 const getDataPath = (subDirs: string[], slug?: string): string => {
-  const dataPath = path.resolve('data');
-  const pathData = [dataPath, ...subDirs];
+  const pathData = [getDataDir(), ...subDirs];
   if (slug) {
     pathData.push(`${slug}.md`);
   }
@@ -85,4 +126,14 @@ const getArticleData = (
   };
 };
 
-export { getMarkdownItem, getMarkdownItems, getPageData, getEphemeraData, getArticleData };
+export {
+  getMarkdownItem,
+  getMarkdownItems,
+  getPageData,
+  getEphemeraData,
+  getArticleData,
+  getDefaultEditor,
+  ensureDir,
+  getDataDir,
+  writeFile
+};

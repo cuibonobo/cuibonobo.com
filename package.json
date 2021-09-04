@@ -9,7 +9,7 @@
     "build:404": "ncp ./build/404/index.html ./build/404.html && rimraf ./build/404",
     "clean": "rimraf ./build",
     "clean:all": "npm run clean && rimraf ./svelte-kit",
-    "cli": "node --loader ts-node/esm --no-warnings ./src/cli.ts",
+    "cli": "node --loader ts-node/esm --experimental-modules --es-module-specifier-resolution=node --no-warnings ./src/cli.ts",
     "postbuild": "npm run build:sitemap && npm run build:404",
     "preview": "svelte-kit preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",

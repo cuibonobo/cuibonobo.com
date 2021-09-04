@@ -1,50 +1,8 @@
 import path from 'path';
-import fs from 'fs';
-import util from 'util';
-import process from 'process';
 import { Command } from 'commander';
 import moment from 'moment';
 import { exec } from 'child_process';
-
-const dataDir = path.resolve('data');
-const writeFile = util.promisify(fs.writeFile);
-const mkDir = util.promisify(
-  (
-    path: string,
-    options: fs.MakeDirectoryOptions = {},
-    callback: (err: NodeJS.ErrnoException, path?: string) => void
-  ) => {
-    options.recursive = true;
-    return fs.mkdir(path, options, callback);
-  }
-);
-const lstat = util.promisify(fs.lstat);
-
-const getDefaultEditor = (): string => {
-  switch (process.platform) {
-    case 'win32':
-      return 'start ""';
-    case 'darwin':
-      return 'open';
-    default:
-      return '${VISUAL-${EDITOR-nano}}';
-  }
-};
-
-const ensureDir = async (path: string) => {
-  try {
-    const f = await lstat(path);
-    if (f.isFile()) {
-      await mkDir(path, { recursive: true });
-    }
-  } catch (e) {
-    if (e.code == 'ENOENT') {
-      await mkDir(path, { recursive: true });
-      return;
-    }
-    throw e;
-  }
-};
+import { getDataDir, getDefaultEditor, ensureDir, writeFile } from './lib/fs';
 
 const program = new Command();
 program
@@ -56,16 +14,16 @@ program
     const postData = ['---'];
     switch (postType) {
       case 'page':
-        postDir = path.join(dataDir, 'pages');
+        postDir = path.join(getDataDir(), 'pages');
         postData.push('title: ');
         break;
       case 'article':
-        postDir = path.join(dataDir, 'articles');
+        postDir = path.join(getDataDir(), 'articles');
         postData.push('title: ');
         postData.push('tags: ');
         break;
       case 'ephemera':
-        postDir = path.join(dataDir, 'ephemera', now.format('YYYY/MM'));
+        postDir = path.join(getDataDir(), 'ephemera', now.format('YYYY/MM'));
         slug = now.format('DD-hh-mm-ss');
         break;
       default:
