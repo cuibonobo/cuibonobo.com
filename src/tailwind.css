@@ -9,6 +9,9 @@
   a:hover {
     @apply bg-yellow-200;
   }
+  video {
+    @apply w-full;
+  }
   .prose {
     @apply font-serif;
   }
