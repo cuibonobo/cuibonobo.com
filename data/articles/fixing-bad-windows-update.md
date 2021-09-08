@@ -2,7 +2,7 @@
 title: Fixing a bad Windows update
 tags: windows, troubleshooting, pc
 published: 2021-09-06T21:18:52-04:00
-updated: 2021-09-06T21:18:52-04:00
+updated: 2021-09-07T23:14:42-04:00
 ---
 
 <video controls loop preload="metadata" src="/media/2021/09/git-status-hell.mp4">
@@ -13,7 +13,7 @@ I started experiencing really terrible PC performance last Friday and I assumed 
 
 I looked around online for some way to disable or uninstall the update and I found [an answer on SuperUser](https://superuser.com/a/1661509/242807) that suggested running the following commands:
 
-```powershell
+```batch
 DISM /online /cleanup-image /restorehealth
 sfc /scannow
 ```
