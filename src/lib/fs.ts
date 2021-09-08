@@ -121,7 +121,7 @@ const getArticleData = (
     content: fileData.content,
     title: fileData.data.title,
     published: new Date(fileData.data.published),
-    updated: fileData.data.updated ? new Date(fileData.data.published) : null,
+    updated: fileData.data.updated ? new Date(fileData.data.updated) : null,
     tags: fileData.data.tags
   };
 };

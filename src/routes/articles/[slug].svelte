@@ -34,7 +34,7 @@
 </div>
 <Title {title} />
 <article><Markdown markdown={content} /></article>
-{#if updated}
+{#if updated && updated > published}
   <div class="article-metadata mt-4">
     <DisplayDate date={updated} prefix="Updated on " itemProp="dateModified" />
   </div>
