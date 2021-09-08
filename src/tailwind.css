@@ -1,3 +1,5 @@
+@import 'prismjs/themes/prism-dark.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
