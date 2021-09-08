@@ -2,12 +2,12 @@
   import marked from 'marked';
   import xss, { whiteList } from 'xss';
   import prism from 'prismjs';
-  import 'prismjs/components/prism-javascript';
-  import 'prismjs/components/prism-typescript';
-  import 'prismjs/components/prism-python';
-  import 'prismjs/components/prism-powershell';
-  import 'prismjs/components/prism-bash';
-  import 'prismjs/components/prism-batch';
+  import 'prismjs/components/prism-javascript.js';
+  import 'prismjs/components/prism-typescript.js';
+  import 'prismjs/components/prism-python.js';
+  import 'prismjs/components/prism-powershell.js';
+  import 'prismjs/components/prism-bash.js';
+  import 'prismjs/components/prism-batch.js';
 
   marked.setOptions({
     highlight: (code, lang) => {
