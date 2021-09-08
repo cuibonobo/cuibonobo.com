@@ -1,6 +1,6 @@
 <script lang="ts">
   import marked from 'marked';
-  import xss, { whiteList } from 'xss';
+  import * as xss from 'xss';
   import prism from 'prismjs';
   import 'prismjs/components/prism-javascript.js';
   import 'prismjs/components/prism-typescript.js';
@@ -21,7 +21,9 @@
 
   export let markdown: string;
 
-  const content = xss(marked.parse(markdown), { whiteList: { ...whiteList, span: ['class'] } });
+  const content = xss.filterXSS(marked.parse(markdown), {
+    whiteList: { ...xss.whiteList, span: ['class'] }
+  });
 </script>
 
 {@html content}
