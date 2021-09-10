@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../tailwind.css';
-  import MetaTitle from '../components/MetaTitle.svelte';
+  import MetaTitle from '@components/MetaTitle.svelte';
 </script>
 
 <MetaTitle title="cuibonobo" overrideDefault={true} />

@@ -2,7 +2,7 @@ import path from 'path';
 import { Command } from 'commander';
 import moment from 'moment';
 import { exec } from 'child_process';
-import { getDataDir, getDefaultEditor, ensureDir, writeFile } from './lib/fs';
+import { getDataDir, getDefaultEditor, ensureDir, writeFile } from '@lib/fs';
 
 const program = new Command();
 program

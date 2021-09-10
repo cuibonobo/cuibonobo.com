@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   import type { Load } from '@sveltejs/kit';
-  import { getMarkdownItem, getPageData } from '../lib/fs';
+  import { getMarkdownItem, getPageData } from '@lib/fs';
 
   export const load: Load = async ({ page }) => {
     // the `slug` parameter is available because this file
@@ -27,8 +27,8 @@
 </script>
 
 <script lang="ts">
-  import Title from '../components/Title.svelte';
-  import Markdown from '../components/Markdown.svelte';
+  import Title from '@components/Title.svelte';
+  import Markdown from '@components/Markdown.svelte';
 
   export let title: string, content: string;
 </script>

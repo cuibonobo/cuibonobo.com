@@ -20,7 +20,7 @@
 </script>
 
 <script lang="ts">
-  import Title from '../components/Title.svelte';
+  import Title from '@components/Title.svelte';
   export let status: string;
   export let message: string;
 </script>
