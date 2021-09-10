@@ -5,11 +5,7 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
   // Consult https://github.com/sveltejs/svelte-preprocess
   // for more information about preprocessors
-  preprocess: preprocess({
-    defaults: {
-      script: 'typescript'
-    }
-  }),
+  preprocess: preprocess(),
   kit: {
     files: {
       assets: 'static',
@@ -27,7 +23,7 @@ const config = {
       crawl: true,
       enabled: true,
       onError: 'continue',
-      pages: ['*']
+      entries: ['*']
     }
   }
 };

@@ -21,7 +21,7 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import Title from '../../components/Title.svelte';
   import DisplayDate from '../../components/DisplayDate.svelte';
   import Markdown from '../../components/Markdown.svelte';
