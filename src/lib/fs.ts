@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import util from 'util';
 import path from 'path';
 import glob from 'glob';
@@ -18,6 +19,11 @@ const mkDir = util.promisify(
   }
 );
 const lstat = util.promisify(fs.lstat);
+const mkTempDir = util.promisify(
+  (callback: (err: NodeJS.ErrnoException, folder: string) => void) => {
+    return fs.mkdtemp(path.join(os.tmpdir(), 'cuibonobo-'), callback);
+  }
+);
 
 const getDefaultEditor = (): string => {
   switch (process.platform) {
@@ -135,5 +141,6 @@ export {
   getDefaultEditor,
   ensureDir,
   getDataDir,
-  writeFile
+  writeFile,
+  mkTempDir
 };
