@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import moment from 'moment';
 import { exec } from 'child_process';
 import yaml from 'yaml';
-import { ulid } from 'ulid';
+import { generateId } from './lib/id';
 import {
   getDataDir,
   getDefaultEditor,
@@ -47,7 +47,7 @@ const yamlPlaceholder = '.';
 const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
   const now = new Date();
   const postData = {
-    id: ulid(now.getTime()),
+    id: generateId(now.getTime()),
     published: now,
     updated: now,
     slug: ''
@@ -111,7 +111,7 @@ program
             ...item.fileData.data,
             slug: item.slug,
             content: item.fileData.content,
-            id: ulid(new Date(item.fileData.data.published).getTime())
+            id: generateId(new Date(item.fileData.data.published).getTime())
           }));
         } else {
           console.error('Skipped file', postType, item.slug);
