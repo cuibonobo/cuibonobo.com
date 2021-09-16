@@ -1,5 +1,5 @@
 import timekeeper from 'timekeeper';
-import { generateId, intToCrockford32 } from './id';
+import { generateId, intToCrockford32, RAND_SUFFIX_LENGTH } from './id';
 
 test('Generate Crockford base 32 for single digits', () => {
   expect(intToCrockford32(0)).toBe('0');
@@ -57,13 +57,13 @@ test('IDs generated in the same millisecond will be different', () => {
   // Crockford-32 number, we should have seen a repeat random suffix at least
   // once. This is to improve the code coverage of the
   // `while(usedRandChars.includes(randChars))` block.
-  const length = Math.pow(32, 3) / 2 + 1;
+  const length = Math.ceil(Math.pow(32, RAND_SUFFIX_LENGTH) / 2) + 1;
   for (let i = 0; i < length; i++) {
     idArray[i] = generateId();
   }
   // All of the timestamp parts of the IDs should be the same
-  const timestampSet = new Set(idArray.map((s) => s.slice(0, 9)));
-  expect(new Set([idArray[0].slice(0, 9)])).toEqual(timestampSet);
+  const timestampSet = new Set(idArray.map((s) => s.slice(0, -RAND_SUFFIX_LENGTH)));
+  expect(new Set([idArray[0].slice(0, -RAND_SUFFIX_LENGTH)])).toEqual(timestampSet);
   // All of the IDs should be unique
   expect(new Set(idArray).size).toBe(idArray.length);
   timekeeper.reset();

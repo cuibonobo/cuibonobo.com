@@ -3,7 +3,7 @@ import crypto from 'crypto';
 const CHARACTERS = '0123456789abcdefghjkmnpqrstvwxyz';
 const BASE = CHARACTERS.length;
 const MIN_TIMESTAMP = 9;
-const RAND_SUFFIX = 3;
+export const RAND_SUFFIX_LENGTH = 3;
 
 let lastNowId: string | null = null;
 let usedRandChars: string[] = [];
@@ -28,7 +28,7 @@ export const intToCrockford32 = (n: number): string => {
 
 const generateRandChars = (): string => {
   let randChars = '';
-  for (let i = 0; i < RAND_SUFFIX; i++) {
+  for (let i = 0; i < RAND_SUFFIX_LENGTH; i++) {
     randChars += intToCrockford32(crypto.randomInt(0, BASE));
   }
   return randChars;
