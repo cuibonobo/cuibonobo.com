@@ -26,7 +26,7 @@
 
   export let items: {
     slug: string;
-    data: { content: string; title: string; published: Date; tags: string };
+    data: { content: string; title: string; created: Date; tags: string };
   }[];
 </script>
 

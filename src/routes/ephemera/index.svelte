@@ -26,7 +26,7 @@
   import DisplayDate from '@components/DisplayDate.svelte';
   import Markdown from '@components/Markdown.svelte';
 
-  export let items: { published: Date; content: string }[];
+  export let items: { created: Date; content: string }[];
 </script>
 
 <Title title="Ephemera" />
@@ -34,7 +34,7 @@
   <div class="collection-item">
     <Markdown markdown={item.content} />
     <div class="article-metadata">
-      <DisplayDate date={item.published} showTime={true} />
+      <DisplayDate date={item.created} showTime={true} />
     </div>
   </div>
 {/each}

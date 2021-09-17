@@ -1,7 +1,7 @@
 ---
 title: Fixing a bad Windows update
 tags: windows, troubleshooting, pc
-published: 2021-09-06T21:18:52-04:00
+created: 2021-09-06T21:18:52-04:00
 updated: 2021-09-07T23:14:42-04:00
 ---
 

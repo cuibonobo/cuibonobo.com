@@ -1,6 +1,6 @@
 ---
 title: Cloudflare Durable Objects have an unfortunate name
-published: 2021-08-18T22:47:03
+created: 2021-08-18T22:47:03
 updated: 2021-08-18T23:19:57
 tags: cloudflare, serverless, code
 ---

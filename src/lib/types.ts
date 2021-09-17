@@ -6,22 +6,31 @@ export enum PostTypeName {
 
 interface BasePost {
   id: string;
-  published: Date;
+  created: Date;
   updated: Date;
-  slug: string;
 }
-interface TitleMixin {
-  title: string;
-}
-export interface PageType extends BasePost, TitleMixin {
+export interface PageType extends BasePost {
   type: PostTypeName.Page;
+  content: {
+    title: string;
+    slug: string;
+    text: string;
+  };
 }
-export interface ArticleType extends BasePost, TitleMixin {
+export interface ArticleType extends BasePost {
   type: PostTypeName.Article;
-  tags: string;
+  content: {
+    title: string;
+    tags: string;
+    slug: string;
+    text: string;
+  };
 }
 export interface EphemeraType extends BasePost {
   type: PostTypeName.Ephemera;
+  content: {
+    text: string;
+  };
 }
 
 export type PostType = PageType | ArticleType | EphemeraType;

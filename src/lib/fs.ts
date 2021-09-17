@@ -106,19 +106,19 @@ export const getMarkdownItems = async (
       };
     })
   );
-  return items.sort((a, b) => b.fileData.data.published - a.fileData.data.published);
+  return items.sort((a, b) => b.fileData.data.created - a.fileData.data.created);
 };
 
 export const createNewPost = async (postType: PostTypeName, slug?: string): Promise<string> => {
   const dataDir = getDataDir();
   let postDir: string = path.join(dataDir, getPostTypeDirName(postType));
   const postData = getdefaultPostData(postType);
-  const now = moment(postData.published);
+  const now = moment(postData.created);
   if (postType === PostTypeName.Ephemera) {
     postDir = path.join(postDir, now.format('YYYY/MM'));
-    postData.slug = now.format('DD-hh-mm-ss');
-  } else if (slug) {
-    postData.slug = slug;
+  }
+  if (slug && (postData.type === PostTypeName.Page || postData.type === PostTypeName.Article)) {
+    postData.content.slug = slug;
   }
   const yamlLines = yaml.stringify(postData).split('\n');
   const postOutput = [yamlDivider, ...yamlLines.slice(0, yamlLines.length - 1), yamlDivider, ''];
@@ -130,30 +130,30 @@ export const createNewPost = async (postType: PostTypeName, slug?: string): Prom
 
 export const getPageData = (
   fileData: matter.GrayMatterFile<string>
-): { content: string; title: string; published: Date } => {
+): { content: string; title: string; created: Date } => {
   return {
     content: fileData.content,
     title: fileData.data.title,
-    published: new Date(fileData.data.published)
+    created: new Date(fileData.data.created)
   };
 };
 
 export const getEphemeraData = (
   fileData: matter.GrayMatterFile<string>
-): { content: string; published: Date } => {
+): { content: string; created: Date } => {
   return {
     content: fileData.content,
-    published: new Date(fileData.data.published)
+    created: new Date(fileData.data.created)
   };
 };
 
 export const getArticleData = (
   fileData: matter.GrayMatterFile<string>
-): { content: string; title: string; published: Date; updated: Date | null; tags: string } => {
+): { content: string; title: string; created: Date; updated: Date | null; tags: string } => {
   return {
     content: fileData.content,
     title: fileData.data.title,
-    published: new Date(fileData.data.published),
+    created: new Date(fileData.data.created),
     updated: fileData.data.updated ? new Date(fileData.data.updated) : null,
     tags: fileData.data.tags
   };
@@ -163,22 +163,33 @@ const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
   const now = new Date();
   const postData = {
     id: generateId(now.getTime()),
-    published: now,
-    updated: now,
-    slug: ''
+    created: now,
+    updated: now
   };
   switch (postTypeName) {
     case PostTypeName.Page:
-      return { type: PostTypeName.Page, ...postData, title: yamlPlaceholder };
+      return {
+        type: PostTypeName.Page,
+        ...postData,
+        content: {
+          title: yamlPlaceholder,
+          slug: yamlPlaceholder,
+          text: ''
+        }
+      };
     case PostTypeName.Article:
       return {
         type: PostTypeName.Article,
         ...postData,
-        title: yamlPlaceholder,
-        tags: yamlPlaceholder
+        content: {
+          title: yamlPlaceholder,
+          tags: yamlPlaceholder,
+          slug: yamlPlaceholder,
+          text: ''
+        }
       };
     case PostTypeName.Ephemera:
-      return { type: PostTypeName.Ephemera, ...postData };
+      return { type: PostTypeName.Ephemera, ...postData, content: { text: '' } };
   }
 };
 

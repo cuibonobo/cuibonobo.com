@@ -25,16 +25,16 @@
   import DisplayDate from '@components/DisplayDate.svelte';
   import Markdown from '@components/Markdown.svelte';
 
-  export let title: string, published: Date, updated: Date | null, tags: string, content: string;
+  export let title: string, created: Date, updated: Date | null, tags: string, content: string;
 </script>
 
 <div class="article-metadata">
-  <DisplayDate date={published} />
+  <DisplayDate date={created} />
   <div>{tags}</div>
 </div>
 <Title {title} />
 <article><Markdown markdown={content} /></article>
-{#if updated && updated > published}
+{#if updated && updated > created}
   <div class="article-metadata mt-4">
     <DisplayDate date={updated} prefix="Updated on " itemProp="dateModified" />
   </div>

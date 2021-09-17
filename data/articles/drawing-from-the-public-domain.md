@@ -1,6 +1,6 @@
 ---
 title: Drawing from the Public Domain
-published: 2016-01-24T18:40:00
+created: 2016-01-24T18:40:00
 tags: copyright, public domain, resources
 ---
 
@@ -25,7 +25,7 @@ Perhaps as a response to the current state of copyrighted works, many public and
 
 Copyrights are automatic so in many cases works are copyrighted even though *we don't intend them to be*. For this website, I'd like to reverse that position:
 
-> Unless otherwise noted, all work by [cuibonobo](https://cuibonobo.com) published on this website is [dedicated to the public domain](http://creativecommons.org/publicdomain/zero/1.0/).
+> Unless otherwise noted, all work by [cuibonobo](https://cuibonobo.com) created on this website is [dedicated to the public domain](http://creativecommons.org/publicdomain/zero/1.0/).
 
 This means you may copy, modify, distribute, and perform any of the materials you find here without asking for permission.
 

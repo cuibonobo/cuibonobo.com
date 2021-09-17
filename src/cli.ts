@@ -11,6 +11,8 @@ import {
   getPostTypeDirName
 } from './lib/fs';
 
+type Json = null | boolean | string | number | { [key: string]: Json } | Json[];
+
 const program = new Command();
 program
   .command('new <postType> <slug>')
@@ -32,15 +34,38 @@ program
     for (const postType of Object.values(PostTypeName)) {
       const tempPostDir = path.join(tempDir, postType);
       const items = await getMarkdownItems([getPostTypeDirName(postType)]);
-      const output: JSON[] = [];
+      const output: Json[] = [];
       for (const item of items) {
-        if (item.fileData.data.published) {
-          output.push(<JSON>(<unknown>{
-            ...item.fileData.data,
-            slug: item.slug,
-            content: item.fileData.content,
-            id: generateId(new Date(item.fileData.data.published).getTime())
-          }));
+        if (item.fileData.data.created) {
+          const outputItem: Json = {
+            id: generateId(new Date(item.fileData.data.created).getTime()),
+            type: postType,
+            created: item.fileData.data.created,
+            updated: item.fileData.data.updated
+              ? item.fileData.data.updated
+              : item.fileData.data.created,
+            content: {
+              text: item.fileData.content
+            }
+          };
+          switch (postType) {
+            case PostTypeName.Page:
+              outputItem.content['title'] = item.fileData.data.title
+                ? item.fileData.data.title
+                : '';
+              outputItem.content['slug'] = item.slug;
+              break;
+            case PostTypeName.Article:
+              outputItem.content['title'] = item.fileData.data.title
+                ? item.fileData.data.title
+                : '';
+              outputItem.content['slug'] = item.slug;
+              outputItem.content['tags'] = item.fileData.data.tags ? item.fileData.data.tags : '';
+              break;
+            case PostTypeName.Ephemera:
+              break;
+          }
+          output.push(outputItem);
         } else {
           console.error('Skipped file', postType, item.slug);
         }
