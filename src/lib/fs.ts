@@ -3,7 +3,14 @@ import os from 'os';
 import util from 'util';
 import path from 'path';
 import glob from 'glob';
+import moment from 'moment';
+import yaml from 'yaml';
 import matter, { GrayMatterFile } from 'gray-matter';
+import { PostTypeName, PostType } from './types';
+import { generateId } from './id';
+
+const yamlDivider = '---';
+const yamlPlaceholder = '.';
 
 const readFile = util.promisify(fs.readFile);
 const getFiles = util.promisify(glob);
@@ -19,13 +26,14 @@ const mkDir = util.promisify(
   }
 );
 const lstat = util.promisify(fs.lstat);
-const mkTempDir = util.promisify(
+
+export const mkTempDir = util.promisify(
   (callback: (err: NodeJS.ErrnoException, folder: string) => void) => {
     return fs.mkdtemp(path.join(os.tmpdir(), 'cuibonobo-'), callback);
   }
 );
 
-const getDefaultEditor = (): string => {
+export const getDefaultEditor = (): string => {
   switch (process.platform) {
     case 'win32':
       return 'start ""';
@@ -75,7 +83,7 @@ const getSlug = (filePath: string, basePath: string): string => {
   return relpath;
 };
 
-const getMarkdownItem = async (
+export const getMarkdownItem = async (
   subDirs: string[],
   slug: string
 ): Promise<GrayMatterFile<string>> => {
@@ -84,7 +92,7 @@ const getMarkdownItem = async (
   return matter(fileStr);
 };
 
-const getMarkdownItems = async (
+export const getMarkdownItems = async (
   subDirs: string[]
 ): Promise<{ slug: string; fileData: GrayMatterFile<string> }[]> => {
   const dirPath = getDataPath(subDirs);
@@ -101,7 +109,26 @@ const getMarkdownItems = async (
   return items.sort((a, b) => b.fileData.data.published - a.fileData.data.published);
 };
 
-const getPageData = (
+export const createNewPost = async (postType: PostTypeName, slug?: string): Promise<string> => {
+  const dataDir = getDataDir();
+  let postDir: string = path.join(dataDir, getPostTypeDirName(postType));
+  const postData = getdefaultPostData(postType);
+  const now = moment(postData.published);
+  if (postType === PostTypeName.Ephemera) {
+    postDir = path.join(postDir, now.format('YYYY/MM'));
+    postData.slug = now.format('DD-hh-mm-ss');
+  } else if (slug) {
+    postData.slug = slug;
+  }
+  const yamlLines = yaml.stringify(postData).split('\n');
+  const postOutput = [yamlDivider, ...yamlLines.slice(0, yamlLines.length - 1), yamlDivider, ''];
+  await ensureDir(postDir);
+  const postPath = path.join(postDir, `${slug}.md`);
+  await writeFile(postPath, postOutput.join('\n'));
+  return postPath;
+};
+
+export const getPageData = (
   fileData: matter.GrayMatterFile<string>
 ): { content: string; title: string; published: Date } => {
   return {
@@ -111,7 +138,7 @@ const getPageData = (
   };
 };
 
-const getEphemeraData = (
+export const getEphemeraData = (
   fileData: matter.GrayMatterFile<string>
 ): { content: string; published: Date } => {
   return {
@@ -120,7 +147,7 @@ const getEphemeraData = (
   };
 };
 
-const getArticleData = (
+export const getArticleData = (
   fileData: matter.GrayMatterFile<string>
 ): { content: string; title: string; published: Date; updated: Date | null; tags: string } => {
   return {
@@ -132,15 +159,32 @@ const getArticleData = (
   };
 };
 
-export {
-  getMarkdownItem,
-  getMarkdownItems,
-  getPageData,
-  getEphemeraData,
-  getArticleData,
-  getDefaultEditor,
-  ensureDir,
-  getDataDir,
-  writeFile,
-  mkTempDir
+const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
+  const now = new Date();
+  const postData = {
+    id: generateId(now.getTime()),
+    published: now,
+    updated: now,
+    slug: ''
+  };
+  switch (postTypeName) {
+    case PostTypeName.Page:
+      return { type: PostTypeName.Page, ...postData, title: yamlPlaceholder };
+    case PostTypeName.Article:
+      return {
+        type: PostTypeName.Article,
+        ...postData,
+        title: yamlPlaceholder,
+        tags: yamlPlaceholder
+      };
+    case PostTypeName.Ephemera:
+      return { type: PostTypeName.Ephemera, ...postData };
+  }
+};
+
+export const getPostTypeDirName = (postTypeName: PostTypeName): string => {
+  if (postTypeName === PostTypeName.Ephemera) {
+    return postTypeName;
+  }
+  return `${postTypeName}s`;
 };
