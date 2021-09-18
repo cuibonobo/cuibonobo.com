@@ -1,14 +1,18 @@
 <script context="module" lang="ts">
   import type { Load } from '@sveltejs/kit';
-  import { getMarkdownItems, getEphemeraData } from '@lib/fs';
+  import { getPostsByType } from '@lib/fs';
+  import { PostTypeName } from '@lib/types';
 
   export const load: Load = async ({ page }) => {
     try {
-      const files = await getMarkdownItems(['ephemera']);
+      const posts = await getPostsByType(PostTypeName.Ephemera);
       return {
         props: {
-          items: files.map(({ fileData }) => {
-            return getEphemeraData(fileData);
+          items: posts.map((post) => {
+            return {
+              created: post.created,
+              text: post.content.text
+            };
           })
         }
       };
@@ -26,13 +30,13 @@
   import DisplayDate from '@components/DisplayDate.svelte';
   import Markdown from '@components/Markdown.svelte';
 
-  export let items: { created: Date; content: string }[];
+  export let items: { created: Date; text: string }[];
 </script>
 
 <Title title="Ephemera" />
 {#each items as item}
   <div class="collection-item">
-    <Markdown markdown={item.content} />
+    <Markdown markdown={item.text} />
     <div class="article-metadata">
       <DisplayDate date={item.created} showTime={true} />
     </div>

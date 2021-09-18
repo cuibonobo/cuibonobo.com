@@ -116,7 +116,11 @@ export const checkoutPost = async (post: PostType): Promise<string> => {
   let postOutput = [];
   if (Object.keys(yamlData).length > 0) {
     const yamlLines = yaml.stringify(yamlData).split('\n');
-    postOutput = postOutput.concat([yamlDivider, ...yamlLines.slice(0, yamlLines.length - 1), yamlDivider]);
+    postOutput = postOutput.concat([
+      yamlDivider,
+      ...yamlLines.slice(0, yamlLines.length - 1),
+      yamlDivider
+    ]);
   }
   const editorFile = path.join(editorDir, `${post.id}.md`);
   await writeFile(editorFile, postOutput.join('\n') + text);
@@ -161,6 +165,20 @@ export const getPostsByType = async (postType: PostTypeName): Promise<PostType[]
   return items.sort((a, b) => b.created.getTime() - a.created.getTime());
 };
 
+export const getPostBySlug = async (slug: string, postType: PostTypeName): Promise<PostType> => {
+  if (postType === PostTypeName.Ephemera) {
+    throw new Error('Ephemera do not have slugs!');
+  }
+  // FIXME: This is extremely inefficient. Posts should be indexed somehow.
+  const posts = await getPostsByType(postType);
+  for (const post of posts) {
+    if (post.content['slug'] == slug) {
+      return post;
+    }
+  }
+  throw new Error(`No ${postType} posts contain slug '${slug}!'`);
+};
+
 const writeLockFile = async (
   postId: string,
   postType: PostTypeName,
@@ -202,37 +220,6 @@ const getLockFilePath = (): string => {
 
 const getPostPath = (postId: string, postType: PostTypeName): string => {
   return path.join(getDataDir(), postType, `${postId}.json`);
-};
-
-export const getPageData = (
-  fileData: matter.GrayMatterFile<string>
-): { content: string; title: string; created: Date } => {
-  return {
-    content: fileData.content,
-    title: fileData.data.title,
-    created: new Date(fileData.data.created)
-  };
-};
-
-export const getEphemeraData = (
-  fileData: matter.GrayMatterFile<string>
-): { content: string; created: Date } => {
-  return {
-    content: fileData.content,
-    created: new Date(fileData.data.created)
-  };
-};
-
-export const getArticleData = (
-  fileData: matter.GrayMatterFile<string>
-): { content: string; title: string; created: Date; updated: Date | null; tags: string } => {
-  return {
-    content: fileData.content,
-    title: fileData.data.title,
-    created: new Date(fileData.data.created),
-    updated: fileData.data.updated ? new Date(fileData.data.updated) : null,
-    tags: fileData.data.tags
-  };
 };
 
 const getdefaultPostData = (postTypeName: PostTypeName): PostType => {

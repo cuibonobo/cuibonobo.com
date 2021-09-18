@@ -1,21 +1,19 @@
 <script context="module" lang="ts">
   import type { Load } from '@sveltejs/kit';
-  import { getMarkdownItem, getPageData } from '@lib/fs';
+  import { getPostBySlug } from '@lib/fs';
+  import { PostTypeName } from '@lib/types';
 
   export const load: Load = async ({ page }) => {
     // the `slug` parameter is available because this file
     // is called [slug].svelte
     const { slug } = page.params;
     try {
-      const fileData = await getMarkdownItem(['pages'], slug);
-      if ('redirect' in fileData.data) {
-        return {
-          status: 301,
-          redirect: fileData.data.redirect
-        };
-      }
+      const post = await getPostBySlug(slug, PostTypeName.Page);
       return {
-        props: getPageData(fileData)
+        props: {
+          title: post.content['title'],
+          text: post.content['text']
+        }
       };
     } catch (e) {
       return {
@@ -30,8 +28,8 @@
   import Title from '@components/Title.svelte';
   import Markdown from '@components/Markdown.svelte';
 
-  export let title: string, content: string;
+  export let title: string, text: string;
 </script>
 
 <Title {title} />
-<article><Markdown markdown={content} /></article>
+<article><Markdown markdown={text} /></article>

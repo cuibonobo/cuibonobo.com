@@ -1,14 +1,21 @@
 <script context="module" lang="ts">
   import type { Load } from '@sveltejs/kit';
-  import { getMarkdownItems, getArticleData } from '@lib/fs';
+  import { getPostsByType } from '@lib/fs';
+  import { PostTypeName } from '@lib/types';
 
   export const load: Load = async ({ page }) => {
     try {
-      const files = await getMarkdownItems(['articles']);
+      const posts = await getPostsByType(PostTypeName.Article);
       return {
         props: {
-          items: files.map(({ slug, fileData }) => {
-            return { slug, data: getArticleData(fileData) };
+          items: posts.map((post) => {
+            return {
+              slug: post.content['slug'],
+              title: post.content['title'],
+              created: post.created,
+              tags: post.content['tags'],
+              text: post.content.text
+            };
           })
         }
       };
@@ -26,13 +33,16 @@
 
   export let items: {
     slug: string;
-    data: { content: string; title: string; created: Date; tags: string };
+    text: string;
+    title: string;
+    created: Date;
+    tags: string;
   }[];
 </script>
 
 <Title title="Articles" />
 <ul>
   {#each items as item}
-    <li><a href="/articles/{item.slug}/">{item.data.title}</a></li>
+    <li><a href="/articles/{item.slug}/">{item.title}</a></li>
   {/each}
 </ul>
