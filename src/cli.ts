@@ -8,7 +8,9 @@ import {
   getDefaultEditor,
   getMarkdownItems,
   mkTempDir,
-  getPostTypeDirName
+  getPostTypeDirName,
+  ensureDir,
+  writeFile
 } from './lib/fs';
 
 type Json = null | boolean | string | number | { [key: string]: Json } | Json[];
@@ -31,10 +33,11 @@ program
   .description('Migrates data to the latest version')
   .action(async () => {
     const tempDir = await mkTempDir();
+    console.debug(tempDir);
     for (const postType of Object.values(PostTypeName)) {
-      const tempPostDir = path.join(tempDir, postType);
+      const tempTypeDir = path.join(tempDir, postType);
+      await ensureDir(tempTypeDir);
       const items = await getMarkdownItems([getPostTypeDirName(postType)]);
-      const output: Json[] = [];
       for (const item of items) {
         if (item.fileData.data.created) {
           const outputItem: Json = {
@@ -65,14 +68,16 @@ program
             case PostTypeName.Ephemera:
               break;
           }
-          output.push(outputItem);
+          const outputItemPath = path.join(tempTypeDir, `${outputItem.id}.json`);
+          try {
+            await writeFile(outputItemPath, JSON.stringify(outputItem, null, 4));
+          } catch (e) {
+            console.error(`Couldn't write to ${outputItemPath}`, e);
+          }
         } else {
           console.error('Skipped file', postType, item.slug);
         }
       }
-      console.debug(tempPostDir);
-      console.debug(JSON.stringify(output, null, 4));
-      console.debug('-------------------------------------------');
     }
   });
 

@@ -14,7 +14,6 @@ const yamlPlaceholder = '.';
 
 const readFile = util.promisify(fs.readFile);
 const getFiles = util.promisify(glob);
-const writeFile = util.promisify(fs.writeFile);
 const mkDir = util.promisify(
   (
     path: string,
@@ -26,6 +25,8 @@ const mkDir = util.promisify(
   }
 );
 const lstat = util.promisify(fs.lstat);
+
+export const writeFile = util.promisify(fs.writeFile);
 
 export const mkTempDir = util.promisify(
   (callback: (err: NodeJS.ErrnoException, folder: string) => void) => {
@@ -44,7 +45,7 @@ export const getDefaultEditor = (): string => {
   }
 };
 
-const ensureDir = async (path: string): Promise<void> => {
+export const ensureDir = async (path: string): Promise<void> => {
   try {
     const f = await lstat(path);
     if (f.isFile()) {

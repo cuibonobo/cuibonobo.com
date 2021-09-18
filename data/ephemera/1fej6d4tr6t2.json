@@ -1,0 +1,9 @@
+{
+    "id": "1fej6d4tr6t2",
+    "type": "ephemera",
+    "created": "2021-09-02T02:46:31.000Z",
+    "updated": "2021-09-02T02:46:31.000Z",
+    "content": {
+        "text": "\nI did that thing on my laptop where you update your BIOS but forget to write down your BitLocker key... On a previous machine I was able to recoveer from this by installing the exact BIOS that I had before the upgrade, but I didn't write that down either. Extreme fail.\n\nLuckily I had transferred important stuff to my desktop long ago and only used my laptop for browsing. (And I do keep the BitLocker keys and triple backups for my desktop.)\n\nStill. What a pain.\n"
+    }
+}
