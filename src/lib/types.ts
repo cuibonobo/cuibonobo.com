@@ -34,3 +34,5 @@ export interface EphemeraType extends BasePost {
 }
 
 export type PostType = PageType | ArticleType | EphemeraType;
+
+export type Json = null | boolean | string | number | { [key: string]: Json } | Json[];

@@ -3,16 +3,17 @@ import os from 'os';
 import util from 'util';
 import path from 'path';
 import glob from 'glob';
-import moment from 'moment';
 import yaml from 'yaml';
-import matter, { GrayMatterFile } from 'gray-matter';
+import matter from 'gray-matter';
 import { PostTypeName, PostType } from './types';
 import { generateId } from './id';
 
 const yamlDivider = '---';
 const yamlPlaceholder = '.';
+const lockFileName = '.lock';
 
 const readFile = util.promisify(fs.readFile);
+const rm = util.promisify(fs.unlink);
 const getFiles = util.promisify(glob);
 const mkDir = util.promisify(
   (
@@ -60,73 +61,147 @@ export const ensureDir = async (path: string): Promise<void> => {
   }
 };
 
+const fileExists = async (path: string): Promise<boolean> => {
+  try {
+    const f = await lstat(path);
+    return f.isFile();
+  } catch (e) {
+    if (e.code == 'ENOENT') {
+      return false;
+    }
+    throw e;
+  }
+};
+
 const getDataDir = (): string => {
   return path.resolve('data');
 };
 
-const getDataPath = (subDirs: string[], slug?: string): string => {
-  const pathData = [getDataDir(), ...subDirs];
-  if (slug) {
-    pathData.push(`${slug}.md`);
-  }
-  return path.join(...pathData);
+export const createPost = async (postType: PostTypeName): Promise<PostType> => {
+  const postData = getdefaultPostData(postType);
+  await writePost(postData);
+  return postData;
 };
 
-const getSlug = (filePath: string, basePath: string): string => {
-  let relpath = filePath.substring(basePath.length);
-  if (relpath.startsWith('/')) {
-    relpath = relpath.slice(1);
-  }
-  const extIdx = relpath.indexOf('.');
-  if (extIdx > -1) {
-    relpath = relpath.slice(0, extIdx);
-  }
-  return relpath;
+export const editPost = async (postId: string, postType: PostTypeName): Promise<string> => {
+  const post = await readPost(postId, postType);
+  return await checkoutPost(post);
 };
 
-export const getMarkdownItem = async (
-  subDirs: string[],
-  slug: string
-): Promise<GrayMatterFile<string>> => {
-  const filePath = getDataPath(subDirs, slug);
-  const fileStr: string = await readFile(filePath, 'utf-8');
-  return matter(fileStr);
+const readPost = async (postId: string, postType: PostTypeName): Promise<PostType> => {
+  const postPath = getPostPath(postId, postType);
+  return readPostFromPath(postPath);
 };
 
-export const getMarkdownItems = async (
-  subDirs: string[]
-): Promise<{ slug: string; fileData: GrayMatterFile<string> }[]> => {
-  const dirPath = getDataPath(subDirs);
-  const fileList = await getFiles(path.join(dirPath, '**', '*.md'));
+const readPostFromPath = async (postPath: string): Promise<PostType> => {
+  const fileStr: string = await readFile(postPath, 'utf-8');
+  const post = JSON.parse(fileStr);
+  post.created = new Date(post.created);
+  post.updated = new Date(post.updated);
+  return post;
+};
+
+const writePost = async (post: PostType): Promise<void> => {
+  const postPath = getPostPath(post.id, post.type);
+  await ensureDir(path.dirname(postPath));
+  await writeFile(postPath, JSON.stringify(post, null, 2) + '\n');
+};
+
+export const checkoutPost = async (post: PostType): Promise<string> => {
+  checkLockFile();
+  const editorDir = await mkTempDir();
+  const yamlData = { ...post.content };
+  const text = post.content.text;
+  delete yamlData.text;
+  let postOutput = [];
+  if (Object.keys(yamlData).length > 0) {
+    const yamlLines = yaml.stringify(yamlData).split('\n');
+    postOutput = postOutput.concat([yamlDivider, ...yamlLines.slice(0, yamlLines.length - 1), yamlDivider]);
+  }
+  const editorFile = path.join(editorDir, `${post.id}.md`);
+  await writeFile(editorFile, postOutput.join('\n') + text);
+  await writeLockFile(post.id, post.type, editorFile);
+  return editorFile;
+};
+
+export const commitPost = async (): Promise<void> => {
+  const lockData = await readLockFile();
+  const post = await readPost(lockData.postId, lockData.postType as PostTypeName);
+  const fileStr: string = await readFile(lockData.lockedFilePath, 'utf-8');
+  const fileData = matter(fileStr);
+  if (post.content.text) {
+    post.updated = new Date();
+  }
+  post.content.text = fileData.content;
+  switch (lockData.postType) {
+    case PostTypeName.Page:
+      post.content['title'] = fileData.data.title ? fileData.data.title : '';
+      post.content['slug'] = fileData.data.slug;
+      break;
+    case PostTypeName.Article:
+      post.content['title'] = fileData.data.title ? fileData.data.title : '';
+      post.content['slug'] = fileData.data.slug;
+      post.content['tags'] = fileData.data.tags ? fileData.data.tags : '';
+      break;
+    case PostTypeName.Ephemera:
+      break;
+  }
+  await writePost(post);
+  await deleteLockFile();
+};
+
+export const getPostsByType = async (postType: PostTypeName): Promise<PostType[]> => {
+  const postDir = path.join(getDataDir(), postType);
+  const fileList = await getFiles(path.join(postDir, '**', '*.json'));
   const items = await Promise.all(
     fileList.map(async (filePath) => {
-      const fileStr: string = await readFile(filePath, 'utf-8');
-      return {
-        slug: getSlug(filePath, dirPath),
-        fileData: matter(fileStr)
-      };
+      return await readPostFromPath(filePath);
     })
   );
-  return items.sort((a, b) => b.fileData.data.created - a.fileData.data.created);
+  return items.sort((a, b) => b.created.getTime() - a.created.getTime());
 };
 
-export const createNewPost = async (postType: PostTypeName, slug?: string): Promise<string> => {
-  const dataDir = getDataDir();
-  let postDir: string = path.join(dataDir, getPostTypeDirName(postType));
-  const postData = getdefaultPostData(postType);
-  const now = moment(postData.created);
-  if (postType === PostTypeName.Ephemera) {
-    postDir = path.join(postDir, now.format('YYYY/MM'));
+const writeLockFile = async (
+  postId: string,
+  postType: PostTypeName,
+  lockedFilePath: string
+): Promise<void> => {
+  await writeFile(getLockFilePath(), `${lockedFilePath}\n${postType}\n${postId}`);
+};
+
+const readLockFile = async (): Promise<{
+  lockedFilePath: string;
+  postType: string;
+  postId: string;
+}> => {
+  const lockFileStr = await readFile(getLockFilePath(), 'utf-8');
+  const lockFileLines = lockFileStr.split('\n');
+  if (lockFileLines.length !== 3) {
+    throw new Error('Corrupted lock file!');
   }
-  if (slug && (postData.type === PostTypeName.Page || postData.type === PostTypeName.Article)) {
-    postData.content.slug = slug;
+  return {
+    lockedFilePath: lockFileLines[0],
+    postType: lockFileLines[1],
+    postId: lockFileLines[2]
+  };
+};
+
+const checkLockFile = async (): Promise<void> => {
+  if (await fileExists(getLockFilePath())) {
+    throw new Error('Data is locked!');
   }
-  const yamlLines = yaml.stringify(postData).split('\n');
-  const postOutput = [yamlDivider, ...yamlLines.slice(0, yamlLines.length - 1), yamlDivider, ''];
-  await ensureDir(postDir);
-  const postPath = path.join(postDir, `${slug}.md`);
-  await writeFile(postPath, postOutput.join('\n'));
-  return postPath;
+};
+
+const deleteLockFile = async (): Promise<void> => {
+  await rm(getLockFilePath());
+};
+
+const getLockFilePath = (): string => {
+  return path.join(getDataDir(), lockFileName);
+};
+
+const getPostPath = (postId: string, postType: PostTypeName): string => {
+  return path.join(getDataDir(), postType, `${postId}.json`);
 };
 
 export const getPageData = (
@@ -192,11 +267,4 @@ const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
     case PostTypeName.Ephemera:
       return { type: PostTypeName.Ephemera, ...postData, content: { text: '' } };
   }
-};
-
-export const getPostTypeDirName = (postTypeName: PostTypeName): string => {
-  if (postTypeName === PostTypeName.Ephemera) {
-    return postTypeName;
-  }
-  return `${postTypeName}s`;
 };
