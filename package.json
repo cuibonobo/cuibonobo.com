@@ -13,7 +13,7 @@
     "clean:svelte-cache": "rimraf ./svelte-kit",
     "clean:vite-cache": "rimraf ./node_modules/.vite",
     "cli": "node --loader ts-node/esm --experimental-modules --es-module-specifier-resolution=node --no-warnings ./src/cli.ts",
-    "postbuild": "npm run build:sitemap && npm run build:404",
+    "postbuild": "npm run build:404 && npm run build:sitemap",
     "preview": "svelte-kit preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",

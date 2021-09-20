@@ -5,7 +5,6 @@ import path from 'path';
 import glob from 'glob';
 import yaml from 'yaml';
 import matter from 'gray-matter';
-import { exec } from 'child_process';
 import { PostTypeName, PostType } from './types';
 import { generateId } from './id';
 
@@ -36,7 +35,7 @@ export const mkTempDir = util.promisify(
   }
 );
 
-export const openWithEditor = (path: string): void => {
+export const openWithEditor = (path: string): string => {
   let editor: string;
   switch (process.platform) {
     case 'win32':
@@ -49,10 +48,10 @@ export const openWithEditor = (path: string): void => {
       editor = '${VISUAL-${EDITOR-nano}}';
       break;
   }
-  exec(`${editor} "${path}"`);
+  return `${editor} "${path}"`;
 };
 
-export const openWithFileExplorer = (path: string): void => {
+export const openWithFileExplorer = (path: string): string => {
   let explorer: string;
   console.debug(process.platform);
   switch (process.platform) {
@@ -66,8 +65,7 @@ export const openWithFileExplorer = (path: string): void => {
       explorer = 'xdg-open --';
       break;
   }
-  console.debug(`${explorer} "${path}"`);
-  exec(`${explorer} "${path}"`);
+  return `${explorer} "${path}"`;
 };
 
 export const ensureDir = async (path: string): Promise<void> => {

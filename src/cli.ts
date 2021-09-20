@@ -1,4 +1,5 @@
 import path from 'path';
+import { exec } from 'child_process';
 import { Command } from 'commander';
 import { PostTypeName } from './lib/types';
 import {
@@ -27,8 +28,8 @@ program
       const post = await createPost(postType);
       console.debug(`Created ${post.type} post ID ${post.id}`);
       const editorPath = await checkoutPost(post);
-      openWithFileExplorer(path.dirname(editorPath));
-      openWithEditor(editorPath);
+      exec(openWithFileExplorer(path.dirname(editorPath)));
+      exec(openWithEditor(editorPath));
     } catch (e) {
       console.error(e);
     }
@@ -55,8 +56,8 @@ program
   .action(async (postType, postId) => {
     try {
       const editorPath = await editPost(postId, postType);
-      openWithFileExplorer(path.dirname(editorPath));
-      openWithEditor(editorPath);
+      exec(openWithFileExplorer(path.dirname(editorPath)));
+      exec(openWithEditor(editorPath));
     } catch (e) {
       console.error(`Couldn't edit ${postType} post ID ${postId}`, e);
     }
