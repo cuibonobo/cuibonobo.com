@@ -5,6 +5,7 @@ import path from 'path';
 import glob from 'glob';
 import yaml from 'yaml';
 import matter from 'gray-matter';
+import { exec } from 'child_process';
 import { PostTypeName, PostType } from './types';
 import { generateId } from './id';
 
@@ -35,15 +36,38 @@ export const mkTempDir = util.promisify(
   }
 );
 
-export const getDefaultEditor = (): string => {
+export const openWithEditor = (path: string): void => {
+  let editor: string;
   switch (process.platform) {
     case 'win32':
-      return 'start ""';
+      editor = 'start ""';
+      break;
     case 'darwin':
-      return 'open';
+      editor = 'open';
+      break;
     default:
-      return '${VISUAL-${EDITOR-nano}}';
+      editor = '${VISUAL-${EDITOR-nano}}';
+      break;
   }
+  exec(`${editor} "${path}"`);
+};
+
+export const openWithFileExplorer = (path: string): void => {
+  let explorer: string;
+  console.debug(process.platform);
+  switch (process.platform) {
+    case 'win32':
+      explorer = 'explorer';
+      break;
+    case 'darwin':
+      explorer = 'open --';
+      break;
+    default:
+      explorer = 'xdg-open --';
+      break;
+  }
+  console.debug(`${explorer} "${path}"`);
+  exec(`${explorer} "${path}"`);
 };
 
 export const ensureDir = async (path: string): Promise<void> => {
@@ -108,7 +132,7 @@ const writePost = async (post: PostType): Promise<void> => {
 };
 
 export const checkoutPost = async (post: PostType): Promise<string> => {
-  checkLockFile();
+  throwOnLockFile();
   const editorDir = await mkTempDir();
   const yamlData = { ...post.content };
   const text = post.content.text;
@@ -187,7 +211,7 @@ const writeLockFile = async (
   await writeFile(getLockFilePath(), `${lockedFilePath}\n${postType}\n${postId}`);
 };
 
-const readLockFile = async (): Promise<{
+export const readLockFile = async (): Promise<{
   lockedFilePath: string;
   postType: string;
   postId: string;
@@ -204,13 +228,13 @@ const readLockFile = async (): Promise<{
   };
 };
 
-const checkLockFile = async (): Promise<void> => {
+const throwOnLockFile = async (): Promise<void> => {
   if (await fileExists(getLockFilePath())) {
     throw new Error('Data is locked!');
   }
 };
 
-const deleteLockFile = async (): Promise<void> => {
+export const deleteLockFile = async (): Promise<void> => {
   await rm(getLockFilePath());
 };
 
