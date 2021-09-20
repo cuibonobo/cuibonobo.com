@@ -101,6 +101,10 @@ const getDataDir = (): string => {
   return path.resolve('data');
 };
 
+const getJsonString = (json: PostType | Record<string, unknown>): string => {
+  return JSON.stringify(json, null, 2) + '\n';
+};
+
 export const createPost = async (postType: PostTypeName): Promise<PostType> => {
   const postData = getdefaultPostData(postType);
   await writePost(postData);
@@ -128,7 +132,7 @@ const readPostFromPath = async (postPath: string): Promise<PostType> => {
 const writePost = async (post: PostType): Promise<void> => {
   const postPath = getPostPath(post.id, post.type);
   await ensureDir(path.dirname(postPath));
-  await writeFile(postPath, JSON.stringify(post, null, 2) + '\n');
+  await writeFile(postPath, getJsonString(post));
 };
 
 export const checkoutPost = async (post: PostType): Promise<string> => {
@@ -277,5 +281,25 @@ const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
       };
     case PostTypeName.Ephemera:
       return { type: PostTypeName.Ephemera, ...postData, content: { text: '' } };
+  }
+};
+
+const buildIndex = async (postType: PostTypeName): Promise<void> => {
+  const indexPath = path.join(path.resolve('static'), `${postType}.json`);
+  const posts = await getPostsByType(postType);
+  const index: { [key: string]: PostType } = {};
+  for (const post of posts) {
+    if (postType === PostTypeName.Ephemera) {
+      index[post.id] = post;
+    } else {
+      index[post.content['slug']] = post;
+    }
+  }
+  await writeFile(indexPath, getJsonString(index));
+};
+
+export const buildIndices = async (): Promise<void> => {
+  for (const postType of Object.values(PostTypeName)) {
+    await buildIndex(postType);
   }
 };

@@ -10,7 +10,8 @@ import {
   readLockFile,
   deleteLockFile,
   openWithEditor,
-  openWithFileExplorer
+  openWithFileExplorer,
+  buildIndices
 } from './lib/fs';
 
 const program = new Command();
@@ -95,6 +96,13 @@ program
     } catch (e) {
       console.info('Nothing is currently being edited.');
     }
+  });
+
+program
+  .command('index')
+  .description('Builds indices for the post types in the data store')
+  .action(async () => {
+    await buildIndices();
   });
 
 program.parse();

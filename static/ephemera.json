@@ -1,0 +1,83 @@
+{
+  "1fg0c46sb5bc": {
+    "type": "ephemera",
+    "id": "1fg0c46sb5bc",
+    "created": "2021-09-20T01:11:33.419Z",
+    "updated": "2021-09-20T01:11:33.419Z",
+    "content": {
+      "text": "I've managed to more or less make it a habit to tinker with something on my website every day. I've got it to where I can easily edit posts from the command-line, which I'm pretty excited about."
+    }
+  },
+  "1feqazs2083y": {
+    "id": "1feqazs2083y",
+    "type": "ephemera",
+    "created": "2021-09-04T02:42:48.000Z",
+    "updated": "2021-09-04T02:42:48.000Z",
+    "content": {
+      "text": "\nI went in to the office for work today and it always surprises me how tired I'm always surprised at how much it takes out of me. I'm still sitting in a chair and looking at a computer for 8 hours, but at home I don't feel like I've been hit by a bus at the end of the day.\n"
+    }
+  },
+  "1fej6d4tr6t2": {
+    "id": "1fej6d4tr6t2",
+    "type": "ephemera",
+    "created": "2021-09-02T02:46:31.000Z",
+    "updated": "2021-09-02T02:46:31.000Z",
+    "content": {
+      "text": "\nI did that thing on my laptop where you update your BIOS but forget to write down your BitLocker key... On a previous machine I was able to recoveer from this by installing the exact BIOS that I had before the upgrade, but I didn't write that down either. Extreme fail.\n\nLuckily I had transferred important stuff to my desktop long ago and only used my laptop for browsing. (And I do keep the BitLocker keys and triple backups for my desktop.)\n\nStill. What a pain.\n"
+    }
+  },
+  "1fe6hrsqgyvk": {
+    "id": "1fe6hrsqgyvk",
+    "type": "ephemera",
+    "created": "2021-08-28T14:14:14.000Z",
+    "updated": "2021-08-28T14:14:14.000Z",
+    "content": {
+      "text": "\nI just got a letter from my health insurance company saying that the hospital system that I've been using may fall \"out of network\" soon if the two parties can't reach some mutually beneficial agreement. Is this what being free to choose your own doctor feels like?\n"
+    }
+  },
+  "1fdv4ykggqee": {
+    "id": "1fdv4ykggqee",
+    "type": "ephemera",
+    "created": "2021-08-24T03:58:34.000Z",
+    "updated": "2021-08-24T03:58:34.000Z",
+    "content": {
+      "text": "\nI made a CLI that automatically generates post front-matter. Now writing on here won't be quite so tedious.\n"
+    }
+  },
+  "1fdr0he78f3r": {
+    "id": "1fdr0he78f3r",
+    "type": "ephemera",
+    "created": "2021-08-22T22:43:45.000Z",
+    "updated": "2021-08-22T22:43:45.000Z",
+    "content": {
+      "text": "\nToday I bought a bunch of camping stuff and installed Unreal Engine 4 on my PC. Extremely on brand.\n"
+    }
+  },
+  "1fd5wvkg003g": {
+    "id": "1fd5wvkg003g",
+    "type": "ephemera",
+    "created": "2021-08-15T21:53:04.000Z",
+    "updated": "2021-08-15T21:53:04.000Z",
+    "content": {
+      "text": "\nPublished my new site to my domain via Cloudflare Pages. Obviously there's still a lot of stuff that needs to get done (like figuring out how to not have to write the created date manually), but I'm really happy that it exists.\n"
+    }
+  },
+  "1fd2m73508q0": {
+    "id": "1fd2m73508q0",
+    "type": "ephemera",
+    "created": "2021-08-14T15:24:20.000Z",
+    "updated": "2021-08-14T15:24:20.000Z",
+    "content": {
+      "text": "\nDisgusted and delighted that my tactic actually worked. Figure out _what_ you want to express first and the _how_ will work itself out.\n"
+    }
+  },
+  "1fd023pzgzn0": {
+    "id": "1fd023pzgzn0",
+    "type": "ephemera",
+    "created": "2021-08-13T15:29:26.000Z",
+    "updated": "2021-08-13T15:29:26.000Z",
+    "content": {
+      "text": "\nI'm trying something radical (for me) and writing the posts on my new website before I've figured out how it's going to work. My previous attempts had all gotten bogged down in over-engineering and snobbery. At the very least I'll have a place for my thoughts even if the site doesn't actually work (yet).\n"
+    }
+  }
+}
