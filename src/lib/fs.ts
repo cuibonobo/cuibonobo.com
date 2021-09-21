@@ -53,7 +53,6 @@ export const openWithEditor = (path: string): string => {
 
 export const openWithFileExplorer = (path: string): string => {
   let explorer: string;
-  console.debug(process.platform);
   switch (process.platform) {
     case 'win32':
       explorer = 'explorer';

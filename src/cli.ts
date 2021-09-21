@@ -50,52 +50,72 @@ program
     console.info('\n');
   });
 
+const editCommit = async () => {
+  try {
+    await commitPost();
+  } catch (e) {
+    console.error("Couldn't commit", e);
+  }
+};
+
+const editDiscard = async () => {
+  try {
+    await deleteLockFile();
+    console.info('Cleared existing editing state');
+  } catch (e) {
+    console.info('Editing state was already clear');
+  }
+};
+
+const editStatus = async () => {
+  try {
+    const lockData = await readLockFile();
+    console.info(`Currently editing ${lockData.postType} ID ${lockData.postId}.`);
+    console.info(`Edit path: ${lockData.lockedFilePath}`);
+  } catch (e) {
+    console.info('Nothing is currently being edited.');
+  }
+};
+
+const editHelp = () => {
+  console.info('');
+  console.info('Commands: ');
+  console.info('  <postType> <postId>               Edits the post with the given post type and ID');
+  console.info('  status                            Shows whether a post is currently being edited');
+  console.info('  commit                            Saves the post that is being edited to the data store');
+  console.info('  discard                           Discard the edits currently in progress');
+  console.info('  help                              Shows this help text');
+};
+
+const editCommands = {
+  'commit': editCommit,
+  'discard': editDiscard,
+  'status': editStatus,
+  'help': editHelp
+}
+
 program
-  .command('edit <postType> <postId>')
-  .description('Opens an existing post for editing')
-  .action(async (postType, postId) => {
+  .command('edit <command|postType> [postId]')
+  .description('Edit existing posts of a given post type')
+  .action(async (command, postId) => {
+    if (command in editCommands) {
+      return editCommands[command]();
+    }
+    const postType = command;
+    if (!(Object.values(PostTypeName).includes(postType))) {
+      console.error(`'${postType}' is not an existing post type or command`);
+      return editHelp();
+    }
+    if (!postId) {
+      console.error('A post ID must be supplied to edit a post!');
+      return editHelp();
+    }
     try {
       const editorPath = await editPost(postId, postType);
       exec(openWithFileExplorer(path.dirname(editorPath)));
       exec(openWithEditor(editorPath));
     } catch (e) {
       console.error(`Couldn't edit ${postType} post ID ${postId}`, e);
-    }
-  });
-
-program
-  .command('commit')
-  .description('Saves the post being edited to the data store')
-  .action(async () => {
-    try {
-      await commitPost();
-    } catch (e) {
-      console.error("Couldn't commit", e);
-    }
-  });
-
-program
-  .command('discard')
-  .description('Clears the editing status of the data store')
-  .action(async () => {
-    try {
-      await deleteLockFile();
-      console.info('Cleared existing editing state');
-    } catch (e) {
-      console.info('Editing state was already clear');
-    }
-  });
-
-program
-  .command('status')
-  .description('Shows the current state of the data store')
-  .action(async () => {
-    try {
-      const lockData = await readLockFile();
-      console.info(`Currently editing ${lockData.postType} ID ${lockData.postId}.`);
-      console.info(`Edit path: ${lockData.lockedFilePath}`);
-    } catch (e) {
-      console.info('Nothing is currently being edited.');
     }
   });
 
