@@ -14,6 +14,7 @@ const lockFileName = '.lock';
 
 const readFile = util.promisify(fs.readFile);
 const rm = util.promisify(fs.unlink);
+const rmDir = util.promisify(fs.rmdir);
 const getFiles = util.promisify(glob);
 const mkDir = util.promisify(
   (
@@ -235,7 +236,14 @@ const throwOnLockFile = async (): Promise<void> => {
   }
 };
 
+const deleteLockedData = async (): Promise<void> => {
+  const lockData = await readLockFile();
+  const lockDir = path.dirname(lockData.lockedFilePath);
+  await rmDir(lockDir, {recursive: true});
+};
+
 export const deleteLockFile = async (): Promise<void> => {
+  await deleteLockedData();
   await rm(getLockFilePath());
 };
 
