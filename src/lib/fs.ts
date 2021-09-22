@@ -239,7 +239,7 @@ const throwOnLockFile = async (): Promise<void> => {
 const deleteLockedData = async (): Promise<void> => {
   const lockData = await readLockFile();
   const lockDir = path.dirname(lockData.lockedFilePath);
-  await rmDir(lockDir, {recursive: true});
+  await rmDir(lockDir, { recursive: true });
 };
 
 export const deleteLockFile = async (): Promise<void> => {

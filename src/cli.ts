@@ -78,21 +78,21 @@ const editStatus = async () => {
 };
 
 const editHelp = () => {
+  console.info('edit sub-commands: ');
+  console.info('    <postType> <postId>     Edits the post with the given post type and ID');
+  console.info('    status                  Shows whether a post is currently being edited');
+  console.info('    commit                  Saves the post that is being edited to the data store');
+  console.info('    discard                 Discard the edits currently in progress');
+  console.info('    help                    Shows this help text');
   console.info('');
-  console.info('Commands: ');
-  console.info('  <postType> <postId>               Edits the post with the given post type and ID');
-  console.info('  status                            Shows whether a post is currently being edited');
-  console.info('  commit                            Saves the post that is being edited to the data store');
-  console.info('  discard                           Discard the edits currently in progress');
-  console.info('  help                              Shows this help text');
 };
 
 const editCommands = {
-  'commit': editCommit,
-  'discard': editDiscard,
-  'status': editStatus,
-  'help': editHelp
-}
+  commit: editCommit,
+  discard: editDiscard,
+  status: editStatus,
+  help: editHelp
+};
 
 program
   .command('edit <command|postType> [postId]')
@@ -102,7 +102,7 @@ program
       return editCommands[command]();
     }
     const postType = command;
-    if (!(Object.values(PostTypeName).includes(postType))) {
+    if (!Object.values(PostTypeName).includes(postType)) {
       console.error(`'${postType}' is not an existing post type or command`);
       return editHelp();
     }
