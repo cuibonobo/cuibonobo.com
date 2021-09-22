@@ -23,7 +23,7 @@
   export let markdown: string;
 
   const content = xss(marked.parse(markdown), {
-    whiteList: { ...xssDefaults.whiteList, span: ['class'] }
+    whiteList: { ...xssDefaults.whiteList, span: ['class'], a: ['target', 'href', 'title', 'rel'] }
   });
 </script>
 
