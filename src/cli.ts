@@ -111,7 +111,7 @@ program
       return editHelp();
     }
     try {
-      const editorPath = await editPost(postId, postType);
+      const editorPath = await editPost(postId);
       exec(openWithFileExplorer(path.dirname(editorPath)));
       exec(openWithEditor(editorPath));
     } catch (e) {

@@ -2,7 +2,6 @@ import fs from 'fs';
 import os from 'os';
 import util from 'util';
 import path from 'path';
-import glob from 'glob';
 import yaml from 'yaml';
 import matter from 'gray-matter';
 import { PostTypeName, PostType } from './types';
@@ -13,9 +12,9 @@ const yamlPlaceholder = '.';
 const lockFileName = '.lock';
 
 const readFile = util.promisify(fs.readFile);
+const readDir = util.promisify(fs.readdir);
 const rm = util.promisify(fs.unlink);
 const rmDir = util.promisify(fs.rmdir);
-const getFiles = util.promisify(glob);
 const mkDir = util.promisify(
   (
     path: string,
@@ -109,13 +108,13 @@ export const createPost = async (postType: PostTypeName): Promise<PostType> => {
   return postData;
 };
 
-export const editPost = async (postId: string, postType: PostTypeName): Promise<string> => {
-  const post = await readPost(postId, postType);
+export const editPost = async (postId: string): Promise<string> => {
+  const post = await readPost(postId);
   return await checkoutPost(post);
 };
 
-const readPost = async (postId: string, postType: PostTypeName): Promise<PostType> => {
-  const postPath = getPostPath(postId, postType);
+const readPost = async (postId: string): Promise<PostType> => {
+  const postPath = getPostPath(postId);
   return readPostFromPath(postPath);
 };
 
@@ -128,8 +127,7 @@ const readPostFromPath = async (postPath: string): Promise<PostType> => {
 };
 
 const writePost = async (post: PostType): Promise<void> => {
-  const postPath = getPostPath(post.id, post.type);
-  await ensureDir(path.dirname(postPath));
+  const postPath = getPostPath(post.id);
   await writeFile(postPath, getJsonString(post));
 };
 
@@ -145,7 +143,8 @@ export const checkoutPost = async (post: PostType): Promise<string> => {
     postOutput = postOutput.concat([
       yamlDivider,
       ...yamlLines.slice(0, yamlLines.length - 1),
-      yamlDivider
+      yamlDivider,
+      ''
     ]);
   }
   const editorFile = path.join(editorDir, `${post.id}.md`);
@@ -156,11 +155,17 @@ export const checkoutPost = async (post: PostType): Promise<string> => {
 
 export const commitPost = async (): Promise<void> => {
   const lockData = await readLockFile();
-  const post = await readPost(lockData.postId, lockData.postType as PostTypeName);
+  const post = await readPost(lockData.postId);
   const fileStr: string = await readFile(lockData.lockedFilePath, 'utf-8');
   const fileData = matter(fileStr);
   if (post.content.text) {
     post.updated = new Date();
+    if (post.content.text.startsWith('\n')) {
+      post.content.text = post.content.text.slice(1);
+    }
+    if (post.content.text.endsWith('\n')) {
+      post.content.text = post.content.text.slice(0, post.content.text.length - 1);
+    }
   }
   post.content.text = fileData.content;
   switch (lockData.postType) {
@@ -178,17 +183,32 @@ export const commitPost = async (): Promise<void> => {
   }
   await writePost(post);
   await deleteLockFile();
+  await buildIndices();
 };
 
-export const getPostsByType = async (postType: PostTypeName): Promise<PostType[]> => {
-  const postDir = path.join(getDataDir(), postType);
-  const fileList = await getFiles(path.join(postDir, '**', '*.json'));
+export const getAllPosts = async (): Promise<PostType[]> => {
+  const dataDir = getDataDir();
+  const fileList = await readDir(dataDir, { withFileTypes: true });
   const items = await Promise.all(
     fileList.map(async (filePath) => {
-      return await readPostFromPath(filePath);
+      if (filePath.isDirectory()) {
+        return;
+      }
+      return await readPostFromPath(path.join(dataDir, filePath.name));
     })
   );
   return items.sort((a, b) => b.created.getTime() - a.created.getTime());
+};
+
+export const getPostsByType = async (postType: PostTypeName): Promise<PostType[]> => {
+  const allPosts = await getAllPosts();
+  const items: PostType[] = [];
+  for (const post of allPosts) {
+    if (post.type == postType) {
+      items.push(post);
+    }
+  }
+  return items;
 };
 
 export const getPostBySlug = async (slug: string, postType: PostTypeName): Promise<PostType> => {
@@ -251,8 +271,8 @@ const getLockFilePath = (): string => {
   return path.join(getDataDir(), lockFileName);
 };
 
-const getPostPath = (postId: string, postType: PostTypeName): string => {
-  return path.join(getDataDir(), postType, `${postId}.json`);
+const getPostPath = (postId: string): string => {
+  return path.join(getDataDir(), `${postId}.json`);
 };
 
 const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
@@ -289,22 +309,23 @@ const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
   }
 };
 
-const buildIndex = async (postType: PostTypeName): Promise<void> => {
-  const indexPath = path.join(path.resolve('static'), `${postType}.json`);
-  const posts = await getPostsByType(postType);
-  const index: { [key: string]: PostType } = {};
-  for (const post of posts) {
-    if (postType === PostTypeName.Ephemera) {
-      index[post.id] = post;
+export const buildIndices = async (): Promise<void> => {
+  const allPosts = await getAllPosts();
+  const indexData: { [key: string]: { path: string; data: { [key: string]: PostType } } } = {};
+  for (const post of allPosts) {
+    if (!(post.type in indexData)) {
+      indexData[post.type] = {
+        path: path.join(path.resolve('static'), `${post.type}.json`),
+        data: {}
+      };
+    }
+    if (post.type === PostTypeName.Ephemera) {
+      indexData[post.type].data[post.id] = post;
     } else {
-      index[post.content['slug']] = post;
+      indexData[post.type].data[post.content['slug']] = post;
     }
   }
-  await writeFile(indexPath, getJsonString(index));
-};
-
-export const buildIndices = async (): Promise<void> => {
-  for (const postType of Object.values(PostTypeName)) {
-    await buildIndex(postType);
+  for (const postType of Object.keys(indexData)) {
+    await writeFile(indexData[postType].path, getJsonString(indexData[postType].data));
   }
 };
