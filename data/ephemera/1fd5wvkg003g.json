@@ -1,9 +1,0 @@
-{
-  "id": "1fd5wvkg003g",
-  "type": "ephemera",
-  "created": "2021-08-15T21:53:04.000Z",
-  "updated": "2021-08-15T21:53:04.000Z",
-  "content": {
-    "text": "\nPublished my new site to my domain via Cloudflare Pages. Obviously there's still a lot of stuff that needs to get done (like figuring out how to not have to write the created date manually), but I'm really happy that it exists.\n"
-  }
-}
