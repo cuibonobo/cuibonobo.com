@@ -1,0 +1,9 @@
+{
+  "type": "ephemera",
+  "id": "1fm2p9py3aff",
+  "created": "2021-11-09T15:50:35.715Z",
+  "updated": "2021-11-09T15:50:35.715Z",
+  "content": {
+    "text": "I just tried [Tailscale](https://tailscale.com/) from my work laptop at the office to RDP into my PC at home and it worked like magic. No more port forwarding or brittle router settings! At some point I'd like to have my own identity server but as-is this technology is killer.\r\n"
+  }
+}
