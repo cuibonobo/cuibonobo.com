@@ -40,6 +40,7 @@
   }
   .article-metadata {
     @apply text-gray-400;
+    @apply text-base;
     @apply font-sans;
     @apply flex;
     @apply flex-row;
@@ -109,15 +110,36 @@
     @apply first:mt-0;
     @apply last:mb-0;
   }
+  .prose pre {
+    @apply bg-gray-900;
+  }
   .prose code, .prose a code {
+    @apply font-normal;
     @apply text-gray-200;
-    @apply bg-gray-700;
+    @apply bg-gray-900;
     @apply rounded-sm;
+  }
+  .prose code {
+  }
+  .prose a:hover code {
+    @apply bg-yellow-200;
+    @apply text-gray-600;
+  }
+  .prose code::before {
+    /* Content is a narrow no-break space */
+    content: " "
+  }
+  .prose code::after {
+    /* Content is a narrow no-break space */
+    content: " "
   }
   .prose blockquote {
     @apply text-gray-100;
     @apply border-l-4;
     @apply border-gray-600;
+  }
+  .prose table {
+    @apply text-base;
   }
   .prose tbody tr {
     @apply border-b;
