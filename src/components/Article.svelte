@@ -3,6 +3,7 @@
   import DisplayDate from '@components/DisplayDate.svelte';
 
   export let title: string;
+  export let displayTitle: boolean = true;
   export let pageTitle: string = title;
   export let overrideDefaultPageTitle: boolean = false;
   export let created: Date | null = null;
@@ -22,7 +23,7 @@
       {/if}
     </div>
     {/if}
-    <Title {title} {pageTitle} {overrideDefaultPageTitle} />
+    <Title {title} {displayTitle} {pageTitle} {overrideDefaultPageTitle} />
   </header>
   <section>
     <slot />

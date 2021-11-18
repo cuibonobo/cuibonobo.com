@@ -211,6 +211,10 @@ export const getPostsByType = async (postType: PostTypeName): Promise<PostType[]
   return items;
 };
 
+export const getPostById = async (postId: string): Promise<PostType> => {
+  return readPost(postId);
+};
+
 export const getPostBySlug = async (slug: string, postType: PostTypeName): Promise<PostType> => {
   if (postType === PostTypeName.Ephemera) {
     throw new Error('Ephemera do not have slugs!');

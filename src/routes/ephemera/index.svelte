@@ -10,6 +10,7 @@
         props: {
           items: posts.map((post) => {
             return {
+              id: post.id,
               created: post.created,
               text: post.content.text
             };
@@ -30,7 +31,7 @@
   import DisplayDate from '@components/DisplayDate.svelte';
   import Markdown from '@components/Markdown.svelte';
 
-  export let items: { created: Date; text: string }[];
+  export let items: { id: string, created: Date; text: string }[];
 </script>
 
 <Article title="Ephemera">
@@ -38,7 +39,7 @@
   <div class="collection-item">
     <Markdown markdown={item.text} />
     <div class="article-metadata">
-      <DisplayDate date={item.created} showTime={true} />
+      <a href="/ephemera/{item.id}/"><DisplayDate date={item.created} showTime={true} /></a>
     </div>
   </div>
 {/each}
