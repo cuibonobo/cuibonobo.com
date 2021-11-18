@@ -7,4 +7,4 @@
 </script>
 
 <MetaTitle title={pageTitle} overrideDefault={overrideDefaultPageTitle} />
-<h2 class="main-title">{title}</h2>
+<h2>{title}</h2>

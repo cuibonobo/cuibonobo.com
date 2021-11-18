@@ -29,7 +29,7 @@
 </script>
 
 <script lang="ts">
-  import Title from '@components/Title.svelte';
+  import Article from '@components/Article.svelte';
 
   export let items: {
     slug: string;
@@ -40,9 +40,10 @@
   }[];
 </script>
 
-<Title title="Articles" />
-<ul>
-  {#each items as item}
-    <li><a href="/articles/{item.slug}/">{item.title}</a></li>
-  {/each}
-</ul>
+<Article title="Articles">
+  <ul>
+    {#each items as item}
+      <li><a href="/articles/{item.slug}/">{item.title}</a></li>
+    {/each}
+  </ul>
+</Article>

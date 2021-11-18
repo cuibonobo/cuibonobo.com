@@ -7,28 +7,26 @@
 
 <header
   id="top-bar"
-  class="container justify-between flex flex-col md:flex-row py-2 my-4 mx-auto"
+  class="container justify-between flex flex-col md:flex-row py-2 px-4 md:p-4 mx-auto"
 >
-  <div class="brand text-2xl font-bold inline-flex pl-2">
-    <a class="px-2 py-1" href="/">cuibonobo</a>
+  <div class="brand text-2xl font-bold inline-flex">
+    <a href="/">cuibonobo</a>
   </div>
-  <nav id="main-menu" class="flex flex-wrap pr-2 leading-loose">
-    <a class="mx-2 px-2 py-1" href="/">Home</a>
-    <a class="mx-2 px-2 py-1" href="/ephemera/">Ephemera</a>
-    <a class="mx-2 px-2 py-1" href="/articles/">Articles</a>
-    <a class="ml-2 px-2 py-1" href="/about/">About</a>
+  <nav id="main-menu" class="flex flex-wrap leading-loose">
+    <a class="mr-4" href="/">Home</a>
+    <a class="mx-4" href="/ephemera/">Ephemera</a>
+    <a class="mx-4" href="/articles/">Articles</a>
+    <a class="ml-4" href="/about/">About</a>
   </nav>
 </header>
 
-<div class="container mx-auto p-4 pb-8">
-  <main class="prose">
-    <slot />
-  </main>
-</div>
+<main class="container mx-auto pt-2 pb-6 px-4 md:pt-4 md:pb-8">
+  <slot />
+</main>
 
 <footer
   id="footer"
-  class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 text-sm"
+  class="container mx-auto py-2 px-4 md:p-4 grid grid-cols-1 md:grid-cols-2 text-sm"
 >
   <div class="grid grid-rows-2 mb-2">
     <nav class="mb-2">

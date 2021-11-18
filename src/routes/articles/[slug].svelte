@@ -28,21 +28,12 @@
 </script>
 
 <script lang="ts">
-  import Title from '@components/Title.svelte';
-  import DisplayDate from '@components/DisplayDate.svelte';
+  import Article from '@components/Article.svelte';
   import Markdown from '@components/Markdown.svelte';
 
   export let title: string, created: Date, updated: Date | null, tags: string, text: string;
 </script>
 
-<div class="article-metadata">
-  <DisplayDate date={created} />
-  <div>{tags}</div>
-</div>
-<Title {title} />
-<article><Markdown markdown={text} /></article>
-{#if updated && updated > created}
-  <div class="article-metadata mt-4">
-    <DisplayDate date={updated} prefix="Updated on " itemProp="dateModified" />
-  </div>
-{/if}
+<Article {title} {created} {updated} {tags}>
+  <Markdown markdown={text} />
+</Article>

@@ -49,11 +49,8 @@
     @apply last:border-0;
     @apply first:pl-0;
   }
-  .main-title {
-    @apply clear-both;
-  }
   .collection-item {
-    @apply p-4;
+    @apply py-4;
     @apply clear-both;
     @apply border-b;
     @apply border-gray-600;
@@ -98,6 +95,7 @@
     @apply text-gray-100;
     @apply mt-0;
     @apply mb-4;
+    @apply clear-both;
   }
   .prose hr {
     @apply my-8;
@@ -115,6 +113,10 @@
   .prose blockquote {
     @apply text-gray-100;
     @apply border-l-4;
+    @apply border-gray-600;
+  }
+  .prose tbody tr {
+    @apply border-b;
     @apply border-gray-600;
   }
 }

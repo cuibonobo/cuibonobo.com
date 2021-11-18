@@ -25,11 +25,12 @@
 </script>
 
 <script lang="ts">
-  import Title from '@components/Title.svelte';
+  import Article from '@components/Article.svelte';
   import Markdown from '@components/Markdown.svelte';
 
   export let title: string, text: string;
 </script>
 
-<Title {title} />
-<article><Markdown markdown={text} /></article>
+<Article {title}>
+  <Markdown markdown={text} />
+</Article>

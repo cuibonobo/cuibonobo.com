@@ -26,15 +26,15 @@
 </script>
 
 <script lang="ts">
-  import Title from '@components/Title.svelte';
+  import Article from '@components/Article.svelte';
   import DisplayDate from '@components/DisplayDate.svelte';
   import Markdown from '@components/Markdown.svelte';
 
   export let items: { created: Date; text: string }[];
 </script>
 
-<Title title="Ephemera" />
-{#each items as item}
+<Article title="Ephemera">
+  {#each items as item}
   <div class="collection-item">
     <Markdown markdown={item.text} />
     <div class="article-metadata">
@@ -42,3 +42,4 @@
     </div>
   </div>
 {/each}
+</Article>
