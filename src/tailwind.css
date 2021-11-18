@@ -12,6 +12,10 @@
   video {
     @apply w-full;
   }
+  .brand h1 {
+    @apply text-2xl;
+    @apply font-bold;
+  }
   .brand a {
     @apply text-yellow-300;
     @apply no-underline;
@@ -36,42 +40,43 @@
   }
   .article-metadata {
     @apply text-gray-400;
-    @apply text-sm;
     @apply font-sans;
-    @apply h-4;
+    @apply flex;
+    @apply flex-row;
   }
   .article-metadata * {
     @apply px-2;
     @apply mb-2;
     @apply border-r;
     @apply border-gray-600;
-    @apply float-left;
     @apply last:border-0;
     @apply first:pl-0;
   }
   .collection-item {
     @apply py-4;
-    @apply clear-both;
     @apply border-b;
     @apply border-gray-600;
     @apply last:pb-0;
     @apply last:border-0;
   }
-  #footer, #footer a {
+  #footer {
     @apply text-gray-400;
   }
-  #footer a {
+  #footer a, .prose .article-metadata a {
     @apply underline;
+    @apply text-gray-400;
     text-decoration-color: #4B5563;
   }
-  #footer a:hover {
+  #footer a:hover, .prose .article-metadata a:hover {
     @apply text-yellow-300;
+    @apply bg-transparent;
   }
 }
 
 @layer components {
   .prose {
     @apply font-serif;
+    @apply text-lg;
     @apply text-gray-300;
   }
   .prose strong {
@@ -95,10 +100,9 @@
     @apply text-gray-100;
     @apply mt-0;
     @apply mb-4;
-    @apply clear-both;
   }
   .prose hr {
-    @apply my-8;
+    @apply my-4;
     @apply border-gray-600;
   }
   .prose p {

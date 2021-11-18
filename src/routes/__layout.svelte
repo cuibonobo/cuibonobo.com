@@ -9,8 +9,8 @@
   id="top-bar"
   class="container justify-between flex flex-col md:flex-row py-2 px-4 md:p-4 mx-auto"
 >
-  <div class="brand text-2xl font-bold inline-flex">
-    <a href="/">cuibonobo</a>
+  <div class="brand inline-flex">
+    <a href="/"><h1>cuibonobo</h1></a>
   </div>
   <nav id="main-menu" class="flex flex-wrap leading-loose">
     <a class="mr-4" href="/">Home</a>
@@ -26,7 +26,7 @@
 
 <footer
   id="footer"
-  class="container mx-auto py-2 px-4 md:p-4 grid grid-cols-1 md:grid-cols-2 text-sm"
+  class="container mx-auto py-2 px-4 md:p-4 grid grid-cols-1 md:grid-cols-2"
 >
   <div class="grid grid-rows-2 mb-2">
     <nav class="mb-2">
