@@ -6,6 +6,7 @@ import yaml from 'yaml';
 import matter from 'gray-matter';
 import { PostTypeName, PostType } from './types';
 import { generateId } from './id';
+import * as errors from './errors';
 
 const yamlDivider = '---';
 const yamlPlaceholder = '.';
@@ -103,7 +104,7 @@ const getJsonString = (json: PostType | Record<string, unknown>): string => {
 };
 
 export const createPost = async (postType: PostTypeName): Promise<PostType> => {
-  const postData = getdefaultPostData(postType);
+  const postData = getDefaultPostData(postType);
   await writePost(postData);
   return postData;
 };
@@ -217,7 +218,7 @@ export const getPostById = async (postId: string): Promise<PostType> => {
 
 export const getPostBySlug = async (slug: string, postType: PostTypeName): Promise<PostType> => {
   if (postType === PostTypeName.Ephemera) {
-    throw new Error('Ephemera do not have slugs!');
+    throw new errors.PostTypeError('Ephemera do not have slugs!');
   }
   // FIXME: This is extremely inefficient. Posts should be indexed somehow.
   const posts = await getPostsByType(postType);
@@ -226,7 +227,7 @@ export const getPostBySlug = async (slug: string, postType: PostTypeName): Promi
       return post;
     }
   }
-  throw new Error(`No ${postType} posts contain slug '${slug}!'`);
+  throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
 };
 
 const writeLockFile = async (
@@ -242,10 +243,18 @@ export const readLockFile = async (): Promise<{
   postType: string;
   postId: string;
 }> => {
-  const lockFileStr = await readFile(getLockFilePath(), 'utf-8');
+  let lockFileStr: string | null = null;
+  try {
+    lockFileStr = await readFile(getLockFilePath(), 'utf-8');
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      throw new errors.MissingLockfileError();
+    }
+    throw e;
+  }
   const lockFileLines = lockFileStr.split('\n');
   if (lockFileLines.length !== 3) {
-    throw new Error('Corrupted lock file!');
+    throw new errors.CorruptedLockfileError();
   }
   return {
     lockedFilePath: lockFileLines[0],
@@ -256,7 +265,7 @@ export const readLockFile = async (): Promise<{
 
 const throwOnLockFile = async (): Promise<void> => {
   if (await fileExists(getLockFilePath())) {
-    throw new Error('Data is locked!');
+    throw new errors.LockedDataError();
   }
 };
 
@@ -279,7 +288,7 @@ const getPostPath = (postId: string): string => {
   return path.join(getDataDir(), `${postId}.json`);
 };
 
-const getdefaultPostData = (postTypeName: PostTypeName): PostType => {
+const getDefaultPostData = (postTypeName: PostTypeName): PostType => {
   const now = new Date();
   const postData = {
     id: generateId(now.getTime()),
