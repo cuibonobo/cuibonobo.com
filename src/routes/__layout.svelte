@@ -24,20 +24,20 @@
   <slot />
 </main>
 
-<footer
-  id="footer"
-  class="container mx-auto py-2 px-4 md:p-4 grid grid-cols-1 md:grid-cols-2"
->
+<footer id="footer" class="container mx-auto py-2 px-4 md:p-4 grid grid-cols-1 md:grid-cols-2">
   <div class="grid grid-rows-2 mb-2">
     <nav class="mb-2">
-      <a class="mr-2" href="/ephemera/">Ephemera</a> <a class="mr-2" href="/articles/">Articles</a> <a class="mr-2" href="/about/">About</a>
+      <a class="mr-2" href="/ephemera/">Ephemera</a> <a class="mr-2" href="/articles/">Articles</a>
+      <a class="mr-2" href="/about/">About</a>
     </nav>
     <div class="mb-2">
       <a class="mr-2" href="https://twitter.com/cuibonobo" target="_blank" rel="noopener noreferrer"
         >Twitter</a
-      > <a class="mr-2" href="https://github.com/cuibonobo" target="_blank" rel="noopener noreferrer"
+      >
+      <a class="mr-2" href="https://github.com/cuibonobo" target="_blank" rel="noopener noreferrer"
         >GitHub</a
-      > <a
+      >
+      <a
         class="mr-2"
         href="https://instagram.com/cuibonobo"
         target="_blank"

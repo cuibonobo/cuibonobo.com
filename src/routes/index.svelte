@@ -4,8 +4,8 @@
 
 <Article title="Oh, hey." pageTitle="cuibonobo" overrideDefaultPageTitle={true}>
   <p>
-    You may know me as Jen, but on the internet I'm more commonly known as <strong>cuibonobo</strong>.
-    (It's a name I
+    You may know me as Jen, but on the internet I'm more commonly known as <strong>cuibonobo</strong
+    >. (It's a name I
     <a href="https://cuibonobo.com/articles/the-artist-formerly-known-as-jen-montes/">made up</a>.)
   </p>
   <p>
@@ -17,7 +17,7 @@
   </p>
   <p>
     Most of my open-source work is on <a href="https://github.com/cuibonobo">GitHub</a>
-    and my most-used social media platform is <a href="https://twitter.com/cuibonobo">Twitter</a>, but
-    I've been trying to wean myself off of it lately.
+    and my most-used social media platform is <a href="https://twitter.com/cuibonobo">Twitter</a>,
+    but I've been trying to wean myself off of it lately.
   </p>
 </Article>
