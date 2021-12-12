@@ -13,7 +13,7 @@ export interface PageType extends BasePost {
   type: PostTypeName.Page;
   content: {
     title: string;
-    slug: string;
+    slug: string | number;
     text: string;
   };
 }

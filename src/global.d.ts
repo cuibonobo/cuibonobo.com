@@ -1,5 +1,3 @@
-/// <reference types="@sveltejs/kit" />
-
 interface XSSWhiteList {
   whiteList: XSS.IWhiteList;
 }

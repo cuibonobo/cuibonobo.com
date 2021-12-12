@@ -347,6 +347,10 @@ export const buildIndices = async (): Promise<void> => {
     if (post.type === PostTypeName.Ephemera) {
       indexData[post.type].data[post.id] = post;
     } else {
+      if (typeof post.content['slug'] === 'number') {
+        // Exclude error pages from the index
+        continue;
+      }
       indexData[post.type].data[post.content['slug']] = post;
     }
   }

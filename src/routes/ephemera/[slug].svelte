@@ -1,28 +1,6 @@
 <script context="module" lang="ts">
-  import type { Load } from '@sveltejs/kit';
-  import { getPostById } from '@lib/fs';
-
-  export const load: Load = async ({ page }) => {
-    // the `slug` parameter is available because this file
-    // is called [slug].svelte
-    const { slug } = page.params;
-    try {
-      const post = await getPostById(slug);
-      return {
-        props: {
-          id: post.id,
-          created: post.created,
-          updated: post.updated,
-          text: post.content.text
-        }
-      };
-    } catch (e) {
-      return {
-        status: 404,
-        error: `Not found: ${page.path}`
-      };
-    }
-  };
+  import { loadEphemeron } from '@lib/svelte';
+  export const load = loadEphemeron;
 </script>
 
 <script lang="ts">

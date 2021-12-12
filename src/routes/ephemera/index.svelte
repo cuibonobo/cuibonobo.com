@@ -1,29 +1,6 @@
 <script context="module" lang="ts">
-  import type { Load } from '@sveltejs/kit';
-  import { getPostsByType } from '@lib/fs';
-  import { PostTypeName } from '@lib/types';
-
-  export const load: Load = async ({ page }) => {
-    try {
-      const posts = await getPostsByType(PostTypeName.Ephemera);
-      return {
-        props: {
-          items: posts.map((post) => {
-            return {
-              id: post.id,
-              created: post.created,
-              text: post.content.text
-            };
-          })
-        }
-      };
-    } catch (e) {
-      return {
-        status: 404,
-        error: `Not found: ${page.path}`
-      };
-    }
-  };
+  import { loadEphemera } from '@lib/svelte';
+  export const load = loadEphemera;
 </script>
 
 <script lang="ts">
