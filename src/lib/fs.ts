@@ -74,8 +74,8 @@ export const ensureDir = async (path: string): Promise<void> => {
     if (f.isFile()) {
       await mkDir(path, { recursive: true });
     }
-  } catch (e) {
-    if (e.code == 'ENOENT') {
+  } catch (e: unknown) {
+    if (e instanceof Error && e['code'] == 'ENOENT') {
       await mkDir(path, { recursive: true });
       return;
     }
@@ -87,8 +87,8 @@ const fileExists = async (path: string): Promise<boolean> => {
   try {
     const f = await lstat(path);
     return f.isFile();
-  } catch (e) {
-    if (e.code == 'ENOENT') {
+  } catch (e: unknown) {
+    if (e instanceof Error && e['code'] == 'ENOENT') {
       return false;
     }
     throw e;
@@ -121,7 +121,7 @@ const readPost = async (postId: string): Promise<PostType> => {
 
 const readPostFromPath = async (postPath: string): Promise<PostType> => {
   const fileStr: string = await readFile(postPath, 'utf-8');
-  const post = JSON.parse(fileStr);
+  const post: PostType = <PostType>JSON.parse(fileStr);
   post.created = new Date(post.created);
   post.updated = new Date(post.updated);
   return post;
@@ -133,7 +133,7 @@ const writePost = async (post: PostType): Promise<void> => {
 };
 
 export const checkoutPost = async (post: PostType): Promise<string> => {
-  throwOnLockFile();
+  await throwOnLockFile();
   const editorDir = await mkTempDir();
   const yamlData = { ...post.content };
   const text = post.content.text;
@@ -156,7 +156,7 @@ export const checkoutPost = async (post: PostType): Promise<string> => {
 
 export const commitPost = async (): Promise<void> => {
   const lockData = await readLockFile();
-  const post = await readPost(lockData.postId);
+  const post: PostType = await readPost(lockData.postId);
   const fileStr: string = await readFile(lockData.lockedFilePath, 'utf-8');
   const fileData = matter(fileStr);
   if (post.content.text) {
@@ -171,13 +171,13 @@ export const commitPost = async (): Promise<void> => {
   post.content.text = fileData.content;
   switch (lockData.postType) {
     case PostTypeName.Page:
-      post.content['title'] = fileData.data.title ? fileData.data.title : '';
-      post.content['slug'] = fileData.data.slug;
+      post.content['title'] = fileData.data.title ? <string>fileData.data.title : '';
+      post.content['slug'] = <string>fileData.data.slug;
       break;
     case PostTypeName.Article:
-      post.content['title'] = fileData.data.title ? fileData.data.title : '';
-      post.content['slug'] = fileData.data.slug;
-      post.content['tags'] = fileData.data.tags ? fileData.data.tags : '';
+      post.content['title'] = fileData.data.title ? <string>fileData.data.title : '';
+      post.content['slug'] = <string>fileData.data.slug;
+      post.content['tags'] = fileData.data.tags ? <string>fileData.data.tags : '';
       break;
     case PostTypeName.Ephemera:
       break;
@@ -246,8 +246,8 @@ export const readLockFile = async (): Promise<{
   let lockFileStr: string | null = null;
   try {
     lockFileStr = await readFile(getLockFilePath(), 'utf-8');
-  } catch (e) {
-    if (e.code === 'ENOENT') {
+  } catch (e: unknown) {
+    if (e instanceof Error && e['code'] == 'ENOENT') {
       throw new errors.MissingLockfileError();
     }
     throw e;

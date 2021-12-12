@@ -1,3 +1,11 @@
 /// <reference types="@sveltejs/kit" />
 
-declare module 'xss/lib/default.js';
+interface XSSWhiteList {
+  whiteList: XSS.IWhiteList;
+}
+
+declare let xssWhiteList: XSSWhiteList;
+
+declare module 'xss/lib/default.js' {
+  export = xssWhiteList;
+}

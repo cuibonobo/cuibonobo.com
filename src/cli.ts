@@ -20,7 +20,7 @@ const program = new Command();
 program
   .command('new <postType>')
   .description('Create a new post with the given post type')
-  .action(async (postType) => {
+  .action(async (postType: PostTypeName) => {
     if (Object.values(PostTypeName).indexOf(postType) < 0) {
       console.error(`Can't create posts of type '${postType}'!`);
       return;
@@ -39,7 +39,7 @@ program
 program
   .command('list <postType>')
   .description('List existing posts of the given post type')
-  .action(async (postType) => {
+  .action(async (postType: PostTypeName) => {
     const posts = await getPostsByType(postType);
     posts.forEach((post) => {
       console.info(
@@ -54,7 +54,7 @@ program
 program
   .command('edit <postId>')
   .description('Edit an existing post that matches the given post ID')
-  .action(async (postId) => {
+  .action(async (postId: string) => {
     try {
       const editorPath = await editPost(postId);
       exec(openWithFileExplorer(path.dirname(editorPath)));

@@ -52,7 +52,7 @@ test('IDs generated in the same millisecond will be different', () => {
   // time to better test the random suffixes.
   const currentTime = new Date();
   timekeeper.freeze(currentTime);
-  const idArray = [];
+  const idArray: string[] = [];
   // Playing the odds: once we have gone through half plus one of a 3-digit
   // Crockford-32 number, we should have seen a repeat random suffix at least
   // once. This is to improve the code coverage of the
@@ -62,7 +62,7 @@ test('IDs generated in the same millisecond will be different', () => {
     idArray[i] = generateId();
   }
   // All of the timestamp parts of the IDs should be the same
-  const timestampSet = new Set(idArray.map((s) => s.slice(0, -RAND_SUFFIX_LENGTH)));
+  const timestampSet = new Set(idArray.map((s: string) => s.slice(0, -RAND_SUFFIX_LENGTH)));
   expect(new Set([idArray[0].slice(0, -RAND_SUFFIX_LENGTH)])).toEqual(timestampSet);
   // All of the IDs should be unique
   expect(new Set(idArray).size).toBe(idArray.length);
