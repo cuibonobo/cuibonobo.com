@@ -6,6 +6,7 @@ import yaml from 'yaml';
 import matter from 'gray-matter';
 import { PostTypeName, PostType } from './types';
 import { generateId } from './id';
+import { slugger } from './slugger';
 import * as errors from './errors';
 
 const yamlDivider = '---';
@@ -154,6 +155,13 @@ export const checkoutPost = async (post: PostType): Promise<string> => {
   return editorFile;
 };
 
+const convertTitleToSlug = (title: unknown): string => {
+  if (typeof title === 'string') {
+    return slugger(title);
+  }
+  return '';
+};
+
 export const commitPost = async (): Promise<void> => {
   const lockData = await readLockFile();
   const post: PostType = await readPost(lockData.postId);
@@ -172,11 +180,15 @@ export const commitPost = async (): Promise<void> => {
   switch (lockData.postType) {
     case PostTypeName.Page:
       post.content['title'] = fileData.data.title ? <string>fileData.data.title : '';
-      post.content['slug'] = <string>fileData.data.slug;
+      post.content['slug'] = fileData.data.slug
+        ? <string>fileData.data.slug
+        : convertTitleToSlug(fileData.data.title);
       break;
     case PostTypeName.Article:
       post.content['title'] = fileData.data.title ? <string>fileData.data.title : '';
-      post.content['slug'] = <string>fileData.data.slug;
+      post.content['slug'] = fileData.data.slug
+        ? <string>fileData.data.slug
+        : convertTitleToSlug(fileData.data.title);
       post.content['tags'] = fileData.data.tags ? <string>fileData.data.tags : '';
       break;
     case PostTypeName.Ephemera:

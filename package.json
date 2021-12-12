@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/cuibonobo/cuibonobo.com#readme",
   "devDependencies": {
+    "@stdlib/datasets-stopwords-en": "0.0.8",
     "@sveltejs/adapter-static": "^1.0.0-next.21",
     "@sveltejs/kit": "^1.0.0-next.201",
     "@tailwindcss/typography": "^0.5.0",
@@ -60,6 +61,7 @@
     "prettier-plugin-svelte": "^2.5.1",
     "prismjs": "^1.25.0",
     "rimraf": "^3.0.2",
+    "slugify": "^1.6.3",
     "svelte": "^3.44.2",
     "svelte-check": "^2.2.10",
     "svelte-preprocess": "^4.9.8",

@@ -15,6 +15,7 @@ import {
   openWithFileExplorer,
   buildIndices
 } from './lib/fs';
+import { slugger } from './lib/slugger';
 
 const program = new Command();
 program
@@ -102,6 +103,13 @@ program
     } catch (e) {
       console.info('Editing state was already clear.');
     }
+  });
+
+program
+  .command('slugify <str>')
+  .description('Convert the given string to a slug')
+  .action((str: string) => {
+    console.info(slugger(str));
   });
 
 program
