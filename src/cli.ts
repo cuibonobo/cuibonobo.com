@@ -3,18 +3,17 @@ import { exec } from 'child_process';
 import { Command } from 'commander';
 import { PostTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
+import { openWithEditor, openWithFileExplorer } from './lib/fs';
 import {
   createPost,
   checkoutPost,
   editPost,
   commitPost,
-  getPostsByType,
+  getIndexedPostsByType,
   readLockFile,
   deleteLockFile,
-  openWithEditor,
-  openWithFileExplorer,
-  buildIndices
-} from './lib/fs';
+  buildAllIndices
+} from './lib/posts';
 import { slugger } from './lib/slugger';
 
 const program = new Command();
@@ -41,7 +40,7 @@ program
   .command('list <postType>')
   .description('List existing posts of the given post type')
   .action(async (postType: PostTypeName) => {
-    const posts = await getPostsByType(postType);
+    const posts = await getIndexedPostsByType(postType);
     posts.forEach((post) => {
       console.info(
         `${post.id}: ${
@@ -116,7 +115,7 @@ program
   .command('index')
   .description('Build indices for the post types in the data store')
   .action(async () => {
-    await buildIndices();
+    await buildAllIndices();
   });
 
 program.parse();

@@ -33,6 +33,16 @@ export interface EphemeraType extends BasePost {
   };
 }
 
-export type PostType = PageType | ArticleType | EphemeraType;
+export type PostType<T> = 
+  T extends PostTypeName.Page ? PageType :
+  T extends PostTypeName.Article ? ArticleType :
+  T extends PostTypeName.Ephemera ? EphemeraType :
+  never;
 
-export type Json = null | boolean | string | number | { [key: string]: Json } | Json[];
+export interface SlugData {
+  [slug: string]: string;
+}
+
+export interface IndexData<T> {
+  [id: string]: PostType<T>;
+}

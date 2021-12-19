@@ -1,5 +1,5 @@
 import type { ErrorLoadInput, Load, LoadInput, LoadOutput } from '@sveltejs/kit';
-import { getPostBySlug, getPostById, getPostsByType } from '@lib/fs';
+import { getPostBySlug, getPost, getPostsByType } from '@lib/api';
 import { PostTypeName } from '@lib/types';
 import { PostNotFoundError } from '@lib/errors';
 
@@ -51,8 +51,8 @@ export const loadPage: Load = async (input: LoadInput) => {
     const post = await getPostBySlug(slug, PostTypeName.Page);
     return {
       props: {
-        title: <string>post.content['title'],
-        text: post.content['text']
+        title: post.content.title,
+        text: post.content.text
       }
     };
   }, input);
@@ -65,10 +65,10 @@ export const loadArticles: Load = async (input: LoadInput) => {
       props: {
         items: posts.map((post) => {
           return {
-            slug: <string>post.content['slug'],
-            title: <string>post.content['title'],
+            slug: post.content.slug,
+            title: post.content.title,
             created: post.created,
-            tags: <string>post.content['tags'],
+            tags: post.content.tags,
             text: post.content.text
           };
         })
@@ -84,10 +84,10 @@ export const loadArticle: Load = async (input: LoadInput) => {
     const post = await getPostBySlug(slug, PostTypeName.Article);
     return {
       props: {
-        title: <string>post.content['title'],
+        title: post.content.title,
         created: post.created,
         updated: post.updated,
-        tags: <string>post.content['tags'],
+        tags: post.content.tags,
         text: post.content.text
       }
     };
@@ -115,7 +115,7 @@ export const loadEphemeron: Load = async (input: LoadInput) => {
   return loadOr404(async ({ page }) => {
     const { path } = page;
     const slug = slugFromPath(path);
-    const post = await getPostById(slug);
+    const post = await getPost(slug);
     return {
       props: {
         id: post.id,
