@@ -1,5 +1,16 @@
 {
-  "index": {
+  "1fpr0hxjaf4a": {
+    "type": "page",
+    "id": "1fpr0hxjaf4a",
+    "created": "2021-12-12T19:05:17.130Z",
+    "updated": "2021-12-12T19:05:17.130Z",
+    "content": {
+      "title": "404: Not Found!",
+      "slug": 404,
+      "text": "[Link rot](https://en.wikipedia.org/wiki/Link_rot) is a serious problem on the internet and I'm sorry to have contributed to it. Hopefully you'll find what you're looking for by using the navigation links above."
+    }
+  },
+  "1fpqv6xppcpb": {
     "type": "page",
     "id": "1fpqv6xppcpb",
     "created": "2021-12-12T17:31:53.942Z",
@@ -10,7 +21,7 @@
       "text": "You may know me as Jen, but on the internet I'm more commonly known as **cuibonobo**. (It's a name I [made up](/articles/the-artist-formerly-known-as-jen-montes/).)\n\nThis site is still in active development and I've been [using it and building it at the same time](https://github.com/cuibonobo/cuibonobo.com), but you can learn more [about me](/about), read some of [my writing](/articles), or check out my [random thoughts](/ephemera/).\n\nMost of my open-source work is on [GitHub](https://github.com/cuibonobo) and my most-used social media platform is [Twitter](https://twitter.com/cuibonobo), but I've been trying to wean myself off of it."
     }
   },
-  "about": {
+  "1fd04p4nrf52": {
     "id": "1fd04p4nrf52",
     "type": "page",
     "created": "2021-08-13T16:14:27.000Z",
