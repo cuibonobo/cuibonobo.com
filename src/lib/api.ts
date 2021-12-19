@@ -7,7 +7,7 @@ const BASE_URL =
     : 'http://localhost:5000';
 
 const getUrl = (path: string): string => {
-  const origin = typeof window !== "undefined" ? window.location.origin : BASE_URL;
+  const origin = typeof window !== 'undefined' ? window.location.origin : BASE_URL;
   return new URL(path, origin).href;
 };
 
@@ -51,7 +51,10 @@ export const getPost = async <T extends PostTypeName>(postId: string): Promise<P
   return get(getPostUrl(postId));
 };
 
-export const getPostBySlug = async <T extends PostTypeName>(slug: string, postType: T): Promise<PostType<T>> => {
+export const getPostBySlug = async <T extends PostTypeName>(
+  slug: string,
+  postType: T
+): Promise<PostType<T>> => {
   if (postType === PostTypeName.Ephemera) {
     throw new errors.PostTypeError('Ephemera do not have slugs!');
   }
@@ -62,7 +65,9 @@ export const getPostBySlug = async <T extends PostTypeName>(slug: string, postTy
   throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
 };
 
-export const getPostsByType = async <T extends PostTypeName>(postType: T): Promise<PostType<T>[]> => {
+export const getPostsByType = async <T extends PostTypeName>(
+  postType: T
+): Promise<PostType<T>[]> => {
   const indexData = await getIndexData(postType);
   return Object.values(indexData);
 };

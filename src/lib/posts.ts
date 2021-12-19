@@ -3,7 +3,7 @@ import yaml from 'yaml';
 import matter from 'gray-matter';
 import { generateId } from './id';
 import { slugger } from './slugger';
-import { PostTypeName, PostType, SlugData, IndexData, PageType } from './types';
+import { PostTypeName, PostType, SlugData, IndexData } from './types';
 import {
   writeJsonFile,
   readJsonFile,
@@ -155,7 +155,10 @@ export const getPostById = async <T extends PostTypeName>(postId: string): Promi
   return readPost(postId);
 };
 
-export const getPostBySlug = async <T extends PostTypeName>(slug: string, postType: T): Promise<PostType<T>> => {
+export const getPostBySlug = async <T extends PostTypeName>(
+  slug: string,
+  postType: T
+): Promise<PostType<T>> => {
   if (postType === PostTypeName.Ephemera) {
     throw new errors.PostTypeError('Ephemera do not have slugs!');
   }
@@ -274,7 +277,10 @@ const readIndexFile = async <T extends PostTypeName>(postType: T): Promise<Index
   return await readJsonFile(getPostTypeIndexPath(postType));
 };
 
-const writeIndexFile = async <T extends PostTypeName>(postType: T, indexData: IndexData<T>): Promise<void> => {
+const writeIndexFile = async <T extends PostTypeName>(
+  postType: T,
+  indexData: IndexData<T>
+): Promise<void> => {
   await writeJsonFile(getPostTypeIndexPath(postType), indexData);
 };
 
@@ -309,7 +315,9 @@ const buildIndexByType = async <T extends PostTypeName>(postType: T): Promise<vo
   }
 };
 
-export const getIndexedPostsByType = async <T extends PostTypeName>(postType: T): Promise<PostType<T>[]> => {
+export const getIndexedPostsByType = async <T extends PostTypeName>(
+  postType: T
+): Promise<PostType<T>[]> => {
   const indexData = await readIndexFile(postType);
   return Object.values(indexData);
 };
