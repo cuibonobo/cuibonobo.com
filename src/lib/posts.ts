@@ -1,34 +1,16 @@
 import path from 'path';
-import yaml from 'yaml';
 import matter from 'gray-matter';
+import yaml from 'yaml';
 import { generateId } from './id';
 import { slugger } from './slugger';
 import { PostTypeName, PostType, SlugData, IndexData } from './types';
-import {
-  writeJsonFile,
-  readJsonFile,
-  mkTempDir,
-  writeFile,
-  readFile,
-  readDir,
-  rm,
-  rmDir,
-  fileExists,
-  ensureDir
-} from './fs';
+import { writeJsonFile, readJsonFile, readDir, ensureDir } from './fs';
 import * as errors from './errors';
 
 const yamlDivider = '---';
 const yamlPlaceholder = '.';
-const lockFileName = '.lock';
 
-interface LockData {
-  lockedFilePath: string;
-  postType: string;
-  postId: string;
-}
-
-export const getDataDir = (): string => {
+export const getPostsDir = (): string => {
   return path.join(path.resolve('static'), 'posts');
 };
 
@@ -36,18 +18,7 @@ const getIndexDir = (): string => {
   return path.join(path.resolve('static'), 'index');
 };
 
-export const createPost = async <T extends PostTypeName>(postType: T): Promise<PostType<T>> => {
-  const postData = getDefaultPostData(postType);
-  await writePost(postData);
-  return postData;
-};
-
-export const editPost = async (postId: string): Promise<string> => {
-  const post = await readPost(postId);
-  return await checkoutPost(post);
-};
-
-const readPost = async <T extends PostTypeName>(postId: string): Promise<PostType<T>> => {
+export const readPost = async <T extends PostTypeName>(postId: string): Promise<PostType<T>> => {
   const postPath = getPostPath(postId);
   return readPostFromPath(postPath);
 };
@@ -59,75 +30,29 @@ const readPostFromPath = async <T extends PostTypeName>(postPath: string): Promi
   return post;
 };
 
-const writePost = async <T extends PostTypeName>(post: PostType<T>): Promise<void> => {
+export const writePost = async <T extends PostTypeName>(post: PostType<T>): Promise<void> => {
   const postPath = getPostPath(post.id);
   await writeJsonFile(postPath, post);
 };
 
-export const checkoutPost = async <T extends PostTypeName>(post: PostType<T>): Promise<string> => {
-  await throwOnLockFile();
-  const editorDir = await mkTempDir();
+export const getFrontMatter = <T extends PostTypeName>(post: PostType<T>): string => {
   const yamlData = { ...post.content };
-  const text = post.content.text;
   delete yamlData.text;
-  let postOutput = [];
+  let yamlLines = [];
   if (Object.keys(yamlData).length > 0) {
-    const yamlLines = yaml.stringify(yamlData).split('\n');
-    postOutput = postOutput.concat([
+    const dataLines = yaml.stringify(yamlData).split('\n');
+    yamlLines = yamlLines.concat([
       yamlDivider,
-      ...yamlLines.slice(0, yamlLines.length - 1),
+      ...dataLines.slice(0, dataLines.length - 1),
       yamlDivider,
       ''
     ]);
   }
-  const editorFile = path.join(editorDir, `${post.id}.md`);
-  await writeFile(editorFile, postOutput.join('\n') + text);
-  await writeLockFile(post.id, post.type, editorFile);
-  return editorFile;
-};
-
-const convertTitleToSlug = (title: unknown): string => {
-  if (typeof title === 'string') {
-    return slugger(title);
-  }
-  return '';
-};
-
-export const commitPost = async <T extends PostTypeName>(): Promise<void> => {
-  const lockFile = await readLockFile();
-  const post: PostType<T> = await readPost(lockFile.postId);
-  const fileStr: string = await readFile(lockFile.lockedFilePath, 'utf-8');
-  const fileData = matter(fileStr);
-  if (post.content.text) {
-    post.updated = new Date();
-    if (post.content.text.startsWith('\n')) {
-      post.content.text = post.content.text.slice(1);
-    }
-    if (post.content.text.endsWith('\n')) {
-      post.content.text = post.content.text.slice(0, post.content.text.length - 1);
-    }
-  }
-  post.content.text = fileData.content;
-  if (post.type !== PostTypeName.Ephemera) {
-    const slug = fileData.data.slug
-      ? <string>fileData.data.slug
-      : convertTitleToSlug(fileData.data.title);
-    if (await isExistingSlug(slug, post.type)) {
-      throw new errors.PostError(`The slug '${slug}' already exists!`);
-    }
-    post.content.slug = slug;
-    post.content.title = fileData.data.title ? <string>fileData.data.title : '';
-  }
-  if (post.type === PostTypeName.Article) {
-    post.content.tags = fileData.data.tags ? <string>fileData.data.tags : '';
-  }
-  await writePost(post);
-  await deleteLockFile();
-  await addToIndex(post);
+  return yamlLines.join('\n');
 };
 
 const getAllPosts = async <T extends PostTypeName>(): Promise<PostType<T>[]> => {
-  const dataDir = getDataDir();
+  const dataDir = getPostsDir();
   const fileList = await readDir(dataDir, { withFileTypes: true });
   const items = await Promise.all(
     fileList.map(async (filePath) => {
@@ -169,61 +94,37 @@ export const getPostBySlug = async <T extends PostTypeName>(
   throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
 };
 
-const writeLockFile = async (
-  postId: string,
-  postType: PostTypeName,
-  lockedFilePath: string
-): Promise<void> => {
-  await writeFile(getLockFilePath(), `${lockedFilePath}\n${postType}\n${postId}`);
-};
-
-export const readLockFile = async (): Promise<LockData> => {
-  let lockFileStr: string | null = null;
-  try {
-    lockFileStr = await readFile(getLockFilePath(), 'utf-8');
-  } catch (e: unknown) {
-    if (e instanceof Error && e['code'] == 'ENOENT') {
-      throw new errors.MissingLockfileError();
-    }
-    throw e;
-  }
-  const lockFileLines = lockFileStr.split('\n');
-  if (lockFileLines.length !== 3) {
-    throw new errors.CorruptedLockfileError();
-  }
-  return {
-    lockedFilePath: lockFileLines[0],
-    postType: lockFileLines[1],
-    postId: lockFileLines[2]
-  };
-};
-
-const throwOnLockFile = async (): Promise<void> => {
-  if (await fileExists(getLockFilePath())) {
-    throw new errors.LockedDataError();
-  }
-};
-
-const deleteLockedData = async (): Promise<void> => {
-  const lockData = await readLockFile();
-  const lockDir = path.dirname(lockData.lockedFilePath);
-  await rmDir(lockDir, { recursive: true });
-};
-
-export const deleteLockFile = async (): Promise<void> => {
-  await deleteLockedData();
-  await rm(getLockFilePath());
-};
-
-const getLockFilePath = (): string => {
-  return path.join(getDataDir(), lockFileName);
-};
-
 const getPostPath = (postId: string): string => {
-  return path.join(getDataDir(), `${postId}.json`);
+  return path.join(getPostsDir(), `${postId}.json`);
 };
 
-const getDefaultPostData = <T extends PostTypeName>(postType: T): PostType<T> => {
+const convertTitleToSlug = (title: unknown): string => {
+  if (typeof title === 'string') {
+    return slugger(title);
+  }
+  return '';
+};
+
+export const appendDataToPost = <T extends PostTypeName>(
+  post: PostType<T>,
+  str: string
+): PostType<T> => {
+  const fileData = matter(str);
+  post.content.text = fileData.content.trim();
+  if (post.type !== PostTypeName.Ephemera) {
+    const slug = fileData.data.slug
+      ? <string>fileData.data.slug
+      : convertTitleToSlug(fileData.data.title);
+    post.content.slug = slug;
+    post.content.title = fileData.data.title ? <string>fileData.data.title : '';
+  }
+  if (post.type === PostTypeName.Article) {
+    post.content.tags = fileData.data.tags ? <string>fileData.data.tags : '';
+  }
+  return post;
+};
+
+export const getDefaultPostData = <T extends PostTypeName>(postType: T): PostType<T> => {
   const now = new Date();
   const postData = {
     id: generateId(now.getTime()),
@@ -333,7 +234,10 @@ export const addToIndex = async <T extends PostTypeName>(post: PostType<T>): Pro
   }
 };
 
-export const isExistingSlug = async (slug: string, postType: PostTypeName): Promise<boolean> => {
+export const isExistingSlug = async (
+  slug: string | number,
+  postType: PostTypeName
+): Promise<boolean> => {
   if (postType === PostTypeName.Ephemera) {
     throw new errors.PostTypeError('Ephemera do not have slugs!');
   }
