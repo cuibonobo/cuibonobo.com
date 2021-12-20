@@ -13,10 +13,10 @@
     <a href="/"><h1>cuibonobo</h1></a>
   </div>
   <nav id="main-menu" class="flex flex-wrap leading-loose">
-    <a class="mr-4" href="/">Home</a>
-    <a class="mx-4" href="/ephemera/">Ephemera</a>
-    <a class="mx-4" href="/articles/">Articles</a>
-    <a class="ml-4" href="/about/">About</a>
+    <a class="mr-2 md:mr-4" href="/">Home</a>
+    <a class="mx-2 md:mx-4" href="/ephemera/">Ephemera</a>
+    <a class="mx-2 md:mx-4" href="/articles/">Articles</a>
+    <a class="ml-2 md:ml-4" href="/about/">About</a>
   </nav>
 </header>
 
