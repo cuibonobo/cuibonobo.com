@@ -15,7 +15,7 @@ import * as errors from './errors';
 
 const lockFileName = '.lock';
 
-enum LockMode {
+export enum LockMode {
   New = 'new',
   Edit = 'edit'
 }
@@ -82,7 +82,7 @@ export const lockCommit = async <T extends PostTypeName>(): Promise<void> => {
   await addToIndex(post);
 };
 
-const lockWrite = async (lockData: LockData): Promise<void> => {
+export const lockWrite = async (lockData: LockData): Promise<void> => {
   const lockLines = [lockData.lockedFilePath, lockData.mode, lockData.postType, lockData.postId];
   await writeFile(getLockPath(), lockLines.join('\n'));
 };
@@ -103,7 +103,7 @@ export const lockRead = async (): Promise<LockData> => {
   }
   return {
     lockedFilePath: lockFileLines[0],
-    mode: <LockMode>LockMode[lockFileLines[1]],
+    mode: <LockMode>lockFileLines[1],
     postType: lockFileLines[2],
     postId: lockFileLines[3]
   };
