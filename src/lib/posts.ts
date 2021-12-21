@@ -193,6 +193,10 @@ const writeSlugFile = async (postType: PostTypeName, indexData: SlugData): Promi
   await writeJsonFile(getPostTypeSlugPath(postType), indexData);
 };
 
+const shouldIndex = <T extends PostTypeName>(post: PostType<T>) => {
+  return post.type === PostTypeName.Ephemera || typeof(post.content.slug) !== "number";
+};
+
 export const buildAllIndices = async (): Promise<void> => {
   for (const postType of Object.values(PostTypeName)) {
     await buildIndexByType(<PostTypeName>postType);
@@ -205,7 +209,9 @@ const buildIndexByType = async <T extends PostTypeName>(postType: T): Promise<vo
   const indexData: IndexData<T> = {};
   const slugData: SlugData = {};
   for (const post of posts) {
-    indexData[post.id] = post;
+    if (shouldIndex(post)) {
+      indexData[post.id] = post;
+    }
     if (post.type !== PostTypeName.Ephemera) {
       slugData[post.content.slug] = post.id;
     }
@@ -224,9 +230,11 @@ export const getIndexedPostsByType = async <T extends PostTypeName>(
 };
 
 export const addToIndex = async <T extends PostTypeName>(post: PostType<T>): Promise<void> => {
-  const indexData = await readIndexFile(post.type);
-  indexData[post.id] = post;
-  await writeIndexFile(post.type, indexData);
+  if (shouldIndex){
+    const indexData = await readIndexFile(post.type);
+    indexData[post.id] = post;
+    await writeIndexFile(post.type, indexData);
+  }
   if (post.type !== PostTypeName.Ephemera) {
     const slugData = await readSlugFile(post.type);
     slugData[post.content.slug] = post.id;
