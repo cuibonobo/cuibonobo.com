@@ -7,6 +7,7 @@ import { openWithEditor, openWithFileExplorer } from './lib/fs';
 import { getIndexedPostsByType, buildAllIndices } from './lib/posts';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { slugger } from './lib/slugger';
+import { writeSitemap } from './lib/sitemap';
 
 const program = new Command();
 program
@@ -107,6 +108,13 @@ program
   .description('Build indices for the post types in the data store')
   .action(async () => {
     await buildAllIndices();
+  });
+
+program
+  .command('sitemap <origin>')
+  .description('Build a sitemap for all indexed data')
+  .action(async (origin: string) => {
+    await writeSitemap(origin);
   });
 
 program.parse();

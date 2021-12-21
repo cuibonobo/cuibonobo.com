@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "svelte-kit dev --port 5000",
     "build": "npm run clean && svelte-kit build",
-    "build:sitemap": "svelte-sitemap --domain https://cuibonobo.com",
+    "build:sitemap": "npm run cli -- sitemap https://cuibonobo.com",
     "build:404": "ncp ./build/404/index.html ./build/404.html && rimraf ./build/404",
     "clean": "npm run clean:vite-cache && npm run clean:build",
     "clean:all": "npm run clean && npm run clean:svelte-cache && npm run clean:vite-cache",
@@ -63,7 +63,6 @@
     "svelte": "^3.44.2",
     "svelte-check": "^2.2.10",
     "svelte-preprocess": "^4.9.8",
-    "svelte-sitemap": "^1.6.0",
     "tailwindcss": "^3.0.1",
     "timekeeper": "^2.2.0",
     "ts-jest": "^27.1.1",
@@ -71,6 +70,7 @@
     "tslib": "^2.3.1",
     "typescript": "^4.4.4",
     "vite-tsconfig-paths": "^3.3.17",
+    "xml-js": "^1.6.11",
     "xss": "^1.0.10",
     "yaml": "^1.10.2"
   },
