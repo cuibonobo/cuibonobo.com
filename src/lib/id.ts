@@ -1,14 +1,14 @@
 import crypto from 'crypto';
 
 const CHARACTERS = '0123456789abcdefghjkmnpqrstvwxyz';
-const BASE = CHARACTERS.length;
+export const BASE = CHARACTERS.length;
 const MIN_TIMESTAMP = 9;
 export const RAND_SUFFIX_LENGTH = 3;
 
-let lastNowId: string | null = null;
-let usedRandChars: string[] = [];
+let lastNowId = '';
+let lastRandChars = '';
 
-export const intToCrockford32 = (n: number): string => {
+export const crockford32Encode = (n: number): string => {
   if (n < 0) {
     throw new RangeError('Not defined for negative numbers!');
   }
@@ -26,27 +26,44 @@ export const intToCrockford32 = (n: number): string => {
   return crock32;
 };
 
-const generateRandChars = (): string => {
-  let randChars = '';
-  for (let i = 0; i < RAND_SUFFIX_LENGTH; i++) {
-    randChars += intToCrockford32(crypto.randomInt(0, BASE));
+export const crockford32Decode = (s: string): number => {
+  if (s.length === 0) {
+    throw new Error('String must not be empty!');
   }
-  return randChars;
+  s = s.toLowerCase();
+  let n = 0;
+  for (let i = 0; i < s.length; i++) {
+    const char = s[s.length - i - 1];
+    const val = CHARACTERS.indexOf(char);
+    if (val < 0) {
+      throw new Error('Undefined characters in string!');
+    }
+    n += val * Math.pow(BASE, i);
+  }
+  return n;
+};
+
+const generateRandChars = (): string => {
+  const randInt = crypto.randomInt(0, Math.pow(BASE, RAND_SUFFIX_LENGTH) - 1);
+  return crockford32Encode(randInt).padStart(RAND_SUFFIX_LENGTH);
+};
+
+const incrementRandChars = (): string => {
+  const val = crockford32Decode(lastRandChars);
+  const newRandChars = crockford32Encode(val + 1);
+  if (newRandChars.length > RAND_SUFFIX_LENGTH) {
+    throw new Error('Random character overflow!');
+  }
+  return newRandChars;
 };
 
 export const generateId = (timestamp = -1): string => {
   if (timestamp < 0) {
     timestamp = Date.now();
   }
-  const nowId: string = intToCrockford32(timestamp).padStart(MIN_TIMESTAMP, '0');
-  let randChars: string = generateRandChars();
-  if (nowId !== lastNowId) {
-    usedRandChars = [];
-  }
-  while (usedRandChars.includes(randChars)) {
-    randChars = generateRandChars();
-  }
-  usedRandChars.push(randChars);
+  const nowId: string = crockford32Encode(timestamp).padStart(MIN_TIMESTAMP, '0');
+  const randChars: string = nowId !== lastNowId ? generateRandChars() : incrementRandChars();
   lastNowId = nowId;
+  lastRandChars = randChars;
   return nowId + randChars;
 };

@@ -1,31 +1,59 @@
 import timekeeper from 'timekeeper';
-import { generateId, intToCrockford32, RAND_SUFFIX_LENGTH } from './id';
+import { generateId, crockford32Encode, crockford32Decode, RAND_SUFFIX_LENGTH, BASE } from './id';
 
-test('Generate Crockford base 32 for single digits', () => {
-  expect(intToCrockford32(0)).toBe('0');
-  expect(intToCrockford32(1)).toBe('1');
-  expect(intToCrockford32(10)).toBe('a');
-  expect(intToCrockford32(18)).toBe('j');
-  expect(intToCrockford32(20)).toBe('m');
-  expect(intToCrockford32(22)).toBe('p');
-  expect(intToCrockford32(27)).toBe('v');
-  expect(intToCrockford32(31)).toBe('z');
+test('Encode Crockford-32 for single digits', () => {
+  expect(crockford32Encode(0)).toBe('0');
+  expect(crockford32Encode(1)).toBe('1');
+  expect(crockford32Encode(10)).toBe('a');
+  expect(crockford32Encode(18)).toBe('j');
+  expect(crockford32Encode(20)).toBe('m');
+  expect(crockford32Encode(22)).toBe('p');
+  expect(crockford32Encode(27)).toBe('v');
+  expect(crockford32Encode(31)).toBe('z');
 });
 
-test('Crockford base 32 generates the correct number of digits', () => {
-  expect(intToCrockford32(32)).toBe('10');
-  expect(intToCrockford32(1024)).toBe('100');
-  expect(intToCrockford32(32768)).toBe('1000');
-  expect(intToCrockford32(1048576)).toBe('10000');
-  expect(intToCrockford32(33554432)).toBe('100000');
-  expect(intToCrockford32(1073741824)).toBe('1000000');
-  expect(intToCrockford32(34359738368)).toBe('10000000');
-  expect(intToCrockford32(1099511627776)).toBe('100000000');
-  expect(intToCrockford32(35184372088832)).toBe('1000000000');
+test('Decode Crockford-32 for single digits', () => {
+  expect(crockford32Decode('0')).toBe(0);
+  expect(crockford32Decode('1')).toBe(1);
+  expect(crockford32Decode('a')).toBe(10);
+  expect(crockford32Decode('j')).toBe(18);
+  expect(crockford32Decode('m')).toBe(20);
+  expect(crockford32Decode('p')).toBe(22);
+  expect(crockford32Decode('v')).toBe(27);
+  expect(crockford32Decode('z')).toBe(31);
 });
 
-test('Crockford base 32 throws an error for negative numbers', () => {
-  expect(() => intToCrockford32(-1)).toThrow(RangeError);
+test('Crockford-32 encodes to the correct number of digits', () => {
+  expect(crockford32Encode(32)).toBe('10');
+  expect(crockford32Encode(1024)).toBe('100');
+  expect(crockford32Encode(32768)).toBe('1000');
+  expect(crockford32Encode(1048576)).toBe('10000');
+  expect(crockford32Encode(33554432)).toBe('100000');
+  expect(crockford32Encode(1073741824)).toBe('1000000');
+  expect(crockford32Encode(34359738368)).toBe('10000000');
+  expect(crockford32Encode(1099511627776)).toBe('100000000');
+  expect(crockford32Encode(35184372088832)).toBe('1000000000');
+});
+
+test('Crockford-32 with multiple digits decode to the correct number', () => {
+  expect(crockford32Decode('10')).toBe(32);
+  expect(crockford32Decode('100')).toBe(1024);
+  expect(crockford32Decode('1000')).toBe(32768);
+  expect(crockford32Decode('10000')).toBe(1048576);
+  expect(crockford32Decode('100000')).toBe(33554432);
+  expect(crockford32Decode('1000000')).toBe(1073741824);
+  expect(crockford32Decode('10000000')).toBe(34359738368);
+  expect(crockford32Decode('100000000')).toBe(1099511627776);
+  expect(crockford32Decode('1000000000')).toBe(35184372088832);
+});
+
+test('Crockford-32 encoder throws an error for negative numbers', () => {
+  expect(() => crockford32Encode(-1)).toThrow(RangeError);
+});
+
+test('Crockford-32 decoder throws an error for invalid strings', () => {
+  expect(() => crockford32Decode('')).toThrow(Error);
+  expect(() => crockford32Decode('l')).toThrow(Error);
 });
 
 test('ID contains at least 12 characters', () => {
@@ -43,28 +71,51 @@ test('ID gets more digits for dates far into the future', () => {
 test('ID reflects current time', () => {
   const now = Date.now();
   const id = generateId(now);
-  const timestamp = id.substr(0, 9);
-  expect(timestamp).toBe(intToCrockford32(now));
+  const timestamp = id.substring(0, 9);
+  expect(timestamp).toBe(crockford32Encode(now));
 });
 
-test('IDs generated in the same millisecond will be different', () => {
+test('IDs generated in the same millisecond will increment the random suffix', () => {
+  // NOTE: There is a small (small!) probability that the initial random suffix
+  // will cause an overflow if there are less than 5 slots left to increment
+  // The `generateId()` function is time-dependent, so we are freezing
+  // time to better test the random suffixes.
+  const currentTime = new Date();
+  timekeeper.freeze(currentTime);
+  const numIds = 5;
+  const idArray: string[] = [];
+  for (let i = 0; i < numIds; i++) {
+    idArray[i] = generateId();
+  }
+  // All of the timestamp parts of the IDs should be the same
+  const timestampSet = new Set(idArray.map((s: string) => s.slice(0, -RAND_SUFFIX_LENGTH)));
+  const randCharList = idArray.map((s: string) => s.slice(-RAND_SUFFIX_LENGTH));
+  expect(new Set([idArray[0].slice(0, -RAND_SUFFIX_LENGTH)])).toEqual(timestampSet);
+  // All of the IDs should be unique
+  expect(new Set(idArray).size).toBe(numIds);
+  // The random characters should increment
+  for (let i = 1; i < randCharList.length; i++) {
+    expect(crockford32Decode(randCharList[i]) - 1).toBe(crockford32Decode(randCharList[i - 1]));
+  }
+  timekeeper.reset();
+});
+
+test('Generating too many IDs in the same millisecond will cause an overflow', () => {
   // The `generateId()` function is time-dependent, so we are freezing
   // time to better test the random suffixes.
   const currentTime = new Date();
   timekeeper.freeze(currentTime);
   const idArray: string[] = [];
-  // Playing the odds: once we have gone through half plus one of a 3-digit
-  // Crockford-32 number, we should have seen a repeat random suffix at least
-  // once. This is to improve the code coverage of the
-  // `while(usedRandChars.includes(randChars))` block.
-  const length = Math.ceil(Math.pow(32, RAND_SUFFIX_LENGTH) / 2) + 1;
-  for (let i = 0; i < length; i++) {
-    idArray[i] = generateId();
+  // Once we have gone through all the possibilities for the random suffix,
+  // we should see an overflow.
+  const length = Math.pow(BASE, RAND_SUFFIX_LENGTH) - 1;
+  try {
+    for (let i = 0; i < length; i++) {
+      idArray[i] = generateId();
+    }
+    throw new Error('Overflow was never reached!');
+  } catch (e) {
+    expect(e instanceof Error).toBe(true);
   }
-  // All of the timestamp parts of the IDs should be the same
-  const timestampSet = new Set(idArray.map((s: string) => s.slice(0, -RAND_SUFFIX_LENGTH)));
-  expect(new Set([idArray[0].slice(0, -RAND_SUFFIX_LENGTH)])).toEqual(timestampSet);
-  // All of the IDs should be unique
-  expect(new Set(idArray).size).toBe(idArray.length);
   timekeeper.reset();
 });
