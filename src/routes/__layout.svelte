@@ -31,10 +31,10 @@
       <a class="mr-2" href="/about/">About</a>
     </nav>
     <div class="mb-2">
-      <a class="mr-2" href="https://twitter.com/cuibonobo" target="_blank" rel="noopener noreferrer"
+      <a class="mr-2" href="https://twitter.com/cuibonobo" target="_blank" rel="me noopener noreferrer"
         >Twitter</a
       >
-      <a class="mr-2" href="https://github.com/cuibonobo" target="_blank" rel="noopener noreferrer"
+      <a class="mr-2" href="https://github.com/cuibonobo" target="_blank" rel="me noopener noreferrer"
         >GitHub</a
       >
       <a
