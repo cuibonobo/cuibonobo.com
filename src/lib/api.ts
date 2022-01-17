@@ -4,7 +4,7 @@ import * as errors from './errors';
 const BASE_URL =
   process.env.NODE_ENV == 'production'
     ? 'https://raw.githubusercontent.com/cuibonobo/cuibonobo.com/main/static/'
-    : 'http://localhost:5000';
+    : 'http://localhost:8000';
 
 const getUrl = (path: string): string => {
   const origin = typeof window !== 'undefined' ? window.location.origin : BASE_URL;

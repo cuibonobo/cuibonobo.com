@@ -12,7 +12,7 @@ const slugFromPath = (path: string): string => {
   return slug ? slug : 'index';
 };
 
-const loadOr404: (l: Load, i: LoadInput) => Promise<void | LoadOutput> = async (
+const loadOr404: (l: Load, i: LoadInput) => Promise<LoadOutput> = async (
   loader: Load,
   input: LoadInput
 ) => {
@@ -22,7 +22,7 @@ const loadOr404: (l: Load, i: LoadInput) => Promise<void | LoadOutput> = async (
     if (e instanceof PostNotFoundError) {
       return {
         status: 404,
-        error: `Not found: ${input.page.path}`
+        error: `Not found: ${input.url.pathname}`
       };
     }
     throw e;
@@ -45,9 +45,8 @@ export const loadError: (loadOutput: ErrorLoadInput) => LoadOutput = ({ error, s
 };
 
 export const loadPage: Load = async (input: LoadInput) => {
-  return loadOr404(async ({ page }) => {
-    const { path } = page;
-    const slug = slugFromPath(path);
+  return loadOr404(async ({ url }) => {
+    const slug = slugFromPath(url.pathname);
     const post = await getPostBySlug(slug, PostTypeName.Page);
     return {
       props: {
@@ -78,9 +77,8 @@ export const loadArticles: Load = async (input: LoadInput) => {
 };
 
 export const loadArticle: Load = async (input: LoadInput) => {
-  return loadOr404(async ({ page }) => {
-    const { path } = page;
-    const slug = slugFromPath(path);
+  return loadOr404(async ({ url }) => {
+    const slug = slugFromPath(url.pathname);
     const post = await getPostBySlug(slug, PostTypeName.Article);
     return {
       props: {
@@ -112,9 +110,8 @@ export const loadEphemera: Load = async (input: LoadInput) => {
 };
 
 export const loadEphemeron: Load = async (input: LoadInput) => {
-  return loadOr404(async ({ page }) => {
-    const { path } = page;
-    const slug = slugFromPath(path);
+  return loadOr404(async ({ url }) => {
+    const slug = slugFromPath(url.pathname);
     const post = await getPost(slug);
     return {
       props: {
