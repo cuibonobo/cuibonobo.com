@@ -1,4 +1,4 @@
-import marked from 'marked';
+import * as marked from 'marked';
 import type { MarkedOptions } from 'marked';
 import xss, { IFilterXSSOptions } from 'xss';
 import xssDefaults from 'xss/lib/default.js';
