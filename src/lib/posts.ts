@@ -3,7 +3,7 @@ import matter from 'gray-matter';
 import yaml from 'yaml';
 import { generateId } from './id';
 import { slugger } from './slugger';
-import { PostTypeName, PostType, SlugData, IndexData } from './types';
+import { PostTypeName, PostType, SlugData, IndexData, jsonToPostType } from './types';
 import { writeJsonFile, readJsonFile, readDir, ensureDir } from './fs';
 import * as errors from './errors';
 
@@ -24,10 +24,7 @@ export const readPost = async <T extends PostTypeName>(postId: string): Promise<
 };
 
 const readPostFromPath = async <T extends PostTypeName>(postPath: string): Promise<PostType<T>> => {
-  const post: PostType<T> = await readJsonFile(postPath);
-  post.created = new Date(post.created);
-  post.updated = new Date(post.updated);
-  return post;
+  return jsonToPostType(await readJsonFile(postPath));
 };
 
 export const writePost = async <T extends PostTypeName>(post: PostType<T>): Promise<void> => {
@@ -175,7 +172,9 @@ const ensureIndexDir = async (postType: PostTypeName): Promise<void> => {
 };
 
 const readIndexFile = async <T extends PostTypeName>(postType: T): Promise<IndexData<T>> => {
-  return await readJsonFile(getPostTypeIndexPath(postType));
+  const indexedData = await readJsonFile<IndexData<T>>(getPostTypeIndexPath(postType));
+  Object.values(indexedData).forEach(jsonToPostType);
+  return indexedData;
 };
 
 const writeIndexFile = async <T extends PostTypeName>(
@@ -259,4 +258,16 @@ export const isExistingSlug = async (
   }
   const slugData = await readSlugFile(postType);
   return slug in slugData;
+};
+
+export const getPostUrl = <T extends PostTypeName>(origin: string, post: PostType<T>): string => {
+  let path = '';
+  if (post.type === PostTypeName.Page) {
+    path = post.content.slug === 'index' ? '/' : `/${post.content.slug}`;
+  } else if (post.type === PostTypeName.Article) {
+    path = `/articles/${post.content.slug}`;
+  } else if (post.type === PostTypeName.Ephemera) {
+    path = `/ephemera/${post.id}`;
+  }
+  return new URL(path, origin).href;
 };

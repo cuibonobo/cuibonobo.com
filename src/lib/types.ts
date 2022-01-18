@@ -48,3 +48,10 @@ export interface SlugData {
 export interface IndexData<T> {
   [id: string]: PostType<T>;
 }
+
+export const jsonToPostType = <T>(json: unknown): PostType<T> => {
+  const post = json as PostType<T>;
+  post.created = new Date(post.created);
+  post.updated = new Date(post.updated);
+  return post;
+};

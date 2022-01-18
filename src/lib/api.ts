@@ -1,4 +1,4 @@
-import { PostTypeName, PostType, IndexData, SlugData } from './types';
+import { PostTypeName, PostType, IndexData, SlugData, jsonToPostType } from './types';
 import * as errors from './errors';
 
 const BASE_URL =
@@ -40,7 +40,9 @@ const get = async <T>(path: string): Promise<T> => {
 };
 
 const getIndexData = async <T extends PostTypeName>(postType: T): Promise<IndexData<T>> => {
-  return get(getIndexUrl(postType));
+  const indexed = await get<IndexData<T>>(getIndexUrl(postType));
+  Object.values(indexed).forEach(jsonToPostType);
+  return indexed;
 };
 
 const getSlugData = async (postType: PostTypeName): Promise<SlugData> => {
@@ -48,7 +50,7 @@ const getSlugData = async (postType: PostTypeName): Promise<SlugData> => {
 };
 
 export const getPost = async <T extends PostTypeName>(postId: string): Promise<PostType<T>> => {
-  return get(getPostUrl(postId));
+  return jsonToPostType(await get(getPostUrl(postId)));
 };
 
 export const getPostBySlug = async <T extends PostTypeName>(

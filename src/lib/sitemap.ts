@@ -1,12 +1,13 @@
 import path from 'path';
 import moment from 'moment';
 import xml from 'xml-js';
-import { writeFile } from './fs';
-import { getAllIndexedPosts } from './posts';
+import { writeFile, ensureDir } from './fs';
+import { getAllIndexedPosts, getPostUrl } from './posts';
 import { PostType, PostTypeName } from './types';
 
 export const writeSitemap = async (origin: string): Promise<void> => {
   const sitemap = await getSitemap(origin);
+  await ensureDir(path.dirname(getSitemapPath()));
   await writeFile(getSitemapPath(), sitemap);
 };
 
@@ -46,7 +47,7 @@ const getUrlElement = <T extends PostTypeName>(origin: string, post: PostType<T>
         elements: [
           {
             type: 'text',
-            text: new URL(getPostPath(post), origin).href
+            text: getPostUrl(origin, post)
           }
         ]
       },
@@ -62,16 +63,6 @@ const getUrlElement = <T extends PostTypeName>(origin: string, post: PostType<T>
       }
     ]
   };
-};
-
-const getPostPath = <T extends PostTypeName>(post: PostType<T>): string => {
-  if (post.type === PostTypeName.Page) {
-    return post.content.slug === 'index' ? '/' : `/${post.content.slug}`;
-  } else if (post.type === PostTypeName.Article) {
-    return `/articles/${post.content.slug}`;
-  } else if (post.type === PostTypeName.Ephemera) {
-    return `/ephemera/${post.id}`;
-  }
 };
 
 const getSitemapPath = (): string => {
