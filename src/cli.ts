@@ -8,6 +8,7 @@ import { getIndexedPostsByType, buildAllIndices } from './lib/posts';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
+import { writeFeeds } from './lib/feed';
 
 const program = new Command();
 program
@@ -115,6 +116,13 @@ program
   .description('Build a sitemap for all indexed data')
   .action(async (origin: string) => {
     await writeSitemap(origin);
+  });
+
+program
+  .command('feed <origin>')
+  .description('Build the syndication feeds for all indexed data')
+  .action(async (origin: string) => {
+    await writeFeeds(origin);
   });
 
 program.parse();

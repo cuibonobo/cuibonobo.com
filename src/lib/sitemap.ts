@@ -66,5 +66,5 @@ const getUrlElement = <T extends PostTypeName>(origin: string, post: PostType<T>
 };
 
 const getSitemapPath = (): string => {
-  return path.join(path.resolve('build'), 'sitemap.xml');
+  return path.join(path.resolve('static'), 'sitemap.xml');
 };

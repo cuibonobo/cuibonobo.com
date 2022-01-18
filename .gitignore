@@ -6,3 +6,6 @@ node_modules
 /.svelte-kit
 /package
 /.vscode
+/static/feed.json
+/static/feed.xml
+/static/sitemap.xml
