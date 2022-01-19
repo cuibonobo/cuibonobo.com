@@ -237,7 +237,7 @@ export const getIndexedPostsByType = async <T extends PostTypeName>(
 };
 
 export const addToIndex = async <T extends PostTypeName>(post: PostType<T>): Promise<void> => {
-  if (shouldIndex) {
+  if (shouldIndex(post)) {
     const indexData = await readIndexFile(post.type);
     indexData[post.id] = post;
     await writeIndexFile(post.type, indexData);
