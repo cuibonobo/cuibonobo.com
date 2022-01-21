@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { PostTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { getIndexedPostsByType, buildAllIndices } from './lib/posts';
+import { getIndexedPostsByType, buildAllIndices, deletePost } from './lib/posts';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
@@ -84,6 +84,17 @@ program
       }
     }
   });
+
+  program
+    .command('delete <str>')
+    .description('Delete the post with the given ID')
+    .action(async (postId: string) => {
+      try {
+        await deletePost(postId);
+      } catch (e) {
+        console.error(`Couldn't delete post ${postId}: ${e}`);
+      }
+    });
 
 program
   .command('discard')

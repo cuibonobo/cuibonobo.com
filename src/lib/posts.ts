@@ -4,7 +4,7 @@ import yaml from 'yaml';
 import { generateId } from './id';
 import { slugger } from './slugger';
 import { PostTypeName, PostType, SlugData, IndexData, jsonToPostType } from './types';
-import { writeJsonFile, readJsonFile, readDir, ensureDir } from './fs';
+import { writeJsonFile, readJsonFile, readDir, ensureDir, rm } from './fs';
 import * as errors from './errors';
 
 const yamlDivider = '---';
@@ -30,6 +30,11 @@ const readPostFromPath = async <T extends PostTypeName>(postPath: string): Promi
 export const writePost = async <T extends PostTypeName>(post: PostType<T>): Promise<void> => {
   const postPath = getPostPath(post.id);
   await writeJsonFile(postPath, post);
+};
+
+export const deletePost = async <T extends PostTypeName>(postId: string): Promise<void> => {
+  const postPath = getPostPath(postId);
+  await rm(postPath);
 };
 
 export const getFrontMatter = <T extends PostTypeName>(post: PostType<T>): string => {
