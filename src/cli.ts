@@ -85,16 +85,16 @@ program
     }
   });
 
-  program
-    .command('delete <str>')
-    .description('Delete the post with the given ID')
-    .action(async (postId: string) => {
-      try {
-        await deletePost(postId);
-      } catch (e) {
-        console.error(`Couldn't delete post ${postId}: ${e}`);
-      }
-    });
+program
+  .command('delete <str>')
+  .description('Delete the post with the given ID')
+  .action(async (postId: string) => {
+    try {
+      await deletePost(postId);
+    } catch (e) {
+      console.error(`Couldn't delete post ${postId}: `, e);
+    }
+  });
 
 program
   .command('discard')
