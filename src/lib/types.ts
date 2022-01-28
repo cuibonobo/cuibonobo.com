@@ -46,7 +46,7 @@ export interface SlugData {
 }
 
 export interface IndexData<T> {
-  [id: string]: PostType<T>;
+  posts: PostType<T>[];
 }
 
 export const jsonToPostType = <T>(json: unknown): PostType<T> => {

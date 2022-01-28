@@ -32,7 +32,7 @@ export const writePost = async <T extends PostTypeName>(post: PostType<T>): Prom
   await writeJsonFile(postPath, post);
 };
 
-export const deletePost = async <T extends PostTypeName>(postId: string): Promise<void> => {
+export const deletePost = async (postId: string): Promise<void> => {
   const postPath = getPostPath(postId);
   await rm(postPath);
 };
@@ -64,6 +64,7 @@ const getAllPosts = async <T extends PostTypeName>(): Promise<PostType<T>[]> => 
       return await readPostFromPath(path.join(dataDir, filePath.name));
     })
   );
+  // Posts are sorted in reverse chronological order so newest are at the top
   return <PostType<T>[]>items.sort((a, b) => b.created.getTime() - a.created.getTime());
 };
 
@@ -72,6 +73,7 @@ const getPostsByType = async <T extends PostTypeName>(postType: T): Promise<Post
   const items: PostType<T>[] = [];
   for (const post of allPosts) {
     if (post.type == postType) {
+      // `allPosts` are in reverse chronological order
       items.push(<PostType<T>>post);
     }
   }
@@ -177,9 +179,9 @@ const ensureIndexDir = async (postType: PostTypeName): Promise<void> => {
 };
 
 const readIndexFile = async <T extends PostTypeName>(postType: T): Promise<IndexData<T>> => {
-  const indexedData = await readJsonFile<IndexData<T>>(getPostTypeIndexPath(postType));
-  Object.values(indexedData).forEach(jsonToPostType);
-  return indexedData;
+  const indexData = await readJsonFile<IndexData<T>>(getPostTypeIndexPath(postType));
+  indexData.posts.forEach(jsonToPostType);
+  return indexData;
 };
 
 const writeIndexFile = async <T extends PostTypeName>(
@@ -197,7 +199,7 @@ const writeSlugFile = async (postType: PostTypeName, indexData: SlugData): Promi
   await writeJsonFile(getPostTypeSlugPath(postType), indexData);
 };
 
-const shouldIndex = <T extends PostTypeName>(post: PostType<T>) => {
+const shouldIndex = <T extends PostTypeName>(post: PostType<T>): boolean => {
   return post.type === PostTypeName.Ephemera || typeof post.content.slug !== 'number';
 };
 
@@ -210,11 +212,12 @@ export const buildAllIndices = async (): Promise<void> => {
 const buildIndexByType = async <T extends PostTypeName>(postType: T): Promise<void> => {
   await ensureIndexDir(postType);
   const posts = await getPostsByType(postType);
-  const indexData: IndexData<T> = {};
+  const indexData: IndexData<T> = { posts: [] };
   const slugData: SlugData = {};
   for (const post of posts) {
     if (shouldIndex(post)) {
-      indexData[post.id] = post;
+      // `posts` are in reverse chronological order
+      indexData.posts.push(post);
     }
     if (post.type !== PostTypeName.Ephemera) {
       slugData[post.content.slug] = post.id;
@@ -238,13 +241,14 @@ export const getIndexedPostsByType = async <T extends PostTypeName>(
   postType: T
 ): Promise<PostType<T>[]> => {
   const indexData = await readIndexFile(postType);
-  return Object.values(indexData);
+  return indexData.posts;
 };
 
 export const addToIndex = async <T extends PostTypeName>(post: PostType<T>): Promise<void> => {
   if (shouldIndex(post)) {
     const indexData = await readIndexFile(post.type);
-    indexData[post.id] = post;
+    // Posts are in reverse chronological order in the index, so new posts are added to the top
+    indexData.posts.unshift(post);
     await writeIndexFile(post.type, indexData);
   }
   if (post.type !== PostTypeName.Ephemera) {

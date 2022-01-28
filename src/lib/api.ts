@@ -40,9 +40,9 @@ const get = async <T>(path: string): Promise<T> => {
 };
 
 const getIndexData = async <T extends PostTypeName>(postType: T): Promise<IndexData<T>> => {
-  const indexed = await get<IndexData<T>>(getIndexUrl(postType));
-  Object.values(indexed).forEach(jsonToPostType);
-  return indexed;
+  const indexData = await get<IndexData<T>>(getIndexUrl(postType));
+  indexData.posts.forEach(jsonToPostType);
+  return indexData;
 };
 
 const getSlugData = async (postType: PostTypeName): Promise<SlugData> => {
@@ -71,5 +71,5 @@ export const getPostsByType = async <T extends PostTypeName>(
   postType: T
 ): Promise<PostType<T>[]> => {
   const indexData = await getIndexData(postType);
-  return Object.values(indexData);
+  return indexData.posts;
 };
