@@ -1,4 +1,5 @@
-import marked from 'marked';
+// Despite the linter's objections, building RSS feeds doesn't if below is default import
+import * as marked from 'marked';
 import type { MarkedOptions } from 'marked';
 import xss, { IFilterXSSOptions } from 'xss';
 import xssDefaults from 'xss/lib/default.js';
