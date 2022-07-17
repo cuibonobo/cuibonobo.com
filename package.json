@@ -77,7 +77,6 @@
     "yaml": "^1.10.2"
   },
   "type": "module",
-  "dependencies": {},
   "jest": {
     "transform": {
       "^.+\\.(t|j)s?$": "ts-jest"
