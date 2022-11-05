@@ -54,6 +54,10 @@ export const openWithFileExplorer = (path: string): string => {
   return `${explorer} "${path}"`;
 };
 
+const isNoEntryError = (e: unknown): boolean => {
+  return typeof(e) === 'object' && 'code' in e && e['code'] == 'ENOENT';
+};
+
 export const ensureDir = async (path: string): Promise<void> => {
   try {
     const f = await lstat(path);
@@ -61,9 +65,21 @@ export const ensureDir = async (path: string): Promise<void> => {
       await mkDirp(path);
     }
   } catch (e: unknown) {
-    if (e instanceof Error && e['code'] == 'ENOENT') {
+    if (isNoEntryError(e)) {
       await mkDirp(path);
       return;
+    }
+    throw e;
+  }
+};
+
+export const dirExists = async (path: string): Promise<boolean> => {
+  try {
+    const f = await lstat(path);
+    return f.isDirectory();
+  } catch (e: unknown) {
+    if (isNoEntryError(e)) {
+      return false;
     }
     throw e;
   }
@@ -74,7 +90,7 @@ export const fileExists = async (path: string): Promise<boolean> => {
     const f = await lstat(path);
     return f.isFile();
   } catch (e: unknown) {
-    if (e instanceof Error && e['code'] == 'ENOENT') {
+    if (isNoEntryError(e)) {
       return false;
     }
     throw e;

@@ -1,6 +1,6 @@
 import path from 'path';
 import { PostTypeName, PostType } from './types';
-import { mkTempDir, writeFile, readFile, rm, rmDir, fileExists } from './fs';
+import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists } from './fs';
 import {
   getPostsDir,
   getDefaultPostData,
@@ -118,7 +118,9 @@ const throwOnLock = async (): Promise<void> => {
 const deleteLockedData = async (): Promise<void> => {
   const lockData = await lockRead();
   const lockDir = path.dirname(lockData.lockedFilePath);
-  await rmDir(lockDir, { recursive: true });
+  if (await dirExists(lockDir)) {
+    await rmDir(lockDir, { recursive: true });
+  }
 };
 
 export const lockDelete = async (): Promise<void> => {

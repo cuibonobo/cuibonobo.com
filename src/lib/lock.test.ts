@@ -1,4 +1,4 @@
-import { lockRead, lockWrite, LockMode } from './lock';
+import { lockRead, lockWrite, LockMode, lockDelete } from './lock';
 
 test('Writing a lockfile and reading it back generates the same data', async () => {
   const lockData = {
@@ -9,4 +9,5 @@ test('Writing a lockfile and reading it back generates the same data', async () 
   };
   await lockWrite(lockData);
   expect(await lockRead()).toStrictEqual(lockData);
+  await lockDelete();
 });
