@@ -7,6 +7,7 @@ export const readFile = util.promisify(fs.readFile);
 export const readDir = util.promisify(fs.readdir);
 export const rm = util.promisify(fs.unlink);
 export const rmDir = util.promisify(fs.rmdir);
+export const copyFile = util.promisify(fs.copyFile);
 const mkDirp = util.promisify(
   (path: string, callback: (err: NodeJS.ErrnoException, path?: string) => void) => {
     return fs.mkdir(path, { recursive: true }, callback);
@@ -54,7 +55,7 @@ export const openWithFileExplorer = (path: string): string => {
   return `${explorer} "${path}"`;
 };
 
-const isNoEntryError = (e: unknown): boolean => {
+export const isNoEntryError = (e: unknown): boolean => {
   return typeof(e) === 'object' && 'code' in e && e['code'] == 'ENOENT';
 };
 
