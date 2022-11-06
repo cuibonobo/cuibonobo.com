@@ -11,6 +11,7 @@ import {
   addToIndex,
   appendDataToPost
 } from './posts';
+import { copyMediaToTemp, copyMediaToStorage } from './media';
 import * as errors from './errors';
 
 const lockFileName = '.lock';
@@ -51,7 +52,8 @@ const lockPost = async <T extends PostTypeName>(
   const editorDir = await mkTempDir();
   const frontMatter = getFrontMatter(post);
   const lockedFilePath = path.join(editorDir, `${post.id}.md`);
-  await writeFile(lockedFilePath, frontMatter + post.content.text);
+  const postContent = await copyMediaToTemp(post.content.text, post.created, editorDir);
+  await writeFile(lockedFilePath, frontMatter + postContent);
   const lockData: LockData = {
     lockedFilePath,
     postId: post.id,
@@ -70,6 +72,7 @@ export const lockCommit = async <T extends PostTypeName>(): Promise<void> => {
   if (lockData.mode === LockMode.Edit) {
     post.updated = new Date();
   }
+  post.content.text = await copyMediaToStorage(post.content.text, post.created, path.dirname(lockData.lockedFilePath));
   if (
     lockData.mode === LockMode.New &&
     post.type !== PostTypeName.Ephemera &&
