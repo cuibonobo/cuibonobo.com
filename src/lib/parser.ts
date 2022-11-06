@@ -29,3 +29,30 @@ marked.setOptions(markedOptions);
 export const markdownToHtml = (markdown: string): string => {
   return xss(marked.parse(markdown), xssOptions);
 };
+
+const getMatchArray = (text:string, regex: RegExp): string[] => {
+  const matches = text.match(regex);
+  if (matches === null) {
+    return [];
+  }
+  return matches;
+};
+
+const globalMarkdownLinkRegex = /!?\[([^\]]+)\]\(((?!https?)(?!:)(?!\/\/)[\w\d\s\:\/\.\?%=&*_\- \[\]]+)(\"(.+)\")?\)/g;
+
+export const getRelativeMediaLinks = (text: string): string[] => {
+  return getMatchArray(text, globalMarkdownLinkRegex).map(getMarkdownLinkHref).filter((link: string) =>{
+    return link && !link.startsWith('/') && !link.endsWith('/');
+  });
+};
+
+export const getAbsoluteMediaLinks = (text: string): string[] => {
+  return getMatchArray(text, globalMarkdownLinkRegex).map(getMarkdownLinkHref).filter((link: string) =>{
+    return link && link.startsWith('/') && !link.endsWith('/');
+  });
+};
+
+const getMarkdownLinkHref = (markdownLink: string): string => {
+  const singleMarkdownLinkRegex = /^(?:!?)\[.*\]\((.*)\)$/;
+  return markdownLink.match(singleMarkdownLinkRegex)[1];
+};
