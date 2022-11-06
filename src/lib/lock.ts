@@ -72,7 +72,11 @@ export const lockCommit = async <T extends PostTypeName>(): Promise<void> => {
   if (lockData.mode === LockMode.Edit) {
     post.updated = new Date();
   }
-  post.content.text = await copyMediaToStorage(post.content.text, post.created, path.dirname(lockData.lockedFilePath));
+  post.content.text = await copyMediaToStorage(
+    post.content.text,
+    post.created,
+    path.dirname(lockData.lockedFilePath)
+  );
   if (
     lockData.mode === LockMode.New &&
     post.type !== PostTypeName.Ephemera &&

@@ -56,7 +56,7 @@ export const openWithFileExplorer = (path: string): string => {
 };
 
 export const isNoEntryError = (e: unknown): boolean => {
-  return typeof(e) === 'object' && 'code' in e && e['code'] == 'ENOENT';
+  return typeof e === 'object' && 'code' in e && e['code'] == 'ENOENT';
 };
 
 export const ensureDir = async (path: string): Promise<void> => {

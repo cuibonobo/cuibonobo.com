@@ -62,7 +62,8 @@ export const generateId = (timestamp = -1): string => {
     timestamp = Date.now();
   }
   const nowId: string = crockford32Encode(timestamp).padStart(MIN_TIMESTAMP, CHARACTERS[0]);
-  const randChars: string = nowId !== lastNowId ? generateRandChars() : incrementRandChars(lastRandChars);
+  const randChars: string =
+    nowId !== lastNowId ? generateRandChars() : incrementRandChars(lastRandChars);
   lastNowId = nowId;
   lastRandChars = randChars;
   return nowId + randChars;
