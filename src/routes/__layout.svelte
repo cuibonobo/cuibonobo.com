@@ -33,6 +33,12 @@
     <div class="mb-2">
       <a
         class="mr-2"
+        href="https://mastodon.social/@cuibonobo"
+        target="_blank"
+        rel="me noopener noreferrer">Mastodon</a
+      >
+      <a
+        class="mr-2"
         href="https://twitter.com/cuibonobo"
         target="_blank"
         rel="me noopener noreferrer">Twitter</a
