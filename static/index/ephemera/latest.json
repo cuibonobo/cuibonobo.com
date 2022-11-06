@@ -2,6 +2,15 @@
   "posts": [
     {
       "type": "ephemera",
+      "id": "1gh5d4pk10p8",
+      "created": "2022-11-06T02:43:30.529Z",
+      "updated": "2022-11-06T02:43:30.529Z",
+      "content": {
+        "text": "![Close-up of my left ear with my new hearing aids. You can barely see a wire coming out of my ear canal and making its way behind my ear.](/media/2022/11/IMG_2326.jpg)\r\n\r\nI got new hearing aids! I first realized I needed them about a year ago but I had been waiting on the new FDA rules that allowed them to be sold over the counter. (I wouldn't be able to afford them otherwise.) I'm very impressed with them so far, and I can stream music directly into my ears!"
+      }
+    },
+    {
+      "type": "ephemera",
       "id": "1fvdefj1cksp",
       "created": "2022-02-08T19:55:30.220Z",
       "updated": "2022-02-08T19:55:30.220Z",
