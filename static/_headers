@@ -2,7 +2,7 @@ https://:cuibonobo.pages.dev/*
   X-Robots-Tag: noindex
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; object-src 'none' ; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' static.cloudflareinsights.com; object-src 'none' ; frame-ancestors 'none'
   Referrer-Policy: same-origin, strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
