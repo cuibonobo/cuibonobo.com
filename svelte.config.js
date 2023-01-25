@@ -8,6 +8,13 @@ const config = {
   // for more information about preprocessors
   preprocess: preprocess(),
   kit: {
+    csp: {
+      directives: {
+        'default-src': ['self'],
+        'script-src': ['self', 'static.cloudflareinsights.com'],
+        'object-src': ['none']
+      }
+    },
     files: {
       assets: 'static',
       routes: 'src/routes',
