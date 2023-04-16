@@ -10,9 +10,13 @@ const config = {
   kit: {
     csp: {
       directives: {
-        'default-src': ['self'],
-        'script-src': ['self', 'static.cloudflareinsights.com'],
-        'object-src': ['none']
+        'default-src': ['*', 'unsafe-inline', 'unsafe-eval'],
+        'script-src': ['*', 'unsafe-inline', 'unsafe-eval'],
+        'connect-src': ['*', 'unsafe-inline'],
+        'img-src': ['*', 'data:', 'blob:', 'unsafe-inline'],
+        'frame-src': ['*'],
+        'style-src': ['*', 'unsafe-inline'],
+        'object-src': ['*']
       }
     },
     files: {
