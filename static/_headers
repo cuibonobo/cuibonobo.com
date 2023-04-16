@@ -2,6 +2,7 @@ https://:cuibonobo.pages.dev/*
   X-Robots-Tag: noindex
 
 /*
+  Content-Security-Policy: default-src 'self'; script-src *
   Referrer-Policy: same-origin, strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
