@@ -2,6 +2,15 @@
   "posts": [
     {
       "type": "ephemera",
+      "id": "1hhx1begrwyh",
+      "created": "2023-12-17T23:21:33.464Z",
+      "updated": "2023-12-17T23:21:33.464Z",
+      "content": {
+        "text": "![A mini Bluetooth thermal printer that has just printed an \"I can print stuff from Python!!\" message. A spool of failed prints are surrounding the printer.](/media/2023/12/2023-12-17-181649_mini-printer.jpeg)\r\n\r\nA few months ago I ordered a [wildly cheap Bluetooth thermal printer from AliExpress](https://www.aliexpress.us/item/3256805006753537.html) and got it to print on [the iOS app](https://play.google.com/store/apps/details?id=com.fun.mxw), but I wasn't satisfied with the designs and options on the app and have wanted to create my own prints ever since.\r\n\r\nI've been poking at [NaitLee/Cat-Printer](https://github.com/NaitLee/Cat-Printer) for the past week to try to get it to generate images with [Pillow](https://python-pillow.org/) instead of having to rely on the web app and I finally got it working!"
+      }
+    },
+    {
+      "type": "ephemera",
       "id": "1hhv4x6ckng4",
       "created": "2023-12-17T05:45:11.827Z",
       "updated": "2023-12-17T05:45:11.827Z",
