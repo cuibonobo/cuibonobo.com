@@ -1,0 +1,9 @@
+{
+  "type": "ephemera",
+  "id": "1hhv4x6ckng4",
+  "created": "2023-12-17T05:45:11.827Z",
+  "updated": "2023-12-17T05:45:11.827Z",
+  "content": {
+    "text": "I hadn't touched my site in a few months and suddenly I couldn't build it at all... [Svelte Kit](https://kit.svelte.dev/) was completely falling over and upgrading to the latest version had so many API changes that it may as well have been a rewrite. I _think_ this all happened because at some point I upgraded my version of Node, but: wow.\r\n\r\nI briefly looked at [Eleventy](https://www.11ty.dev) but, while it's fairly capable, I was going to have to do a lot of custom stuff to get it to look at my data. My needs are so simple (and yet so specific!), that it didn't seem worth it.\r\n\r\nInstead, I'm now using mostly string literals and [Mustache](https://github.com/janl/mustache.js).\r\n\r\n_Custom all the way, baby!_ 😎"
+  }
+}
