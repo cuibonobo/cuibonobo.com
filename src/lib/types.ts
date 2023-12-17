@@ -36,10 +36,10 @@ export interface EphemeraType extends BasePost {
 export type PostType<T> = T extends PostTypeName.Page
   ? PageType
   : T extends PostTypeName.Article
-  ? ArticleType
-  : T extends PostTypeName.Ephemera
-  ? EphemeraType
-  : never;
+    ? ArticleType
+    : T extends PostTypeName.Ephemera
+      ? EphemeraType
+      : never;
 
 export interface SlugData {
   [slug: string]: string;

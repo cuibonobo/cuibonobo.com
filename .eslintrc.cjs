@@ -7,13 +7,12 @@ module.exports = {
     'plugin:@typescript-eslint/recommended-requiring-type-checking'
   ],
   plugins: ['@typescript-eslint'],
-  ignorePatterns: ['*.cjs', 'svelte.config.js', '*.svelte'],
+  ignorePatterns: ['*.cjs'],
   parserOptions: {
     sourceType: 'module',
     ecmaVersion: 2019,
     tsconfigRootDir: __dirname,
-    project: ['./tsconfig.json'],
-    extraFileExtensions: ['.svelte']
+    project: ['./tsconfig.json']
   },
   env: {
     browser: true,

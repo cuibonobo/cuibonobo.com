@@ -5,7 +5,8 @@ I want an SSG that routes to real HTML pages and doesn't load JavaScript unless 
 ## Running locally
 
 ```bash
-npm run install
+npm install
+npm run build
 npm run dev
 ```
 
@@ -13,7 +14,7 @@ npm run dev
 
 ```bash
 # Run type-checking and formatting
-npm run check:all
+npm run check
 
 # Fix lint errors
 npm run lint:fix

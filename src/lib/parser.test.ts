@@ -1,18 +1,18 @@
 import { getAbsoluteMediaLinks, getRelativeMediaLinks, markdownToHtml } from './parser';
 
-test('Markdown is converted to HTML', () => {
-  expect(markdownToHtml('# A heading')).toStrictEqual('<h1>A heading</h1>\n');
+test('Markdown is converted to HTML', async () => {
+  expect(await markdownToHtml('# A heading')).toStrictEqual('<h1>A heading</h1>\n');
 });
 
-test('Covered Markdown code blocks are highlighted', () => {
-  expect(markdownToHtml('```javascript\nconst foo = 1;\n```')).toStrictEqual(
-    '<pre><code><span class="token keyword">const</span> foo <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>\n</code></pre>\n'
+test('Covered Markdown code blocks are highlighted', async () => {
+  expect(await markdownToHtml('```javascript\nconst foo = 1;\n```')).toStrictEqual(
+    '<pre><code><span class="token keyword">const</span> foo <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>\n</code></pre>'
   );
 });
 
-test('Uncovered Markdown code blocks are not highlighted', () => {
-  expect(markdownToHtml('```php\n$foo = 1;\n```')).toStrictEqual(
-    '<pre><code>$foo = 1;\n</code></pre>\n'
+test('Uncovered Markdown code blocks are not highlighted', async () => {
+  expect(await markdownToHtml('```php\n$foo = 1;\n```')).toStrictEqual(
+    '<pre><code>$foo = 1;\n</code></pre>'
   );
 });
 

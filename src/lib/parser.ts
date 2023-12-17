@@ -1,6 +1,6 @@
 // Despite the linter's objections, building RSS feeds doesn't if below is default import
-import * as marked from 'marked';
-import type { MarkedOptions } from 'marked';
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
 import xss, { IFilterXSSOptions } from 'xss';
 import xssDefaults from 'xss/lib/default.js';
 import prism from 'prismjs';
@@ -11,23 +11,24 @@ import 'prismjs/components/prism-powershell.js';
 import 'prismjs/components/prism-bash.js';
 import 'prismjs/components/prism-batch.js';
 
-const markedOptions: MarkedOptions = {
-  highlight: (code, lang) => {
-    if (prism.languages[lang]) {
-      return prism.highlight(code, prism.languages[lang], lang);
-    } else {
-      return code;
+const marked = new Marked(
+  markedHighlight({
+    highlight(code, lang) {
+      if (prism.languages[lang]) {
+        return prism.highlight(code, prism.languages[lang], lang);
+      } else {
+        return code;
+      }
     }
-  }
-};
+  })
+);
+
 const xssOptions: IFilterXSSOptions = {
   whiteList: { ...xssDefaults.whiteList, span: ['class'], a: ['target', 'href', 'title', 'rel'] }
 };
 
-marked.setOptions(markedOptions);
-
-export const markdownToHtml = (markdown: string): string => {
-  return xss(marked.parse(markdown), xssOptions);
+export const markdownToHtml = async (markdown: string): Promise<string> => {
+  return xss(await marked.parse(markdown), xssOptions);
 };
 
 const getMatchArray = (text: string, regex: RegExp): string[] => {

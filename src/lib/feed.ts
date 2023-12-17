@@ -46,9 +46,10 @@ const getAllPostsFeed = async (originUrl: string, itemLimit: number): Promise<Fe
     .filter((post) => post.type !== PostTypeName.Page)
     .sort((a, b) => b.created.valueOf() - a.created.valueOf());
   posts.splice(itemLimit, posts.length - itemLimit);
-  posts.forEach((post) => {
-    feed.addItem(getFeedItem(post, originUrl, author));
-  });
+  for (let i = 0; i < posts.length; i++) {
+    const feedItem = await getFeedItem(posts[i], originUrl, author);
+    feed.addItem(feedItem);
+  }
   return feed;
 };
 
@@ -68,22 +69,22 @@ const getPostTypeFeed = async (
     (a, b) => b.created.valueOf() - a.created.valueOf()
   );
   posts.splice(itemLimit, posts.length - itemLimit);
-  posts.forEach((post) => {
-    feed.addItem(getFeedItem(post, originUrl, author));
-  });
+  for (let i = 0; i < posts.length; i++) {
+    feed.addItem(await getFeedItem(posts[i], originUrl, author));
+  }
   return feed;
 };
 
-const getFeedItem = <T extends PostTypeName>(
+const getFeedItem = async <T extends PostTypeName>(
   post: PostType<T>,
   originUrl: string,
   author: Author
-): Item => {
+): Promise<Item> => {
   return {
     title: post.type === PostTypeName.Ephemera ? `Ephemera: ${post.id}` : post.content.title,
     id: post.id,
     link: getPostUrl(originUrl, post),
-    content: markdownToHtml(post.content.text),
+    content: await markdownToHtml(post.content.text),
     author: [author],
     date: post.created,
     category: [{ name: post.type }]

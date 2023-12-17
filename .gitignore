@@ -3,7 +3,6 @@
 node_modules
 /coverage
 /build
-/.svelte-kit
 /package
 /.vscode
 /static/*feed.json

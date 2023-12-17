@@ -9,6 +9,7 @@ import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lo
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
+import { writeSitePages } from './lib/site';
 
 const program = new Command();
 program
@@ -134,6 +135,13 @@ program
   .description('Build the syndication feeds for all indexed data')
   .action(async (origin: string) => {
     await writeFeeds(origin);
+  });
+
+program
+  .command('site')
+  .description('Build the site HTML')
+  .action(async () => {
+    await writeSitePages('./build');
   });
 
 program.parse();

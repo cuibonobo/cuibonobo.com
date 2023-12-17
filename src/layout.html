@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="author" href="/humans.txt" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title="RSS/Atom Articles Feed"
+      href="/article-feed.xml"
+    />
+    <link
+      rel="alternate"
+      type="application/feed+json"
+      title="JSON Articles Feed"
+      href="/article-feed.json"
+    />
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title="RSS/Atom Ephemera Feed"
+      href="/ephemera-feed.xml"
+    />
+    <link
+      rel="alternate"
+      type="application/feed+json"
+      title="JSON Ephemera Feed"
+      href="/ephemera-feed.json"
+    />
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title="RSS/Atom All Posts Feed"
+      href="/feed.xml"
+    />
+    <link
+      rel="alternate"
+      type="application/feed+json"
+      title="JSON All Posts Feed"
+      href="/feed.json"
+    />
+    <link rel="icon" href="/favicon-32x32.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" crossorigin="use-credentials" />
+    <link rel="stylesheet" href="/tailwind.min.css" />
+    <meta name="theme-color" content="#fbd34d" />
+    <title>{{ &metaTitle }}</title>
+  </head>
+  <body id="main" class="h-screen">
+    <header
+      id="top-bar"
+      class="container justify-between flex flex-col md:flex-row py-2 px-4 md:p-4 mx-auto"
+    >
+      <div class="brand inline-flex">
+        <a href="/"><h1>cuibonobo</h1></a>
+      </div>
+      <nav id="main-menu" class="flex flex-wrap leading-loose">
+        <a class="mr-2 md:mr-4" href="/">Home</a>
+        <a class="mx-2 md:mx-4" href="/ephemera/">Ephemera</a>
+        <a class="mx-2 md:mx-4" href="/articles/">Articles</a>
+        <a class="ml-2 md:ml-4" href="/about/">About</a>
+      </nav>
+    </header>
+
+    <main class="container mx-auto pt-2 pb-6 px-4 md:pt-4 md:pb-8">{{ &pageBody }}</main>
+
+    <footer id="footer" class="container mx-auto py-2 px-4 md:p-4 grid grid-cols-1 md:grid-cols-2">
+      <div class="grid grid-rows-2 mb-2">
+        <nav class="mb-2">
+          <a class="mr-2" href="/ephemera/">Ephemera</a>
+          <a class="mr-2" href="/articles/">Articles</a>
+          <a class="mr-2" href="/about/">About</a>
+        </nav>
+        <div class="mb-2">
+          <a
+            class="mr-2"
+            href="https://mastodon.social/@cuibonobo"
+            target="_blank"
+            rel="me noopener noreferrer"
+            >Mastodon</a
+          >
+          <a
+            class="mr-2"
+            href="https://twitter.com/cuibonobo"
+            target="_blank"
+            rel="me noopener noreferrer"
+            >Twitter</a
+          >
+          <a
+            class="mr-2"
+            href="https://github.com/cuibonobo"
+            target="_blank"
+            rel="me noopener noreferrer"
+            >GitHub</a
+          >
+          <a
+            class="mr-2"
+            href="https://instagram.com/cuibonobo"
+            target="_blank"
+            rel="me noopener noreferrer"
+            >Instagram</a
+          >
+        </div>
+      </div>
+      <div class="md:text-right">
+        Except where otherwise noted, everything by <a href="/">cuibonobo</a> on this website is
+        <a
+          title="Creative Commons CC0"
+          href="http://creativecommons.org/publicdomain/zero/1.0/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >dedicated to the public domain</a
+        >.
+      </div>
+    </footer>
+  </body>
+</html>
