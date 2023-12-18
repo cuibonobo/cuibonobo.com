@@ -1,7 +1,7 @@
 /* AUTHOR */
 Name: Jen Garcia
 Email: jen (at) cuibonobo (dot) com
-Twitter: cuibonobo
+Mastodon: @cuibonobo@mastodon.social
 Location: Atlanta, Georgia, USA
                             
 /* COLOPHON */
