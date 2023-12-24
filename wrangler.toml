@@ -1,0 +1,11 @@
+name = "cuibonobo-website"
+
+workers_dev = true
+main = "./functions/api/index.ts"
+# https://developers.cloudflare.com/workers/platform/compatibility-dates
+compatibility_date = "2023-08-15"
+
+route = { pattern = "cuibonobo.com/*", zone_name = "cuibonobo.com" }
+
+[build]
+  command = "npm run build"

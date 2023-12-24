@@ -1,5 +1,6 @@
 .lock
 .DS_Store
+.wrangler
 node_modules
 /coverage
 /build
