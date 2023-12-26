@@ -1,11 +1,14 @@
 name = "cuibonobo-website"
 
 workers_dev = true
-main = "./functions/api/index.ts"
 # https://developers.cloudflare.com/workers/platform/compatibility-dates
 compatibility_date = "2023-08-15"
 
-route = { pattern = "cuibonobo.com/*", zone_name = "cuibonobo.com" }
-
 [build]
-  command = "npm run build"
+command = "npm run build:site"
+watch_dir = "./src"
+
+[[d1_databases]]
+binding = "STACK_DB"
+database_name = "stack_db"
+database_id = "74d928c9-2649-4a29-84bb-187562fb48c9"

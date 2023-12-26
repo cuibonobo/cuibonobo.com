@@ -10,6 +10,7 @@ import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
+import { generateId } from './lib/id';
 
 const program = new Command();
 program
@@ -107,6 +108,13 @@ program
     } catch (e) {
       console.info('Editing state was already clear.');
     }
+  });
+
+program
+  .command('id')
+  .description('Generate a new post ID')
+  .action(() => {
+    console.info(generateId());
   });
 
 program
