@@ -11,13 +11,30 @@ interface ResourcesDbResult {
   content: string;
 }
 
+type RequestContext = EventContext<Env, any, Record<string, unknown>>;
+
+// Models
+const Resources = (db: D1Database) => {
+  return {
+    getAll: async (limit: number = 50): Promise<ResourcesDbResult[]> => {
+      // Create a prepared statement with our query
+      const ps = db.prepare(`SELECT * FROM resources${limit ? ' LIMIT ' + limit: ''}`);
+      const data = await ps.all<ResourcesDbResult>();
+      return data.results;
+    },
+  };
+};
+
+// Controllers
+const getResources = async (context: RequestContext): Promise<Response> => {
+  const results = await Resources(context.env.STACK_DB).getAll();
+  return Response.json(results);
+};
+
+// Routes
 export const onRequest: PagesFunction<Env> = async (context) => {
   if (!context.env.STACK_DB) {
     return new Response(JSON.stringify({ message: 'Database not configured!' }), { status: 500 });
   }
-  // Create a prepared statement with our query
-  const ps = context.env.STACK_DB.prepare('SELECT * FROM resources LIMIT 50');
-  const data = await ps.all<ResourcesDbResult>();
-
-  return Response.json(data.results);
+  return getResources(context);
 };
