@@ -6,7 +6,7 @@ CREATE TABLE resources (
   created_date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
   is_public BOOLEAN DEFAULT FALSE NOT NULL,
-  content TEXT DEFAULT "{}" NOT NULL
+  content JSON DEFAULT "{}" NOT NULL
 );
 
 CREATE INDEX idx_resources_type ON resources (type);
