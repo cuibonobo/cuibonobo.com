@@ -12,6 +12,8 @@ import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
 
+const stackUrl = 'http://127.0.0.1:8788'
+
 const program = new Command();
 program
   .command('new <postType>')
@@ -150,6 +152,49 @@ program
   .description('Build the site HTML')
   .action(async () => {
     await writeSitePages('./build');
+  });
+
+program
+  .command('create <postType>')
+  .description('Create a post with the new API')
+  .action(async(postType: string) => {
+    const data = {
+      id: generateId(),
+      type: postType,
+      content: {text: 'Generated from CLI'}
+    }
+    const url = new URL('/stack/resources', stackUrl);
+    const result = await fetch(url, {
+      headers: {'Content-Type': 'application/json'},
+      method: 'post',
+      body: JSON.stringify(data)
+    });
+    console.log(result.statusText);
+  });
+
+program
+  .command('update <id> <content>')
+  .description('Update a post with the new API')
+  .action(async(id: string, content: string) => {
+    const url = new URL('/stack/resources/' + id, stackUrl);
+    const result = await fetch(url, {
+      headers: {'Content-Type': 'application/json'},
+      method: 'post',
+      body: content
+    });
+    console.log(result.statusText);
+  });
+
+program
+  .command('remove <id>')
+  .description('Remove a post with the new API')
+  .action(async(id: string) => {
+    const url = new URL('/stack/resources/' + id, stackUrl);
+    const result = await fetch(url, {
+      headers: {'Content-Type': 'application/json'},
+      method: 'delete'
+    });
+    console.log(result.statusText);
   });
 
 program.parse();

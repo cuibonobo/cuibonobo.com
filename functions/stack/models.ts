@@ -1,11 +1,17 @@
-interface ResourcesDbResult {
-  id: string;
-  type: string;
+interface ResourcesDbRequired {
+  id: string,
+  type: string
+}
+
+interface ResourcesDbOptional {
   created_date: string;
   updated_date: string;
   is_public: number;
   content: string;
 }
+
+type ResourcesDbResult = ResourcesDbRequired & ResourcesDbOptional;
+type ResourcesDbInput = ResourcesDbRequired & Partial<ResourcesDbOptional>;
 
 const addLimitToQuery = (query: string, limit: number = 50): string => {
   return query + (limit ? ' LIMIT ' + limit : '');
@@ -26,6 +32,25 @@ const Resources = (db: D1Database) => {
     getOne: async (id: string): Promise<ResourcesDbResult> => {
       const ps = db.prepare('SELECT * FROM resources where id = ?1').bind(id);
       return await ps.first<ResourcesDbResult>();
+    },
+    createOne: async (resource: ResourcesDbInput): Promise<boolean> => {
+      const keys = Object.keys(resource);
+      const values = Object.values(resource).map(v => typeof(v) == 'string' ? v : JSON.stringify(v));
+      // Create an array containing ?1..?N where N is the length of keys
+      const positions = Array.from({length: keys.length}, (_, i) => i + 1).map(n => `?${n}`);
+      const ps = db.prepare(`INSERT INTO resources (${keys.join(', ')}) VALUES (${positions.join(', ')})`).bind(...values);
+      const data = await ps.run();
+      return data.success;
+    },
+    updateOne: async (id: string, content: string): Promise<boolean> => {
+      const ps = db.prepare('UPDATE resources SET content = ?1 WHERE id = ?2').bind(content, id);
+      const data = await ps.run();
+      return data.success;
+    },
+    deleteOne: async (id: string): Promise<boolean> => {
+      const ps = db.prepare('DELETE FROM resources where id = ?1').bind(id);
+      const data = await ps.run();
+      return data.success;
     },
     getTypes: async (): Promise<string[]> => {
       const ps = db.prepare('SELECT DISTINCT type FROM resources');
@@ -48,4 +73,4 @@ const Resources = (db: D1Database) => {
 };
 
 export {Resources};
-export type {ResourcesDbResult};
+export type {ResourcesDbResult, ResourcesDbInput};

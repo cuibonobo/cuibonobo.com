@@ -1,4 +1,5 @@
-import { Resources } from "@models/index.js";
+import { Resources } from "./models.js";
+import type { ResourcesDbInput } from "./models.js";
 
 interface Env {
   STACK_DB: D1Database;
@@ -34,9 +35,20 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
   if (pathParts[0] == 'resources') {
     if (pathParts.length == 1) {
+      if (context.request.method == 'POST') {
+        const data: ResourcesDbInput = await context.request.json();
+        return Response.json(await resources.createOne(data));
+      }
       return Response.json(await resources.getAll());
     }
     if (pathParts.length == 2) {
+      if (context.request.method == 'POST') {
+        const data: string = await context.request.text();
+        return Response.json(await resources.updateOne(pathParts[1], data));
+      }
+      if (context.request.method == 'DELETE') {
+        return Response.json(await resources.deleteOne(pathParts[1]));
+      }
       return Response.json(await resources.getOne(pathParts[1]));
     }
   }

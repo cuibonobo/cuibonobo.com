@@ -4,9 +4,6 @@
     "target": "esnext",
     "module": "NodeNext",
     "lib": ["esnext"],
-    "paths": {
-      "@models/*": ["../src/models/*"]
-    },
     "types": ["@cloudflare/workers-types"]
   }
 }
