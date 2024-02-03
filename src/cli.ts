@@ -173,14 +173,14 @@ program
   });
 
 program
-  .command('update <id> <content>')
+  .command('update <id> <data>')
   .description('Update a post with the new API')
-  .action(async(id: string, content: string) => {
+  .action(async(id: string, data: string) => {
     const url = new URL('/stack/resources/' + id, stackUrl);
     const result = await fetch(url, {
       headers: {'Content-Type': 'application/json'},
       method: 'post',
-      body: content
+      body: data
     });
     console.log(result.statusText);
   });

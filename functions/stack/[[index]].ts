@@ -43,7 +43,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
     if (pathParts.length == 2) {
       if (context.request.method == 'POST') {
-        const data: string = await context.request.text();
+        const data: Record<string, string> = await context.request.json();
+        if ('id' in data && data['id'].toLowerCase() != pathParts[1].toLowerCase()) {
+          return new Response(JSON.stringify({ message: 'Ids do not match!' }), { status: 422 });
+        }
         return Response.json(await resources.updateOne(pathParts[1], data));
       }
       if (context.request.method == 'DELETE') {

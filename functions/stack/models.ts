@@ -17,6 +17,11 @@ const addLimitToQuery = (query: string, limit: number = 50): string => {
   return query + (limit ? ' LIMIT ' + limit : '');
 };
 
+const getDbPositions = (n: number): string[] => {
+  // Create an array containing '?1'..'?N' where N is the number of positions
+  return Array.from({length: n}, (_, i) => i + 1).map(n => `?${n}`);
+};
+
 const Resources = (db: D1Database) => {
   return {
     getAll: async (limit: number = 50): Promise<ResourcesDbResult[]> => {
@@ -36,14 +41,18 @@ const Resources = (db: D1Database) => {
     createOne: async (resource: ResourcesDbInput): Promise<boolean> => {
       const keys = Object.keys(resource);
       const values = Object.values(resource).map(v => typeof(v) == 'string' ? v : JSON.stringify(v));
-      // Create an array containing ?1..?N where N is the length of keys
-      const positions = Array.from({length: keys.length}, (_, i) => i + 1).map(n => `?${n}`);
+      const positions = getDbPositions(keys.length);
       const ps = db.prepare(`INSERT INTO resources (${keys.join(', ')}) VALUES (${positions.join(', ')})`).bind(...values);
       const data = await ps.run();
       return data.success;
     },
-    updateOne: async (id: string, content: string): Promise<boolean> => {
-      const ps = db.prepare('UPDATE resources SET content = ?1 WHERE id = ?2').bind(content, id);
+    updateOne: async (id: string, updates: Record<string, string>): Promise<boolean> => {
+      delete updates['id'];
+      const keys = Object.keys(updates);
+      const values = Object.values(updates).map(v => typeof(v) == 'string' ? v : JSON.stringify(v));
+      const positions = getDbPositions(keys.length);
+      const statements = keys.map((k, i) => `${k} = ${positions[i]}`);
+      const ps = db.prepare(`UPDATE resources SET ${statements.join(', ')} WHERE id = ?${keys.length + 1}`).bind(...values, id);
       const data = await ps.run();
       return data.success;
     },
