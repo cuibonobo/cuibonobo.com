@@ -4,7 +4,8 @@ import { Command } from 'commander';
 import { PostTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { getIndexedPostsByType, buildAllIndices, deletePost, getAllPosts } from './lib/posts';
+import { deletePost, getAllPosts } from './lib/posts';
+import { getPostsByType } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
@@ -37,7 +38,7 @@ program
   .command('list <postType>')
   .description('List existing posts of the given post type')
   .action(async (postType: PostTypeName) => {
-    const posts = await getIndexedPostsByType(postType);
+    const posts = await getPostsByType(postType);
     posts.forEach((post) => {
       console.info(
         `${post.id}: ${
@@ -124,13 +125,6 @@ program
   .description('Convert the given string to a slug')
   .action((str: string) => {
     console.info(slugger(str));
-  });
-
-program
-  .command('index')
-  .description('Build indices for the post types in the data store')
-  .action(async () => {
-    await buildAllIndices();
   });
 
 program

@@ -2,7 +2,8 @@ import path from 'path';
 import moment from 'moment';
 import xml from 'xml-js';
 import { writeFile, ensureDir } from './fs';
-import { getAllIndexedPosts, getPostUrl } from './posts';
+import { getPostUrl } from './posts';
+import { getAllPosts } from './api';
 import { PostType, PostTypeName } from './types';
 
 export const writeSitemap = async (origin: string): Promise<void> => {
@@ -12,7 +13,7 @@ export const writeSitemap = async (origin: string): Promise<void> => {
 };
 
 const getSitemap = async (origin: string): Promise<string> => {
-  const posts = await getAllIndexedPosts();
+  const posts = await getAllPosts();
   return xml.js2xml(
     {
       declaration: {

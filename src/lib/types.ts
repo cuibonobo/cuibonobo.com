@@ -42,17 +42,33 @@ export type PostType<T> = T extends PostTypeName.Page
       ? EphemeraType
       : never;
 
-export interface SlugData {
-  [slug: string]: string;
+interface ContentKeyItem {
+  id: string;
+  key: string;
 }
 
-export interface IndexData<T> {
-  posts: PostType<T>[];
-}
+export type SlugData = ContentKeyItem[];
+export type QueryData<T> = PostType<T>[];
 
 export const jsonToPostType = <T>(json: unknown): PostType<T> => {
-  const post = json as PostType<T>;
-  post.created = new Date(post.created);
-  post.updated = new Date(post.updated);
-  return post;
+  const post = json as any;
+  if ('created_date' in post) {
+    post.created = new Date(post.created_date);
+    post.updated = new Date(post.updated_date);
+    delete post.updated_date;
+    delete post.created_date;
+  } else {
+    post.created = new Date(post.created);
+    post.updated = new Date(post.updated);
+  }
+  if ('is_public' in post) {
+    post.isPublic = post.is_public ? true : false;
+    delete post.is_public;
+  } else {
+    post.isPublic = post.isPublic ? true : false;
+  }
+  if (typeof('content') == 'string') {
+    post.content = JSON.parse(post.content);
+  }
+  return post as PostType<T>;
 };

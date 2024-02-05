@@ -1,6 +1,7 @@
 import path from 'path';
 import { Author, Feed, Item } from 'feed';
-import { getAllIndexedPosts, getIndexedPostsByType, getPostUrl } from './posts';
+import { getPostUrl } from './posts';
+import { getAllPosts, getPostsByType } from './api';
 import { PostType, PostTypeName } from './types';
 import { writeFile, ensureDir } from './fs';
 import { markdownToHtml } from './parser';
@@ -42,7 +43,7 @@ const getAllPostsFeed = async (originUrl: string, itemLimit: number): Promise<Fe
     json: origin.path('/feed.json'),
     atom: origin.path('/feed.xml')
   };
-  const posts = (await getAllIndexedPosts())
+  const posts = (await getAllPosts())
     .filter((post) => post.type !== PostTypeName.Page)
     .sort((a, b) => b.created.valueOf() - a.created.valueOf());
   posts.splice(itemLimit, posts.length - itemLimit);
@@ -65,7 +66,7 @@ const getPostTypeFeed = async (
     json: origin.path(`/${postTypeName}-feed.json`),
     atom: origin.path(`/${postTypeName}-feed.xml`)
   };
-  const posts = (await getIndexedPostsByType(postType)).sort(
+  const posts = (await getPostsByType(postType)).sort(
     (a, b) => b.created.valueOf() - a.created.valueOf()
   );
   posts.splice(itemLimit, posts.length - itemLimit);

@@ -1,10 +1,10 @@
-import { PostTypeName, PostType, IndexData, SlugData, jsonToPostType } from './types';
+import { PostTypeName, PostType, QueryData, SlugData, jsonToPostType } from './types';
 import * as errors from './errors';
 
 const BASE_URL =
   process.env.NODE_ENV == 'production'
-    ? 'https://raw.githubusercontent.com/cuibonobo/cuibonobo.com/main/static/'
-    : 'http://localhost:8000';
+    ? 'https://cuibonobo.com/stack/'
+    : 'http://127.0.0.1:8788/stack/';
 
 const getUrl = (path: string): string => {
   const origin = typeof window !== 'undefined' ? window.location.origin : BASE_URL;
@@ -21,36 +21,20 @@ const throwOnResponseError = async (response: Response) => {
   }
 };
 
-const getIndexUrl = (postType: PostTypeName): string => {
-  return getUrl(`index/${postType}/latest.json`);
-};
-
-const getSlugUrl = (postType: PostTypeName): string => {
-  return getUrl(`index/${postType}/slug.json`);
-};
-
-const getPostUrl = (postId: string): string => {
-  return getUrl(`posts/${postId}.json`);
-};
-
 const get = async <T>(path: string): Promise<T> => {
   const response = await fetch(path);
   await throwOnResponseError(response);
   return <T>(<unknown>response.json());
 };
 
-const getIndexData = async <T extends PostTypeName>(postType: T): Promise<IndexData<T>> => {
-  const indexData = await get<IndexData<T>>(getIndexUrl(postType));
-  indexData.posts.forEach(jsonToPostType);
-  return indexData;
-};
-
-const getSlugData = async (postType: PostTypeName): Promise<SlugData> => {
-  return get(getSlugUrl(postType));
+export const getAllPosts = async <T extends PostTypeName>(): Promise<PostType<T>[]> => {
+  const posts = await get<any[]>(getUrl('resources'));
+  posts.forEach(jsonToPostType);
+  return posts;
 };
 
 export const getPost = async <T extends PostTypeName>(postId: string): Promise<PostType<T>> => {
-  return jsonToPostType(await get(getPostUrl(postId)));
+  return jsonToPostType(await get(getUrl(`resources/${postId}`)));
 };
 
 export const getPostBySlug = async <T extends PostTypeName>(
@@ -60,16 +44,17 @@ export const getPostBySlug = async <T extends PostTypeName>(
   if (postType === PostTypeName.Ephemera) {
     throw new errors.PostTypeError('Ephemera do not have slugs!');
   }
-  const slugData = await getSlugData(postType);
-  if (slug in slugData) {
-    return getPost(slugData[slug]);
+  try {
+    return await get(getUrl(`types/${postType}/slug/${slug}`))[0];
+  } catch(e: unknown) {
+    throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
   }
-  throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
 };
 
 export const getPostsByType = async <T extends PostTypeName>(
   postType: T
 ): Promise<PostType<T>[]> => {
-  const indexData = await getIndexData(postType);
-  return indexData.posts;
+  const queryData = await get<QueryData<T>>(getUrl(`types/${postType}`));
+  queryData.forEach(jsonToPostType);
+  return queryData;
 };

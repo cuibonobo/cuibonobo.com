@@ -1,7 +1,7 @@
 import moment from 'moment';
 import mustache from 'mustache';
 import path from 'path';
-import { getIndexedPostsByType } from './posts';
+import { getPostsByType } from './api';
 import { ArticleType, EphemeraType, PageType, PostTypeName } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
 import { markdownToHtml } from './parser';
@@ -10,7 +10,7 @@ export const writeSitePages = async (outputDir: string) => {
   const template = (await readFile('./src/layout.html')).toString();
   console.log('Building site HTML...');
   await ensureDir(outputDir);
-  const pagePosts = await getIndexedPostsByType(PostTypeName.Page);
+  const pagePosts = await getPostsByType(PostTypeName.Page);
   const errorPage: PageType = {
     id: '',
     created: new Date(),
@@ -27,7 +27,7 @@ export const writeSitePages = async (outputDir: string) => {
   for (let i = 0; i < pagePosts.length; i++) {
     const post = pagePosts[i];
     let postPath = path.join(outputDir, `${post.content.slug}.html`);
-    if (!['404', 'index'].includes(post.content.slug as string)) {
+    if (!['404', 'index'].includes(post.content.slug.toString())) {
       const postDir = path.join(outputDir, post.content.slug as string);
       await ensureDir(postDir);
       postPath = path.join(postDir, 'index.html');
@@ -38,7 +38,7 @@ export const writeSitePages = async (outputDir: string) => {
   }
   const articleDir = path.join(outputDir, 'articles');
   await ensureDir(articleDir);
-  const articlePosts = await getIndexedPostsByType(PostTypeName.Article);
+  const articlePosts = await getPostsByType(PostTypeName.Article);
   console.log(`Found ${articlePosts.length} pages...`);
   const articlesIdxPath = path.join(articleDir, 'index.html');
   const articlesIdxBody = getArticleCollection(articlePosts);
@@ -57,7 +57,7 @@ export const writeSitePages = async (outputDir: string) => {
   }
   const ephemeraDir = path.join(outputDir, 'ephemera');
   await ensureDir(ephemeraDir);
-  const ephemeraPosts = await getIndexedPostsByType(PostTypeName.Ephemera);
+  const ephemeraPosts = await getPostsByType(PostTypeName.Ephemera);
   console.log(`Found ${ephemeraPosts.length} pages...`);
   const ephemeraIdxPath = path.join(ephemeraDir, 'index.html');
   const ephemeraIdxBody = await getEphemeraCollection(ephemeraPosts);

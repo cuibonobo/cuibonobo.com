@@ -7,8 +7,6 @@ import {
   writePost,
   readPost,
   getFrontMatter,
-  isExistingSlug,
-  addToIndex,
   appendDataToPost
 } from './posts';
 import { copyMediaToTemp, copyMediaToStorage } from './media';
@@ -79,14 +77,12 @@ export const lockCommit = async <T extends PostTypeName>(): Promise<void> => {
   );
   if (
     lockData.mode === LockMode.New &&
-    post.type !== PostTypeName.Ephemera &&
-    (await isExistingSlug(post.content.slug, post.type))
+    post.type !== PostTypeName.Ephemera
   ) {
     throw new errors.PostError(`The slug '${post.content.slug}' already exists!`);
   }
   await writePost(post);
   await lockDelete();
-  await addToIndex(post);
 };
 
 export const lockWrite = async (lockData: LockData): Promise<void> => {
