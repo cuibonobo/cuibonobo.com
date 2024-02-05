@@ -8,6 +8,7 @@ interface BasePost {
   id: string;
   created: Date;
   updated: Date;
+  isPublic?: boolean;
 }
 export interface PageType extends BasePost {
   type: PostTypeName.Page;

@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { PostTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { getIndexedPostsByType, buildAllIndices, deletePost } from './lib/posts';
+import { getIndexedPostsByType, buildAllIndices, deletePost, getAllPosts } from './lib/posts';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
@@ -195,6 +195,32 @@ program
       method: 'delete'
     });
     console.log(result.statusText);
+  });
+
+
+program
+  .command('seed')
+  .description('Seed database with posts from file repo')
+  .action(async() => {
+    const posts = await getAllPosts();
+    posts.forEach(async (post) => {
+      post.isPublic = true;
+      const data = {
+        id: post.id,
+        type: post.type,
+        is_public: post.isPublic ? 1 : 0,
+        created_date: post.created,
+        updated_date: post.updated,
+        content: post.content
+      }
+      const url = new URL('/stack/resources', stackUrl);
+      const result = await fetch(url, {
+        headers: {'Content-Type': 'application/json'},
+        method: 'post',
+        body: JSON.stringify(data)
+      });
+      console.log(result.statusText);
+    });
   });
 
 program.parse();

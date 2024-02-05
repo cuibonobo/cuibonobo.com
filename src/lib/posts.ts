@@ -53,7 +53,7 @@ export const getFrontMatter = <T extends PostTypeName>(post: PostType<T>): strin
   return yamlLines.join('\n');
 };
 
-const getAllPosts = async <T extends PostTypeName>(): Promise<PostType<T>[]> => {
+export const getAllPosts = async <T extends PostTypeName>(): Promise<PostType<T>[]> => {
   const dataDir = getPostsDir();
   const fileList = await readDir(dataDir, { withFileTypes: true });
   const items = await Promise.all(
