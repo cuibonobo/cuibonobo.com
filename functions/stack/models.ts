@@ -31,13 +31,13 @@ const Resources = (db: D1Database) => {
     },
     getAllByType: async (type: string, limit: number = 50): Promise<ResourcesDbResult[]> => {
       const ps = db
-        .prepare(addLimitToQuery('SELECT * FROM resources WHERE type = ?1', limit))
+        .prepare(addLimitToQuery('SELECT * FROM resources WHERE type = ?1 ORDER BY id DESC', limit))
         .bind(type);
       const data = await ps.all<ResourcesDbResult>();
       return data.results;
     },
     getOne: async (id: string): Promise<ResourcesDbResult> => {
-      const ps = db.prepare('SELECT * FROM resources where id = ?1').bind(id);
+      const ps = db.prepare('SELECT * FROM resources where id = ?1 ORDER BY id DESC').bind(id);
       return await ps.first<ResourcesDbResult>();
     },
     createOne: async (resource: ResourcesDbInput): Promise<boolean> => {
@@ -82,7 +82,7 @@ const Resources = (db: D1Database) => {
       limit: number = 50
     ): Promise<Record<string, string>[]> => {
       const query =
-        'SELECT id, json_extract(content, ?2) AS key FROM resources WHERE type = ?1 AND json_type(content, ?2) IS NOT NULL';
+        'SELECT id, json_extract(content, ?2) AS key FROM resources WHERE type = ?1 AND json_type(content, ?2) IS NOT NULL ORDER BY id DESC';
       const ps = db.prepare(addLimitToQuery(query, limit)).bind(type, `$.${key}`);
       const data = await ps.all<Record<string, string>>();
       return data.results;
@@ -93,7 +93,8 @@ const Resources = (db: D1Database) => {
       value: string,
       limit: number = 50
     ): Promise<ResourcesDbResult[]> => {
-      const query = 'SELECT * FROM resources WHERE type = ?1 AND content->>?2 = ?3';
+      const query =
+        'SELECT * FROM resources WHERE type = ?1 AND content->>?2 = ?3 ORDER BY id DESC';
       const ps = db.prepare(addLimitToQuery(query, limit)).bind(type, `$.${key}`, value);
       const data = await ps.all<ResourcesDbResult>();
       return data.results;

@@ -3,39 +3,13 @@ import matter from 'gray-matter';
 import yaml from 'yaml';
 import { generateId } from './id';
 import { slugger } from './slugger';
-import { ResourceTypeName, ResourceType, jsonToResourceType } from './types';
-import { writeJsonFile, readJsonFile, readDir, rm } from './fs';
+import { ResourceTypeName, ResourceType } from './types';
 
 const yamlDivider = '---';
 const yamlPlaceholder = '.';
 
 export const getResourcesDir = (): string => {
   return path.join(path.resolve('static'), 'resources');
-};
-
-export const readResource = async <T extends ResourceTypeName>(
-  resourceId: string
-): Promise<ResourceType<T>> => {
-  const resourcePath = getResourcePath(resourceId);
-  return readResourcesFromPath(resourcePath);
-};
-
-const readResourcesFromPath = async <T extends ResourceTypeName>(
-  resourcePath: string
-): Promise<ResourceType<T>> => {
-  return jsonToResourceType(await readJsonFile(resourcePath));
-};
-
-export const writeResource = async <T extends ResourceTypeName>(
-  resource: ResourceType<T>
-): Promise<void> => {
-  const resourcePath = getResourcePath(resource.id);
-  await writeJsonFile(resourcePath, resource);
-};
-
-export const deleteResource = async (resourceId: string): Promise<void> => {
-  const resourcePath = getResourcePath(resourceId);
-  await rm(resourcePath);
 };
 
 export const getFrontMatter = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {
@@ -52,31 +26,6 @@ export const getFrontMatter = <T extends ResourceTypeName>(resource: ResourceTyp
     ]);
   }
   return yamlLines.join('\n');
-};
-
-export const getAllResources = async <T extends ResourceTypeName>(): Promise<ResourceType<T>[]> => {
-  const dataDir = getResourcesDir();
-  const fileList = await readDir(dataDir, { withFileTypes: true });
-  const items = await Promise.all(
-    fileList.map(async (filePath) => {
-      if (filePath.isDirectory()) {
-        return;
-      }
-      return await readResourcesFromPath(path.join(dataDir, filePath.name));
-    })
-  );
-  // Resources are sorted in reverse chronological order so newest are at the top
-  return <ResourceType<T>[]>items.sort((a, b) => b.created.getTime() - a.created.getTime());
-};
-
-export const getResourceById = async <T extends ResourceTypeName>(
-  resourceId: string
-): Promise<ResourceType<T>> => {
-  return readResource(resourceId);
-};
-
-const getResourcePath = (resourceId: string): string => {
-  return path.join(getResourcesDir(), `${resourceId}.json`);
 };
 
 const convertTitleToSlug = (title: unknown): string => {

@@ -4,16 +4,13 @@ import { Command } from 'commander';
 import { ResourceTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { deleteResource, getAllResources } from './lib/resources';
-import { getResourcesByType } from './lib/api';
+import { getResourcesByType, deleteResource } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
-
-const stackUrl = 'http://127.0.0.1:8788';
 
 const program = new Command();
 program
@@ -148,76 +145,6 @@ program
   .description('Build the site HTML')
   .action(async () => {
     await writeSitePages('./build');
-  });
-
-program
-  .command('create <resourceType>')
-  .description('Create a resource with the new API')
-  .action(async (resourceType: string) => {
-    const data = {
-      id: generateId(),
-      type: resourceType,
-      content: { text: 'Generated from CLI' }
-    };
-    const url = new URL('/stack/resources', stackUrl);
-    const result = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-      method: 'post',
-      body: JSON.stringify(data)
-    });
-    console.log(result.statusText);
-  });
-
-program
-  .command('update <id> <data>')
-  .description('Update a resource with the new API')
-  .action(async (id: string, data: string) => {
-    const url = new URL('/stack/resources/' + id, stackUrl);
-    const result = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-      method: 'post',
-      body: data
-    });
-    console.log(result.statusText);
-  });
-
-program
-  .command('remove <id>')
-  .description('Remove a resource with the new API')
-  .action(async (id: string) => {
-    const url = new URL('/stack/resources/' + id, stackUrl);
-    const result = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-      method: 'delete'
-    });
-    console.log(result.statusText);
-  });
-
-program
-  .command('seed')
-  .description('Seed database with resources from file repo')
-  .action(async () => {
-    const resources = await getAllResources();
-    resources.forEach((resource) => {
-      void (async (resource) => {
-        resource.isPublic = true;
-        const data = {
-          id: resource.id,
-          type: resource.type,
-          is_public: resource.isPublic ? 1 : 0,
-          created_date: resource.created,
-          updated_date: resource.updated,
-          content: resource.content
-        };
-        const url = new URL('/stack/resources', stackUrl);
-        const result = await fetch(url, {
-          headers: { 'Content-Type': 'application/json' },
-          method: 'post',
-          body: JSON.stringify(data)
-        });
-        console.log(result.statusText);
-      })(resource);
-    });
   });
 
 program.parse();

@@ -1,11 +1,10 @@
 import path from 'path';
-import { ResourceTypeName, ResourceType } from './types';
+import { ResourceTypeName, ResourceType, resourceTypeToJson } from './types';
+import { getResource, createResource, updateResource } from './api';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists } from './fs';
 import {
   getResourcesDir,
   getDefaultResourceData,
-  writeResource,
-  readResource,
   getFrontMatter,
   appendDataToResource
 } from './resources';
@@ -26,23 +25,15 @@ interface LockData {
   resourceId: string;
 }
 
-const createResourceFile = async <T extends ResourceTypeName>(
-  resourceType: T
-): Promise<ResourceType<T>> => {
-  const resourceData = getDefaultResourceData(resourceType);
-  await writeResource(resourceData);
-  return resourceData;
-};
-
 export const lockCreate = async <T extends ResourceTypeName>(
   resourceType: T
 ): Promise<LockData> => {
-  const resource = await createResourceFile(resourceType);
+  const resource = getDefaultResourceData(resourceType);
   return await lockResource(resource, LockMode.New);
 };
 
 export const lockEdit = async (resourceId: string): Promise<LockData> => {
-  const resource = await readResource(resourceId);
+  const resource = await getResource(resourceId);
   return await lockResource(resource, LockMode.Edit);
 };
 
@@ -68,7 +59,15 @@ const lockResource = async <T extends ResourceTypeName>(
 
 export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> => {
   const lockData = await lockRead();
-  let resource: ResourceType<T> = await readResource(lockData.resourceId);
+  let resource: ResourceType<T>;
+  let isNewResource = true;
+  try {
+    resource = await getResource(lockData.resourceId);
+    isNewResource = false;
+  } catch (e: unknown) {
+    resource = getDefaultResourceData<T>(lockData.resourceType as T);
+    resource.id = lockData.resourceId;
+  }
   const fileStr: string = await readFile(lockData.lockedFilePath, 'utf-8');
   resource = appendDataToResource(resource, fileStr);
   if (lockData.mode === LockMode.Edit) {
@@ -82,7 +81,11 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
   if (lockData.mode === LockMode.New && resource.type !== ResourceTypeName.Ephemera) {
     throw new errors.ResourceError(`The slug '${resource.content.slug}' already exists!`);
   }
-  await writeResource(resource);
+  if (isNewResource) {
+    await createResource(resourceTypeToJson(resource));
+  } else {
+    await updateResource(resource.id, resourceTypeToJson(resource));
+  }
   await lockDelete();
 };
 

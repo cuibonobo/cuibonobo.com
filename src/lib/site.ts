@@ -46,7 +46,11 @@ export const writeSitePages = async (outputDir: string) => {
   const articlesIdxNav = getMainMenu(articleResources[0]);
   await writeFile(
     articlesIdxPath,
-    mustache.render(template, { pageBody: articlesIdxBody, pageNav: articlesIdxNav, metaTitle: getMetaTitle('Articles') })
+    mustache.render(template, {
+      pageBody: articlesIdxBody,
+      pageNav: articlesIdxNav,
+      metaTitle: getMetaTitle('Articles')
+    })
   );
   for (let i = 0; i < articleResources.length; i++) {
     const resource = articleResources[i];
@@ -67,7 +71,11 @@ export const writeSitePages = async (outputDir: string) => {
   const ephemeraIdxNav = getMainMenu(ephemeraResources[0]);
   await writeFile(
     ephemeraIdxPath,
-    mustache.render(template, { pageBody: ephemeraIdxBody, pageNav: ephemeraIdxNav, metaTitle: getMetaTitle('Ephemera') })
+    mustache.render(template, {
+      pageBody: ephemeraIdxBody,
+      pageNav: ephemeraIdxNav,
+      metaTitle: getMetaTitle('Ephemera')
+    })
   );
   for (let i = 0; i < ephemeraResources.length; i++) {
     const resource = ephemeraResources[i];
@@ -229,9 +237,17 @@ export const getResourceUrl = <T extends ResourceTypeName>(
 
 const getMainMenu = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {
   return `<nav id="main-menu" class="flex flex-wrap leading-loose">
-  <a class="mr-2 md:mr-4${resource.type === ResourceTypeName.Page && resource.content.slug == 'index' ? ' active' : ''}" href="/">Home</a>
-  <a class="mx-2 md:mx-4${resource.type === ResourceTypeName.Ephemera ? ' active' : ''}" href="/ephemera/">Ephemera</a>
-  <a class="mx-2 md:mx-4${resource.type === ResourceTypeName.Article ? ' active' : ''}" href="/articles/">Articles</a>
-  <a class="ml-2 md:ml-4${resource.type === ResourceTypeName.Page && resource.content.slug == 'about' ? ' active' : ''}" href="/about/">About</a>
+  <a class="mr-2 md:mr-4${
+    resource.type === ResourceTypeName.Page && resource.content.slug == 'index' ? ' active' : ''
+  }" href="/">Home</a>
+  <a class="mx-2 md:mx-4${
+    resource.type === ResourceTypeName.Ephemera ? ' active' : ''
+  }" href="/ephemera/">Ephemera</a>
+  <a class="mx-2 md:mx-4${
+    resource.type === ResourceTypeName.Article ? ' active' : ''
+  }" href="/articles/">Articles</a>
+  <a class="ml-2 md:ml-4${
+    resource.type === ResourceTypeName.Page && resource.content.slug == 'about' ? ' active' : ''
+  }" href="/about/">About</a>
 </nav>`;
 };

@@ -3,7 +3,9 @@ import type { ResourcesDbInput } from './models.js';
 
 interface Env {
   STACK_DB: D1Database;
+  API_TOKEN: string;
 }
+type EventCtxt = EventContext<Env, string, Record<string, unknown>>;
 
 const BASE_PATH = '/stack';
 
@@ -21,10 +23,25 @@ const getNormalizedPath = (absPath: string, basePath: string = BASE_PATH): strin
   return relPath;
 };
 
+const isValidAuth = (context: EventCtxt): boolean => {
+  const authHeader: string | null = context.request.headers.get('Authorization');
+  if (authHeader) {
+    const authToken = authHeader.replace('Bearer ', '');
+    return authToken == context.env.API_TOKEN;
+  }
+  return false;
+};
+
 // Routes
 export const onRequest: PagesFunction<Env> = async (context) => {
   if (!context.env.STACK_DB) {
     return new Response(JSON.stringify({ message: 'Database not configured!' }), { status: 500 });
+  }
+  if (!context.env.API_TOKEN) {
+    return new Response(JSON.stringify({ message: 'API token not set!' }), { status: 500 });
+  }
+  if (!isValidAuth(context)) {
+    return new Response(JSON.stringify({ message: 'Forbidden.' }), { status: 400 });
   }
   const url = new URL(context.request.url);
   const path = getNormalizedPath(url.pathname);
@@ -52,7 +69,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       if (context.request.method == 'DELETE') {
         return Response.json(await resources.deleteOne(pathParts[1]));
       }
-      return Response.json(await resources.getOne(pathParts[1]));
+      const result = await resources.getOne(pathParts[1]);
+      if (result == null) {
+        return Response.json({}, { status: 404 });
+      }
+      return Response.json(result);
     }
   }
   if (pathParts[0] == 'types') {

@@ -54,6 +54,7 @@ export type JSONValue =
   | number
   | boolean
   | null
+  | Date
   | JSONValue[]
   | { [key: string]: JSONValue };
 
@@ -82,4 +83,17 @@ export const jsonToResourceType = <T>(json: JSONObject): ResourceType<T> => {
         : json['content']
   };
   return resource as ResourceType<T>;
+};
+
+export const resourceTypeToJson = <T extends ResourceTypeName>(
+  resource: ResourceType<T>
+): JSONObject => {
+  const json: JSONObject = {
+    id: resource.id,
+    type: resource.type,
+    created_date: resource.created,
+    updated_date: resource.updated,
+    content: JSON.stringify(resource.content)
+  };
+  return json;
 };
