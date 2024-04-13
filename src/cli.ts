@@ -13,7 +13,7 @@ import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
 
-const stackUrl = 'http://127.0.0.1:8788'
+const stackUrl = 'http://127.0.0.1:8788';
 
 const program = new Command();
 program
@@ -129,14 +129,14 @@ program
 
 program
   .command('sitemap <origin>')
-  .description('Build a sitemap for all indexed data')
+  .description('Build a sitemap for all posts')
   .action(async (origin: string) => {
     await writeSitemap(origin);
   });
 
 program
   .command('feed <origin>')
-  .description('Build the syndication feeds for all indexed data')
+  .description('Build the syndication feeds for all posts')
   .action(async (origin: string) => {
     await writeFeeds(origin);
   });
@@ -151,15 +151,15 @@ program
 program
   .command('create <postType>')
   .description('Create a post with the new API')
-  .action(async(postType: string) => {
+  .action(async (postType: string) => {
     const data = {
       id: generateId(),
       type: postType,
-      content: {text: 'Generated from CLI'}
-    }
+      content: { text: 'Generated from CLI' }
+    };
     const url = new URL('/stack/resources', stackUrl);
     const result = await fetch(url, {
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       method: 'post',
       body: JSON.stringify(data)
     });
@@ -169,10 +169,10 @@ program
 program
   .command('update <id> <data>')
   .description('Update a post with the new API')
-  .action(async(id: string, data: string) => {
+  .action(async (id: string, data: string) => {
     const url = new URL('/stack/resources/' + id, stackUrl);
     const result = await fetch(url, {
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       method: 'post',
       body: data
     });
@@ -182,38 +182,39 @@ program
 program
   .command('remove <id>')
   .description('Remove a post with the new API')
-  .action(async(id: string) => {
+  .action(async (id: string) => {
     const url = new URL('/stack/resources/' + id, stackUrl);
     const result = await fetch(url, {
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       method: 'delete'
     });
     console.log(result.statusText);
   });
 
-
 program
   .command('seed')
   .description('Seed database with posts from file repo')
-  .action(async() => {
+  .action(async () => {
     const posts = await getAllPosts();
-    posts.forEach(async (post) => {
-      post.isPublic = true;
-      const data = {
-        id: post.id,
-        type: post.type,
-        is_public: post.isPublic ? 1 : 0,
-        created_date: post.created,
-        updated_date: post.updated,
-        content: post.content
-      }
-      const url = new URL('/stack/resources', stackUrl);
-      const result = await fetch(url, {
-        headers: {'Content-Type': 'application/json'},
-        method: 'post',
-        body: JSON.stringify(data)
-      });
-      console.log(result.statusText);
+    posts.forEach((post) => {
+      void (async (post) => {
+        post.isPublic = true;
+        const data = {
+          id: post.id,
+          type: post.type,
+          is_public: post.isPublic ? 1 : 0,
+          created_date: post.created,
+          updated_date: post.updated,
+          content: post.content
+        };
+        const url = new URL('/stack/resources', stackUrl);
+        const result = await fetch(url, {
+          headers: { 'Content-Type': 'application/json' },
+          method: 'post',
+          body: JSON.stringify(data)
+        });
+        console.log(result.statusText);
+      })(post);
     });
   });
 

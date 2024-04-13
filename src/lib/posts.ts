@@ -130,15 +130,3 @@ export const getDefaultPostData = <T extends PostTypeName>(postType: T): PostTyp
       return <PostType<T>>{ type: PostTypeName.Ephemera, ...postData, content: { text: '' } };
   }
 };
-
-export const getPostUrl = <T extends PostTypeName>(origin: string, post: PostType<T>): string => {
-  let path = '';
-  if (post.type === PostTypeName.Page) {
-    path = post.content.slug === 'index' ? '/' : `/${post.content.slug}`;
-  } else if (post.type === PostTypeName.Article) {
-    path = `/articles/${post.content.slug}`;
-  } else if (post.type === PostTypeName.Ephemera) {
-    path = `/ephemera/${post.id}`;
-  }
-  return new URL(path, origin).href;
-};

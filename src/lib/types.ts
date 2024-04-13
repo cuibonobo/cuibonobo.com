@@ -48,27 +48,23 @@ interface ContentKeyItem {
 }
 
 export type SlugData = ContentKeyItem[];
-export type QueryData<T> = PostType<T>[];
 
-export const jsonToPostType = <T>(json: unknown): PostType<T> => {
-  const post = json as any;
-  if ('created_date' in post) {
-    post.created = new Date(post.created_date);
-    post.updated = new Date(post.updated_date);
-    delete post.updated_date;
-    delete post.created_date;
-  } else {
-    post.created = new Date(post.created);
-    post.updated = new Date(post.updated);
-  }
-  if ('is_public' in post) {
-    post.isPublic = post.is_public ? true : false;
-    delete post.is_public;
-  } else {
-    post.isPublic = post.isPublic ? true : false;
-  }
-  if (typeof('content') == 'string') {
-    post.content = JSON.parse(post.content);
-  }
+export type JSONValue = string | number | boolean | null | JSONValue[] | {[key: string]: JSONValue};
+
+export interface JSONObject {
+  [k: string]: JSONValue
+}
+
+export interface JSONArray extends Array<JSONValue> {}
+
+export const jsonToPostType = <T>(json: JSONObject): PostType<T> => {
+  const post = {
+    id: json['id'],
+    type: json['type'],
+    created: 'created_date' in json ? new Date(json['created_date'] as string) : new Date(json['created'] as string),
+    updated: 'updated_date' in json ? new Date(json['updated_date'] as string) : new Date(json['updated'] as string),
+    isPublic: 'is_public' in json ? json['is_public'] : json['isPublic'],
+    content: typeof json['content'] == 'string' ? JSON.parse(json['content'] ) as JSONObject : json['content']
+  };
   return post as PostType<T>;
 };

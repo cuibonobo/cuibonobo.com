@@ -2,7 +2,7 @@ import path from 'path';
 import moment from 'moment';
 import xml from 'xml-js';
 import { writeFile, ensureDir } from './fs';
-import { getPostUrl } from './posts';
+import { getPostUrl } from './site';
 import { getAllPosts } from './api';
 import { PostType, PostTypeName } from './types';
 

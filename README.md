@@ -46,9 +46,6 @@ npm run cli -- discard
 # Check if there are posts being edited
 npm run cli -- status
 
-# Rebuild post indices
-npm run cli -- index
-
 # Generate a slug for the given text
 npm run cli -- slugify <quotedText>
 ```

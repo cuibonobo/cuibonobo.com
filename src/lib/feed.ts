@@ -1,6 +1,6 @@
 import path from 'path';
 import { Author, Feed, Item } from 'feed';
-import { getPostUrl } from './posts';
+import { getPostUrl } from './site';
 import { getAllPosts, getPostsByType } from './api';
 import { PostType, PostTypeName } from './types';
 import { writeFile, ensureDir } from './fs';

@@ -1,11 +1,11 @@
-import { Resources } from "./models.js";
-import type { ResourcesDbInput } from "./models.js";
+import { Resources } from './models.js';
+import type { ResourcesDbInput } from './models.js';
 
 interface Env {
   STACK_DB: D1Database;
 }
 
-const BASE_PATH = "/stack";
+const BASE_PATH = '/stack';
 
 const getNormalizedPath = (absPath: string, basePath: string = BASE_PATH): string => {
   let relPath = absPath;
@@ -66,7 +66,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return Response.json(await resources.getContentKey(pathParts[1], pathParts[2]));
     }
     if (pathParts.length == 4) {
-      return Response.json(await resources.getByContentKey(pathParts[1], pathParts[2], pathParts[3]));
+      return Response.json(
+        await resources.getByContentKey(pathParts[1], pathParts[2], pathParts[3])
+      );
     }
   }
   return new Response(JSON.stringify({ message: 'Not Found!' }), { status: 404 });

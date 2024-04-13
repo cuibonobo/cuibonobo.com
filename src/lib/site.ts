@@ -2,7 +2,7 @@ import moment from 'moment';
 import mustache from 'mustache';
 import path from 'path';
 import { getPostsByType } from './api';
-import { ArticleType, EphemeraType, PageType, PostTypeName } from './types';
+import { ArticleType, EphemeraType, PageType, PostTypeName, PostType } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
 import { markdownToHtml } from './parser';
 
@@ -200,4 +200,16 @@ const getEphemeraCollection = async (posts: EphemeraType[]): Promise<string> => 
 
 const getEphemeraMetaTitle = (post: EphemeraType): string => {
   return getMetaTitle(`Ephemera ${post.id}`);
+};
+
+export const getPostUrl = <T extends PostTypeName>(origin: string, post: PostType<T>): string => {
+  let path = '';
+  if (post.type === PostTypeName.Page) {
+    path = post.content.slug === 'index' ? '/' : `/${post.content.slug}`;
+  } else if (post.type === PostTypeName.Article) {
+    path = `/articles/${post.content.slug}`;
+  } else if (post.type === PostTypeName.Ephemera) {
+    path = `/ephemera/${post.id}`;
+  }
+  return new URL(path, origin).href;
 };

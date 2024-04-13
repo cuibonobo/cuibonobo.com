@@ -5,7 +5,7 @@ workers_dev = true
 compatibility_date = "2023-08-15"
 
 [build]
-command = "npm run build:site"
+command = "npm run build:static"
 watch_dir = "./src"
 
 [[d1_databases]]

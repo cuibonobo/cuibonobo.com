@@ -1,4 +1,4 @@
-import { PostTypeName, PostType, QueryData, SlugData, jsonToPostType } from './types';
+import { PostTypeName, PostType, jsonToPostType, JSONObject, JSONValue } from './types';
 import * as errors from './errors';
 
 const BASE_URL =
@@ -28,8 +28,8 @@ const get = async <T>(path: string): Promise<T> => {
 };
 
 export const getAllPosts = async <T extends PostTypeName>(): Promise<PostType<T>[]> => {
-  const posts = await get<any[]>(getUrl('resources'));
-  posts.forEach(jsonToPostType);
+  const jsonPosts = await get<JSONObject[]>(getUrl('resources'));
+  const posts = jsonPosts.map(jsonToPostType);
   return posts;
 };
 
@@ -45,8 +45,9 @@ export const getPostBySlug = async <T extends PostTypeName>(
     throw new errors.PostTypeError('Ephemera do not have slugs!');
   }
   try {
-    return await get(getUrl(`types/${postType}/slug/${slug}`))[0];
-  } catch(e: unknown) {
+    const jsonPosts = await get<JSONValue>(getUrl(`types/${postType}/slug/${slug}`));
+    return jsonToPostType(jsonPosts[0] as JSONObject);
+  } catch (e: unknown) {
     throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
   }
 };
@@ -54,7 +55,7 @@ export const getPostBySlug = async <T extends PostTypeName>(
 export const getPostsByType = async <T extends PostTypeName>(
   postType: T
 ): Promise<PostType<T>[]> => {
-  const queryData = await get<QueryData<T>>(getUrl(`types/${postType}`));
-  queryData.forEach(jsonToPostType);
-  return queryData;
+  const jsonPost = await get<JSONObject[]>(getUrl(`types/${postType}`));
+  const posts = jsonPost.map(jsonToPostType);
+  return posts;
 };

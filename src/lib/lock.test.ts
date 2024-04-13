@@ -7,11 +7,7 @@ test('Writing a lockfile and reading it back generates the same data', async () 
     postId: 'some-id',
     mode: LockMode.Edit
   };
-  console.log('before lock write');
   await lockWrite(lockData);
-  console.log('after lock write');
   expect(await lockRead()).toStrictEqual(lockData);
-  console.log('before lock delete');
   await lockDelete();
-  console.log('after lock delete');
 });

@@ -75,10 +75,7 @@ export const lockCommit = async <T extends PostTypeName>(): Promise<void> => {
     post.created,
     path.dirname(lockData.lockedFilePath)
   );
-  if (
-    lockData.mode === LockMode.New &&
-    post.type !== PostTypeName.Ephemera
-  ) {
+  if (lockData.mode === LockMode.New && post.type !== PostTypeName.Ephemera) {
     throw new errors.PostError(`The slug '${post.content.slug}' already exists!`);
   }
   await writePost(post);
