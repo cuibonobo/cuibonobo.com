@@ -1,4 +1,5 @@
 name = "cuibonobo-website"
+pages_build_output_dir = "./build"
 
 workers_dev = true
 # https://developers.cloudflare.com/workers/platform/compatibility-dates
