@@ -6,7 +6,6 @@ compatibility_date = "2023-08-15"
 
 [vars]
 NODE_ENV = "production"
-NODE_VERSION = 18
 TZ = "America/New_York"
 
 [[d1_databases]]
