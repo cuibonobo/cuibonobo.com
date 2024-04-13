@@ -1,11 +1,11 @@
 import path from 'path';
 import { exec } from 'child_process';
 import { Command } from 'commander';
-import { PostTypeName } from './lib/types';
+import { ResourceTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { deletePost, getAllPosts } from './lib/posts';
-import { getPostsByType } from './lib/api';
+import { deleteResource, getAllResources } from './lib/resources';
+import { getResourcesByType } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
@@ -17,16 +17,16 @@ const stackUrl = 'http://127.0.0.1:8788';
 
 const program = new Command();
 program
-  .command('new <postType>')
-  .description('Create a new post with the given post type')
-  .action(async (postType: PostTypeName) => {
-    if (Object.values(PostTypeName).indexOf(postType) < 0) {
-      console.error(`Can't create posts of type '${postType}'!`);
+  .command('new <resourceType>')
+  .description('Create a new resource with the given resource type')
+  .action(async (resourceType: ResourceTypeName) => {
+    if (Object.values(ResourceTypeName).indexOf(resourceType) < 0) {
+      console.error(`Can't create resources of type '${resourceType}'!`);
       return;
     }
     try {
-      const lockData = await lockCreate(postType);
-      console.debug(`Created ${lockData.postType} post ID ${lockData.postId}`);
+      const lockData = await lockCreate(resourceType);
+      console.debug(`Created ${lockData.resourceType} resource ID ${lockData.resourceId}`);
       exec(openWithFileExplorer(path.dirname(lockData.lockedFilePath)));
       exec(openWithEditor(lockData.lockedFilePath));
     } catch (e) {
@@ -35,14 +35,16 @@ program
   });
 
 program
-  .command('list <postType>')
-  .description('List existing posts of the given post type')
-  .action(async (postType: PostTypeName) => {
-    const posts = await getPostsByType(postType);
-    posts.forEach((post) => {
+  .command('list <resourceType>')
+  .description('List existing resources of the given resource type')
+  .action(async (resourceType: ResourceTypeName) => {
+    const resources = await getResourcesByType(resourceType);
+    resources.forEach((resource) => {
       console.info(
-        `${post.id}: ${
-          post.type === PostTypeName.Ephemera ? post.content.text : post.content.title
+        `${resource.id}: ${
+          resource.type === ResourceTypeName.Ephemera
+            ? resource.content.text
+            : resource.content.title
         }`
       );
     });
@@ -50,15 +52,15 @@ program
   });
 
 program
-  .command('edit <postId>')
-  .description('Edit an existing post that matches the given post ID')
-  .action(async (postId: string) => {
+  .command('edit <resourceId>')
+  .description('Edit an existing resource that matches the given resource ID')
+  .action(async (resourceId: string) => {
     try {
-      const lockData = await lockEdit(postId);
+      const lockData = await lockEdit(resourceId);
       exec(openWithFileExplorer(path.dirname(lockData.lockedFilePath)));
       exec(openWithEditor(lockData.lockedFilePath));
     } catch (e) {
-      console.error(`Couldn't edit post ID ${postId}: `, e);
+      console.error(`Couldn't edit resource ID ${resourceId}: `, e);
     }
   });
 
@@ -68,7 +70,7 @@ program
   .action(async () => {
     try {
       const lockData = await lockRead();
-      console.info(`Currently editing ${lockData.postType} ID ${lockData.postId}.`);
+      console.info(`Currently editing ${lockData.resourceType} ID ${lockData.resourceId}.`);
       console.info(`Edit path: ${lockData.lockedFilePath}`);
     } catch (e) {
       console.info('Nothing is being edited.');
@@ -77,7 +79,7 @@ program
 
 program
   .command('commit')
-  .description('Save the post that is being edited to the data store')
+  .description('Save the resource that is being edited to the data store')
   .action(async () => {
     try {
       await lockCommit();
@@ -92,12 +94,12 @@ program
 
 program
   .command('delete <str>')
-  .description('Delete the post with the given ID')
-  .action(async (postId: string) => {
+  .description('Delete the resource with the given ID')
+  .action(async (resourceId: string) => {
     try {
-      await deletePost(postId);
+      await deleteResource(resourceId);
     } catch (e) {
-      console.error(`Couldn't delete post ${postId}: `, e);
+      console.error(`Couldn't delete resource ${resourceId}: `, e);
     }
   });
 
@@ -115,7 +117,7 @@ program
 
 program
   .command('id')
-  .description('Generate a new post ID')
+  .description('Generate a new resource ID')
   .action(() => {
     console.info(generateId());
   });
@@ -129,14 +131,14 @@ program
 
 program
   .command('sitemap <origin>')
-  .description('Build a sitemap for all posts')
+  .description('Build a sitemap for all resources')
   .action(async (origin: string) => {
     await writeSitemap(origin);
   });
 
 program
   .command('feed <origin>')
-  .description('Build the syndication feeds for all posts')
+  .description('Build the syndication feeds for all resources')
   .action(async (origin: string) => {
     await writeFeeds(origin);
   });
@@ -149,12 +151,12 @@ program
   });
 
 program
-  .command('create <postType>')
-  .description('Create a post with the new API')
-  .action(async (postType: string) => {
+  .command('create <resourceType>')
+  .description('Create a resource with the new API')
+  .action(async (resourceType: string) => {
     const data = {
       id: generateId(),
-      type: postType,
+      type: resourceType,
       content: { text: 'Generated from CLI' }
     };
     const url = new URL('/stack/resources', stackUrl);
@@ -168,7 +170,7 @@ program
 
 program
   .command('update <id> <data>')
-  .description('Update a post with the new API')
+  .description('Update a resource with the new API')
   .action(async (id: string, data: string) => {
     const url = new URL('/stack/resources/' + id, stackUrl);
     const result = await fetch(url, {
@@ -181,7 +183,7 @@ program
 
 program
   .command('remove <id>')
-  .description('Remove a post with the new API')
+  .description('Remove a resource with the new API')
   .action(async (id: string) => {
     const url = new URL('/stack/resources/' + id, stackUrl);
     const result = await fetch(url, {
@@ -193,19 +195,19 @@ program
 
 program
   .command('seed')
-  .description('Seed database with posts from file repo')
+  .description('Seed database with resources from file repo')
   .action(async () => {
-    const posts = await getAllPosts();
-    posts.forEach((post) => {
-      void (async (post) => {
-        post.isPublic = true;
+    const resources = await getAllResources();
+    resources.forEach((resource) => {
+      void (async (resource) => {
+        resource.isPublic = true;
         const data = {
-          id: post.id,
-          type: post.type,
-          is_public: post.isPublic ? 1 : 0,
-          created_date: post.created,
-          updated_date: post.updated,
-          content: post.content
+          id: resource.id,
+          type: resource.type,
+          is_public: resource.isPublic ? 1 : 0,
+          created_date: resource.created,
+          updated_date: resource.updated,
+          content: resource.content
         };
         const url = new URL('/stack/resources', stackUrl);
         const result = await fetch(url, {
@@ -214,7 +216,7 @@ program
           body: JSON.stringify(data)
         });
         console.log(result.statusText);
-      })(post);
+      })(resource);
     });
   });
 

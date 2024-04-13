@@ -1,8 +1,8 @@
 import path from 'path';
 import { Author, Feed, Item } from 'feed';
-import { getPostUrl } from './site';
-import { getAllPosts, getPostsByType } from './api';
-import { PostType, PostTypeName } from './types';
+import { getResourceUrl } from './site';
+import { getAllResources, getResourcesByType } from './api';
+import { ResourceType, ResourceTypeName } from './types';
 import { writeFile, ensureDir } from './fs';
 import { markdownToHtml } from './parser';
 
@@ -22,11 +22,11 @@ interface FeedLink {
 }
 
 export const writeFeeds = async (originUrl: string, itemLimit = 10): Promise<void> => {
-  const allPostsFeed = await getAllPostsFeed(originUrl, itemLimit);
-  const ephemeraFeed = await getPostTypeFeed(PostTypeName.Ephemera, originUrl, itemLimit);
-  const articleFeed = await getPostTypeFeed(PostTypeName.Article, originUrl, itemLimit);
+  const allResourcesFeed = await getAllResourcesFeed(originUrl, itemLimit);
+  const ephemeraFeed = await getResourceTypeFeed(ResourceTypeName.Ephemera, originUrl, itemLimit);
+  const articleFeed = await getResourceTypeFeed(ResourceTypeName.Article, originUrl, itemLimit);
   await ensureDir(path.resolve('static'));
-  await writeFeed(allPostsFeed);
+  await writeFeed(allResourcesFeed);
   await writeFeed(ephemeraFeed);
   await writeFeed(articleFeed);
 };
@@ -36,59 +36,62 @@ const writeFeed = async (feed: Feed): Promise<void> => {
   await writeFile(getFeedPath(feed, FeedType.Json), feed.json1());
 };
 
-const getAllPostsFeed = async (originUrl: string, itemLimit: number): Promise<Feed> => {
+const getAllResourcesFeed = async (originUrl: string, itemLimit: number): Promise<Feed> => {
   const { origin, author, feed } = getBaseFeedParts(originUrl);
-  feed.options.description = "cuibonobo's personal website feed: all posts";
+  feed.options.description = "cuibonobo's personal website feed: all resources";
   feed.options.feedLinks = {
     json: origin.path('/feed.json'),
     atom: origin.path('/feed.xml')
   };
-  const posts = (await getAllPosts())
-    .filter((post) => post.type !== PostTypeName.Page)
+  const resources = (await getAllResources())
+    .filter((resource) => resource.type !== ResourceTypeName.Page)
     .sort((a, b) => b.created.valueOf() - a.created.valueOf());
-  posts.splice(itemLimit, posts.length - itemLimit);
-  for (let i = 0; i < posts.length; i++) {
-    const feedItem = await getFeedItem(posts[i], originUrl, author);
+  resources.splice(itemLimit, resources.length - itemLimit);
+  for (let i = 0; i < resources.length; i++) {
+    const feedItem = await getFeedItem(resources[i], originUrl, author);
     feed.addItem(feedItem);
   }
   return feed;
 };
 
-const getPostTypeFeed = async (
-  postType: PostTypeName,
+const getResourceTypeFeed = async (
+  resourceType: ResourceTypeName,
   originUrl: string,
   itemLimit: number
 ): Promise<Feed> => {
   const { origin, author, feed } = getBaseFeedParts(originUrl);
-  const postTypeName = postType.toString();
-  feed.options.description = `cuibonobo's personal website feed: ${postTypeName}`;
+  const resourceTypeName = resourceType.toString();
+  feed.options.description = `cuibonobo's personal website feed: ${resourceTypeName}`;
   feed.options.feedLinks = {
-    json: origin.path(`/${postTypeName}-feed.json`),
-    atom: origin.path(`/${postTypeName}-feed.xml`)
+    json: origin.path(`/${resourceTypeName}-feed.json`),
+    atom: origin.path(`/${resourceTypeName}-feed.xml`)
   };
-  const posts = (await getPostsByType(postType)).sort(
+  const resources = (await getResourcesByType(resourceType)).sort(
     (a, b) => b.created.valueOf() - a.created.valueOf()
   );
-  posts.splice(itemLimit, posts.length - itemLimit);
-  for (let i = 0; i < posts.length; i++) {
-    feed.addItem(await getFeedItem(posts[i], originUrl, author));
+  resources.splice(itemLimit, resources.length - itemLimit);
+  for (let i = 0; i < resources.length; i++) {
+    feed.addItem(await getFeedItem(resources[i], originUrl, author));
   }
   return feed;
 };
 
-const getFeedItem = async <T extends PostTypeName>(
-  post: PostType<T>,
+const getFeedItem = async <T extends ResourceTypeName>(
+  resource: ResourceType<T>,
   originUrl: string,
   author: Author
 ): Promise<Item> => {
   return {
-    title: post.type === PostTypeName.Ephemera ? `Ephemera: ${post.id}` : post.content.title,
-    id: post.id,
-    link: getPostUrl(originUrl, post),
-    content: await markdownToHtml(post.content.text),
+    title:
+      resource.type === ResourceTypeName.Ephemera
+        ? `Ephemera: ${resource.id}`
+        : resource.content.title,
+    id: resource.id,
+    link: getResourceUrl(originUrl, resource),
+    content: await markdownToHtml(resource.content.text),
     author: [author],
-    date: post.created,
-    category: [{ name: post.type }]
+    date: resource.created,
+    category: [{ name: resource.type }]
   };
 };
 

@@ -1,14 +1,14 @@
 import path from 'path';
-import { PostTypeName, PostType } from './types';
+import { ResourceTypeName, ResourceType } from './types';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists } from './fs';
 import {
-  getPostsDir,
-  getDefaultPostData,
-  writePost,
-  readPost,
+  getResourcesDir,
+  getDefaultResourceData,
+  writeResource,
+  readResource,
   getFrontMatter,
-  appendDataToPost
-} from './posts';
+  appendDataToResource
+} from './resources';
 import { copyMediaToTemp, copyMediaToStorage } from './media';
 import * as errors from './errors';
 
@@ -22,68 +22,77 @@ export enum LockMode {
 interface LockData {
   lockedFilePath: string;
   mode: LockMode;
-  postType: string;
-  postId: string;
+  resourceType: string;
+  resourceId: string;
 }
 
-const createPostFile = async <T extends PostTypeName>(postType: T): Promise<PostType<T>> => {
-  const postData = getDefaultPostData(postType);
-  await writePost(postData);
-  return postData;
+const createResourceFile = async <T extends ResourceTypeName>(
+  resourceType: T
+): Promise<ResourceType<T>> => {
+  const resourceData = getDefaultResourceData(resourceType);
+  await writeResource(resourceData);
+  return resourceData;
 };
 
-export const lockCreate = async <T extends PostTypeName>(postType: T): Promise<LockData> => {
-  const post = await createPostFile(postType);
-  return await lockPost(post, LockMode.New);
+export const lockCreate = async <T extends ResourceTypeName>(
+  resourceType: T
+): Promise<LockData> => {
+  const resource = await createResourceFile(resourceType);
+  return await lockResource(resource, LockMode.New);
 };
 
-export const lockEdit = async (postId: string): Promise<LockData> => {
-  const post = await readPost(postId);
-  return await lockPost(post, LockMode.Edit);
+export const lockEdit = async (resourceId: string): Promise<LockData> => {
+  const resource = await readResource(resourceId);
+  return await lockResource(resource, LockMode.Edit);
 };
 
-const lockPost = async <T extends PostTypeName>(
-  post: PostType<T>,
+const lockResource = async <T extends ResourceTypeName>(
+  resource: ResourceType<T>,
   mode: LockMode
 ): Promise<LockData> => {
   await throwOnLock();
   const editorDir = await mkTempDir();
-  const frontMatter = getFrontMatter(post);
-  const lockedFilePath = path.join(editorDir, `${post.id}.md`);
-  const postContent = await copyMediaToTemp(post.content.text, post.created, editorDir);
-  await writeFile(lockedFilePath, frontMatter + postContent);
+  const frontMatter = getFrontMatter(resource);
+  const lockedFilePath = path.join(editorDir, `${resource.id}.md`);
+  const resourceContent = await copyMediaToTemp(resource.content.text, resource.created, editorDir);
+  await writeFile(lockedFilePath, frontMatter + resourceContent);
   const lockData: LockData = {
     lockedFilePath,
-    postId: post.id,
-    postType: post.type,
+    resourceId: resource.id,
+    resourceType: resource.type,
     mode
   };
   await lockWrite(lockData);
   return lockData;
 };
 
-export const lockCommit = async <T extends PostTypeName>(): Promise<void> => {
+export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> => {
   const lockData = await lockRead();
-  let post: PostType<T> = await readPost(lockData.postId);
+  let resource: ResourceType<T> = await readResource(lockData.resourceId);
   const fileStr: string = await readFile(lockData.lockedFilePath, 'utf-8');
-  post = appendDataToPost(post, fileStr);
+  resource = appendDataToResource(resource, fileStr);
   if (lockData.mode === LockMode.Edit) {
-    post.updated = new Date();
+    resource.updated = new Date();
   }
-  post.content.text = await copyMediaToStorage(
-    post.content.text,
-    post.created,
+  resource.content.text = await copyMediaToStorage(
+    resource.content.text,
+    resource.created,
     path.dirname(lockData.lockedFilePath)
   );
-  if (lockData.mode === LockMode.New && post.type !== PostTypeName.Ephemera) {
-    throw new errors.PostError(`The slug '${post.content.slug}' already exists!`);
+  if (lockData.mode === LockMode.New && resource.type !== ResourceTypeName.Ephemera) {
+    throw new errors.ResourceError(`The slug '${resource.content.slug}' already exists!`);
   }
-  await writePost(post);
+  await writeResource(resource);
   await lockDelete();
 };
 
 export const lockWrite = async (lockData: LockData): Promise<void> => {
-  const lockLines = [lockData.lockedFilePath, lockData.mode, lockData.postType, lockData.postId];
+  const lockLines = [
+    lockData.lockedFilePath,
+    lockData.mode,
+    lockData.resourceType,
+    lockData.resourceId
+  ];
   await writeFile(getLockPath(), lockLines.join('\n'));
 };
 
@@ -104,8 +113,8 @@ export const lockRead = async (): Promise<LockData> => {
   return {
     lockedFilePath: lockFileLines[0],
     mode: <LockMode>lockFileLines[1],
-    postType: lockFileLines[2],
-    postId: lockFileLines[3]
+    resourceType: lockFileLines[2],
+    resourceId: lockFileLines[3]
   };
 };
 
@@ -129,5 +138,5 @@ export const lockDelete = async (): Promise<void> => {
 };
 
 const getLockPath = (): string => {
-  return path.join(getPostsDir(), lockFileName);
+  return path.join(getResourcesDir(), lockFileName);
 };

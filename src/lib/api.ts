@@ -1,4 +1,4 @@
-import { PostTypeName, PostType, jsonToPostType, JSONObject, JSONValue } from './types';
+import { ResourceTypeName, ResourceType, jsonToResourceType, JSONObject, JSONValue } from './types';
 import * as errors from './errors';
 
 const BASE_URL =
@@ -27,35 +27,37 @@ const get = async <T>(path: string): Promise<T> => {
   return <T>(<unknown>response.json());
 };
 
-export const getAllPosts = async <T extends PostTypeName>(): Promise<PostType<T>[]> => {
-  const jsonPosts = await get<JSONObject[]>(getUrl('resources'));
-  const posts = jsonPosts.map(jsonToPostType);
-  return posts;
+export const getAllResources = async <T extends ResourceTypeName>(): Promise<ResourceType<T>[]> => {
+  const jsonresources = await get<JSONObject[]>(getUrl('resources'));
+  const resources = jsonresources.map(jsonToResourceType);
+  return resources;
 };
 
-export const getPost = async <T extends PostTypeName>(postId: string): Promise<PostType<T>> => {
-  return jsonToPostType(await get(getUrl(`resources/${postId}`)));
+export const getResource = async <T extends ResourceTypeName>(
+  resourceId: string
+): Promise<ResourceType<T>> => {
+  return jsonToResourceType(await get(getUrl(`resources/${resourceId}`)));
 };
 
-export const getPostBySlug = async <T extends PostTypeName>(
+export const getResourceBySlug = async <T extends ResourceTypeName>(
   slug: string,
-  postType: T
-): Promise<PostType<T>> => {
-  if (postType === PostTypeName.Ephemera) {
-    throw new errors.PostTypeError('Ephemera do not have slugs!');
+  resourceType: T
+): Promise<ResourceType<T>> => {
+  if (resourceType === ResourceTypeName.Ephemera) {
+    throw new errors.ResourceTypeError('Ephemera do not have slugs!');
   }
   try {
-    const jsonPosts = await get<JSONValue>(getUrl(`types/${postType}/slug/${slug}`));
-    return jsonToPostType(jsonPosts[0] as JSONObject);
+    const jsonresources = await get<JSONValue>(getUrl(`types/${resourceType}/slug/${slug}`));
+    return jsonToResourceType(jsonresources[0] as JSONObject);
   } catch (e: unknown) {
-    throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
+    throw new errors.ResourceNotFoundError(`No ${resourceType} resources contain slug '${slug}!'`);
   }
 };
 
-export const getPostsByType = async <T extends PostTypeName>(
-  postType: T
-): Promise<PostType<T>[]> => {
-  const jsonPost = await get<JSONObject[]>(getUrl(`types/${postType}`));
-  const posts = jsonPost.map(jsonToPostType);
-  return posts;
+export const getResourcesByType = async <T extends ResourceTypeName>(
+  resourceType: T
+): Promise<ResourceType<T>[]> => {
+  const jsonresource = await get<JSONObject[]>(getUrl(`types/${resourceType}`));
+  const resources = jsonresource.map(jsonToResourceType);
+  return resources;
 };
