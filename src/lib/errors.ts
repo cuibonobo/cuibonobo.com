@@ -8,6 +8,6 @@ export class CorruptedLockfileError extends LockfileError {
 export class LockedDataError extends LockfileError {
   message: 'Data is locked!';
 }
-export class PostError extends Error {}
-export class PostTypeError extends PostError {}
-export class PostNotFoundError extends PostError {}
+export class ResourceError extends Error {}
+export class ResourceTypeError extends ResourceError {}
+export class ResourceNotFoundError extends ResourceError {}

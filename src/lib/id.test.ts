@@ -76,11 +76,9 @@ test('ID reflects current time', () => {
 });
 
 test('IDs generated in the same millisecond will increment the random suffix', () => {
-  // NOTE: There is a small (small!) probability that the initial random suffix
-  // will cause an overflow if there are less than 5 slots left to increment
   // The `generateId()` function is time-dependent, so we are freezing
   // time to better test the random suffixes.
-  const currentTime = new Date();
+  const currentTime = new Date('2024-01-01T00:00:00.0');
   timekeeper.freeze(currentTime);
   const numIds = 5;
   const idArray: string[] = [];

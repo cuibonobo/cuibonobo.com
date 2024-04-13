@@ -1,5 +1,8 @@
+.dev.vars
+.env
 .lock
 .DS_Store
+.wrangler
 node_modules
 /coverage
 /build

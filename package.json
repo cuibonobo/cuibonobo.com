@@ -3,18 +3,21 @@
   "version": "1.0.0",
   "description": "The website at cuibonobo.com",
   "scripts": {
-    "dev": "python -m http.server --directory ./build 8080",
+    "dev": "wrangler pages dev ./build",
     "build": "npm run clean && npm run build:sitemap && npm run build:feed && npm run build:site && npm run build:static",
     "build:feed": "npm run cli -- feed https://cuibonobo.com",
     "build:sitemap": "npm run cli -- sitemap https://cuibonobo.com",
     "build:site": "npm run cli -- site",
     "build:static": "ncp ./static/ ./build/",
+    "check": "npm run format && npm run lint",
     "clean": "rimraf ./build",
     "cli": "node --loader ts-node/esm --experimental-modules --es-module-specifier-resolution=node --no-warnings ./src/cli.ts",
-    "check": "npm run format && npm run lint",
+    "format": "prettier --ignore-path .gitignore --write .",
     "lint": "eslint --ignore-path .gitignore .",
     "lint:fix": "eslint --fix --ignore-path .gitignore .",
-    "format": "prettier --ignore-path .gitignore --write .",
+    "migrate": "npm run migrate:local && npm run migrate:remote",
+    "migrate:local": "npm run migrate:remote -- --local",
+    "migrate:remote": "wrangler d1 migrations apply stack_db",
     "test": "cross-env NODE_ENV=test jest"
   },
   "repository": {
@@ -28,6 +31,7 @@
   },
   "homepage": "https://github.com/cuibonobo/cuibonobo.com#readme",
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
     "@stdlib/datasets-stopwords-en": "0.1.1",
     "@tailwindcss/typography": "^0.5.10",
     "@types/glob": "^8.1.0",
@@ -40,6 +44,7 @@
     "autoprefixer": "^10.4.16",
     "commander": "^11.1.0",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
     "eslint": "^8.56.0",
     "feed": "^4.2.2",
     "gray-matter": "^4.0.3",
@@ -61,6 +66,7 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
+    "wrangler": "^3.22.1",
     "xml-js": "^1.6.11",
     "xss": "^1.0.14",
     "yaml": "^2.3.4"

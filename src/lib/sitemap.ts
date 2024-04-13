@@ -2,8 +2,9 @@ import path from 'path';
 import moment from 'moment';
 import xml from 'xml-js';
 import { writeFile, ensureDir } from './fs';
-import { getAllIndexedPosts, getPostUrl } from './posts';
-import { PostType, PostTypeName } from './types';
+import { getResourceUrl } from './site';
+import { getAllResources } from './api';
+import { ResourceType, ResourceTypeName } from './types';
 
 export const writeSitemap = async (origin: string): Promise<void> => {
   const sitemap = await getSitemap(origin);
@@ -12,7 +13,7 @@ export const writeSitemap = async (origin: string): Promise<void> => {
 };
 
 const getSitemap = async (origin: string): Promise<string> => {
-  const posts = await getAllIndexedPosts();
+  const resources = await getAllResources();
   return xml.js2xml(
     {
       declaration: {
@@ -28,7 +29,7 @@ const getSitemap = async (origin: string): Promise<string> => {
           attributes: {
             xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9'
           },
-          elements: posts.map((p) => getUrlElement(origin, p))
+          elements: resources.map((p) => getUrlElement(origin, p))
         }
       ]
     },
@@ -36,7 +37,10 @@ const getSitemap = async (origin: string): Promise<string> => {
   );
 };
 
-const getUrlElement = <T extends PostTypeName>(origin: string, post: PostType<T>): xml.Element => {
+const getUrlElement = <T extends ResourceTypeName>(
+  origin: string,
+  resource: ResourceType<T>
+): xml.Element => {
   return {
     type: 'element',
     name: 'url',
@@ -47,7 +51,7 @@ const getUrlElement = <T extends PostTypeName>(origin: string, post: PostType<T>
         elements: [
           {
             type: 'text',
-            text: getPostUrl(origin, post)
+            text: getResourceUrl(origin, resource)
           }
         ]
       },
@@ -57,7 +61,7 @@ const getUrlElement = <T extends PostTypeName>(origin: string, post: PostType<T>
         elements: [
           {
             type: 'text',
-            text: moment(post.updated).format('YYYY-MM-DD')
+            text: moment(resource.updated).format('YYYY-MM-DD')
           }
         ]
       }

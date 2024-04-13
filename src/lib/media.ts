@@ -21,26 +21,26 @@ const replaceAll = (searchText: string, searchStr: string, replaceStr: string): 
 };
 
 const copyMedia = async (
-  postContent: string,
+  resourceContent: string,
   sourceDir: string,
   destDir: string,
   relativeLinks: string[],
   absoluteLinks: string[],
   relativeToAbsolute = true
 ): Promise<string> => {
-  let updatedPostContent = postContent;
+  let updatedResourceContent = resourceContent;
   for (let i = 0; i < absoluteLinks.length; i++) {
     try {
       await copyFile(path.join(sourceDir, relativeLinks[i]), path.join(destDir, relativeLinks[i]));
       if (relativeToAbsolute) {
-        updatedPostContent = replaceAll(
-          updatedPostContent,
+        updatedResourceContent = replaceAll(
+          updatedResourceContent,
           `](${relativeLinks[i]}`,
           `](${absoluteLinks[i]}`
         );
       } else {
-        updatedPostContent = replaceAll(
-          updatedPostContent,
+        updatedResourceContent = replaceAll(
+          updatedResourceContent,
           `](${absoluteLinks[i]}`,
           `](${relativeLinks[i]}`
         );
@@ -51,34 +51,34 @@ const copyMedia = async (
       }
     }
   }
-  return updatedPostContent;
+  return updatedResourceContent;
 };
 
 export const copyMediaToTemp = async (
-  postContent: string,
-  postCreated: Date,
+  resourceContent: string,
+  resourceCreated: Date,
   destDir: string
 ): Promise<string> => {
-  const sourceDir = getAbsoluteMediaDir(postCreated);
+  const sourceDir = getAbsoluteMediaDir(resourceCreated);
   if (!(await dirExists(sourceDir))) {
-    return postContent;
+    return resourceContent;
   }
-  const absoluteLinks = getAbsoluteMediaLinks(postContent);
+  const absoluteLinks = getAbsoluteMediaLinks(resourceContent);
   const relativeLinks = absoluteLinks.map((link: string) => path.basename(link));
-  return await copyMedia(postContent, sourceDir, destDir, relativeLinks, absoluteLinks, false);
+  return await copyMedia(resourceContent, sourceDir, destDir, relativeLinks, absoluteLinks, false);
 };
 
 export const copyMediaToStorage = async (
-  postContent: string,
-  postCreated: Date,
+  resourceContent: string,
+  resourceCreated: Date,
   sourceDir: string
 ): Promise<string> => {
-  const destDir = getAbsoluteMediaDir(postCreated);
-  const mediaDir = getMediaDir(postCreated);
+  const destDir = getAbsoluteMediaDir(resourceCreated);
+  const mediaDir = getMediaDir(resourceCreated);
   await ensureDir(destDir);
-  const relativeLinks = getRelativeMediaLinks(postContent);
+  const relativeLinks = getRelativeMediaLinks(resourceContent);
   const absoluteLinks = relativeLinks.map((link: string) =>
     path.join(mediaDir, link).replace(/\\/g, '/')
   );
-  return await copyMedia(postContent, sourceDir, destDir, relativeLinks, absoluteLinks, true);
+  return await copyMedia(resourceContent, sourceDir, destDir, relativeLinks, absoluteLinks, true);
 };

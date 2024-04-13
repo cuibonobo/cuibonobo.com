@@ -1,4 +1,4 @@
-// Despite the linter's objections, building RSS feeds doesn't if below is default import
+// Despite the linter's objections, building RSS feeds doesn't work if below is default import
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import xss, { IFilterXSSOptions } from 'xss';

@@ -365,6 +365,13 @@ a {
   -webkit-text-decoration-line: none;
   text-decoration-line: none;
 }
+a.active {
+  cursor: default;
+  --tw-text-opacity: 1;
+  color: rgb(252 211 77 / var(--tw-text-opacity));
+  -webkit-text-decoration-line: none;
+  text-decoration-line: none;
+}
 a:hover {
   background-color: transparent;
   --tw-text-opacity: 1;

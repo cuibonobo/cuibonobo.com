@@ -1,10 +1,16 @@
-import { PostTypeName, PostType, IndexData, SlugData, jsonToPostType } from './types';
+import { ResourceTypeName, ResourceType, jsonToResourceType, JSONObject, JSONValue } from './types';
 import * as errors from './errors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const BASE_URL =
   process.env.NODE_ENV == 'production'
-    ? 'https://raw.githubusercontent.com/cuibonobo/cuibonobo.com/main/static/'
-    : 'http://localhost:8000';
+    ? 'https://cuibonobo.com/stack/'
+    : 'http://127.0.0.1:8788/stack/';
+
+const API_TOKEN = process.env.API_TOKEN ? process.env.API_TOKEN : 'API Token Not Set';
+const AUTH_HEADERS = { Authorization: `Bearer ${API_TOKEN}` };
 
 const getUrl = (path: string): string => {
   const origin = typeof window !== 'undefined' ? window.location.origin : BASE_URL;
@@ -21,55 +27,71 @@ const throwOnResponseError = async (response: Response) => {
   }
 };
 
-const getIndexUrl = (postType: PostTypeName): string => {
-  return getUrl(`index/${postType}/latest.json`);
-};
-
-const getSlugUrl = (postType: PostTypeName): string => {
-  return getUrl(`index/${postType}/slug.json`);
-};
-
-const getPostUrl = (postId: string): string => {
-  return getUrl(`posts/${postId}.json`);
-};
-
 const get = async <T>(path: string): Promise<T> => {
-  const response = await fetch(path);
+  const response = await fetch(path, { headers: AUTH_HEADERS });
   await throwOnResponseError(response);
   return <T>(<unknown>response.json());
 };
 
-const getIndexData = async <T extends PostTypeName>(postType: T): Promise<IndexData<T>> => {
-  const indexData = await get<IndexData<T>>(getIndexUrl(postType));
-  indexData.posts.forEach(jsonToPostType);
-  return indexData;
+const update = async <T>(path: string, data: JSONObject): Promise<T> => {
+  const response = await fetch(path, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: AUTH_HEADERS
+  });
+  await throwOnResponseError(response);
+  return <T>(<unknown>response.json());
 };
 
-const getSlugData = async (postType: PostTypeName): Promise<SlugData> => {
-  return get(getSlugUrl(postType));
+const remove = async <T>(path: string): Promise<T> => {
+  const response = await fetch(path, { method: 'DELETE', headers: AUTH_HEADERS });
+  await throwOnResponseError(response);
+  return <T>(<unknown>response.json());
 };
 
-export const getPost = async <T extends PostTypeName>(postId: string): Promise<PostType<T>> => {
-  return jsonToPostType(await get(getPostUrl(postId)));
+export const getAllResources = async <T extends ResourceTypeName>(): Promise<ResourceType<T>[]> => {
+  const jsonresources = await get<JSONObject[]>(getUrl('resources'));
+  const resources = jsonresources.map(jsonToResourceType);
+  return resources;
 };
 
-export const getPostBySlug = async <T extends PostTypeName>(
+export const getResource = async <T extends ResourceTypeName>(
+  resourceId: string
+): Promise<ResourceType<T>> => {
+  return jsonToResourceType(await get(getUrl(`resources/${resourceId}`)));
+};
+
+export const getResourceBySlug = async <T extends ResourceTypeName>(
   slug: string,
-  postType: T
-): Promise<PostType<T>> => {
-  if (postType === PostTypeName.Ephemera) {
-    throw new errors.PostTypeError('Ephemera do not have slugs!');
+  resourceType: T
+): Promise<ResourceType<T>> => {
+  if (resourceType === ResourceTypeName.Ephemera) {
+    throw new errors.ResourceTypeError('Ephemera do not have slugs!');
   }
-  const slugData = await getSlugData(postType);
-  if (slug in slugData) {
-    return getPost(slugData[slug]);
+  try {
+    const jsonresources = await get<JSONValue>(getUrl(`types/${resourceType}/slug/${slug}`));
+    return jsonToResourceType(jsonresources[0] as JSONObject);
+  } catch (e: unknown) {
+    throw new errors.ResourceNotFoundError(`No ${resourceType} resources contain slug '${slug}!'`);
   }
-  throw new errors.PostNotFoundError(`No ${postType} posts contain slug '${slug}!'`);
 };
 
-export const getPostsByType = async <T extends PostTypeName>(
-  postType: T
-): Promise<PostType<T>[]> => {
-  const indexData = await getIndexData(postType);
-  return indexData.posts;
+export const getResourcesByType = async <T extends ResourceTypeName>(
+  resourceType: T
+): Promise<ResourceType<T>[]> => {
+  const jsonresource = await get<JSONObject[]>(getUrl(`types/${resourceType}`));
+  const resources = jsonresource.map(jsonToResourceType);
+  return resources;
+};
+
+export const createResource = async (data: JSONObject): Promise<boolean> => {
+  return await update(getUrl(`resources`), data);
+};
+
+export const updateResource = async (resourceId: string, data: JSONObject): Promise<boolean> => {
+  return await update(getUrl(`resources/${resourceId}`), data);
+};
+
+export const deleteResource = async (resourceId: string): Promise<boolean> => {
+  return await remove(getUrl(`resources/${resourceId}`));
 };

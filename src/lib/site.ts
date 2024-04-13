@@ -1,8 +1,8 @@
 import moment from 'moment';
 import mustache from 'mustache';
 import path from 'path';
-import { getIndexedPostsByType } from './posts';
-import { ArticleType, EphemeraType, PageType, PostTypeName } from './types';
+import { getResourcesByType } from './api';
+import { ArticleType, EphemeraType, PageType, ResourceTypeName, ResourceType } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
 import { markdownToHtml } from './parser';
 
@@ -10,69 +10,82 @@ export const writeSitePages = async (outputDir: string) => {
   const template = (await readFile('./src/layout.html')).toString();
   console.log('Building site HTML...');
   await ensureDir(outputDir);
-  const pagePosts = await getIndexedPostsByType(PostTypeName.Page);
+  const pageResources = await getResourcesByType(ResourceTypeName.Page);
   const errorPage: PageType = {
     id: '',
     created: new Date(),
     updated: new Date(),
-    type: PostTypeName.Page,
+    type: ResourceTypeName.Page,
     content: {
       slug: '404',
       title: 'Page Not Found',
       text: "Looks like this URL doesn't exist!"
     }
   };
-  pagePosts.push(errorPage);
-  console.log(`Found ${pagePosts.length} pages...`);
-  for (let i = 0; i < pagePosts.length; i++) {
-    const post = pagePosts[i];
-    let postPath = path.join(outputDir, `${post.content.slug}.html`);
-    if (!['404', 'index'].includes(post.content.slug as string)) {
-      const postDir = path.join(outputDir, post.content.slug as string);
-      await ensureDir(postDir);
-      postPath = path.join(postDir, 'index.html');
+  pageResources.push(errorPage);
+  console.log(`Found ${pageResources.length} pages...`);
+  for (let i = 0; i < pageResources.length; i++) {
+    const resource = pageResources[i];
+    let resourcePath = path.join(outputDir, `${resource.content.slug}.html`);
+    if (!['404', 'index'].includes(resource.content.slug.toString())) {
+      const resourceDir = path.join(outputDir, resource.content.slug as string);
+      await ensureDir(resourceDir);
+      resourcePath = path.join(resourceDir, 'index.html');
     }
-    const pageBody = await getPage(post);
-    const metaTitle = getPageMetaTitle(post);
-    await writeFile(postPath, mustache.render(template, { pageBody, metaTitle }));
+    const pageBody = await getPage(resource);
+    const pageNav = getMainMenu(resource);
+    const metaTitle = getPageMetaTitle(resource);
+    await writeFile(resourcePath, mustache.render(template, { pageBody, pageNav, metaTitle }));
   }
   const articleDir = path.join(outputDir, 'articles');
   await ensureDir(articleDir);
-  const articlePosts = await getIndexedPostsByType(PostTypeName.Article);
-  console.log(`Found ${articlePosts.length} pages...`);
+  const articleResources = await getResourcesByType(ResourceTypeName.Article);
+  console.log(`Found ${articleResources.length} pages...`);
   const articlesIdxPath = path.join(articleDir, 'index.html');
-  const articlesIdxBody = getArticleCollection(articlePosts);
+  const articlesIdxBody = getArticleCollection(articleResources);
+  const articlesIdxNav = getMainMenu(articleResources[0]);
   await writeFile(
     articlesIdxPath,
-    mustache.render(template, { pageBody: articlesIdxBody, metaTitle: getMetaTitle('Articles') })
+    mustache.render(template, {
+      pageBody: articlesIdxBody,
+      pageNav: articlesIdxNav,
+      metaTitle: getMetaTitle('Articles')
+    })
   );
-  for (let i = 0; i < articlePosts.length; i++) {
-    const post = articlePosts[i];
-    const postDir = path.join(articleDir, post.content.slug);
-    await ensureDir(postDir);
-    const postPath = path.join(postDir, 'index.html');
-    const pageBody = await getArticle(post);
-    const metaTitle = getArticleMetaTitle(post);
-    await writeFile(postPath, mustache.render(template, { pageBody, metaTitle }));
+  for (let i = 0; i < articleResources.length; i++) {
+    const resource = articleResources[i];
+    const resourceDir = path.join(articleDir, resource.content.slug);
+    await ensureDir(resourceDir);
+    const resourcePath = path.join(resourceDir, 'index.html');
+    const pageBody = await getArticle(resource);
+    const pageNav = getMainMenu(resource);
+    const metaTitle = getArticleMetaTitle(resource);
+    await writeFile(resourcePath, mustache.render(template, { pageBody, pageNav, metaTitle }));
   }
   const ephemeraDir = path.join(outputDir, 'ephemera');
   await ensureDir(ephemeraDir);
-  const ephemeraPosts = await getIndexedPostsByType(PostTypeName.Ephemera);
-  console.log(`Found ${ephemeraPosts.length} pages...`);
+  const ephemeraResources = await getResourcesByType(ResourceTypeName.Ephemera);
+  console.log(`Found ${ephemeraResources.length} pages...`);
   const ephemeraIdxPath = path.join(ephemeraDir, 'index.html');
-  const ephemeraIdxBody = await getEphemeraCollection(ephemeraPosts);
+  const ephemeraIdxBody = await getEphemeraCollection(ephemeraResources);
+  const ephemeraIdxNav = getMainMenu(ephemeraResources[0]);
   await writeFile(
     ephemeraIdxPath,
-    mustache.render(template, { pageBody: ephemeraIdxBody, metaTitle: getMetaTitle('Ephemera') })
+    mustache.render(template, {
+      pageBody: ephemeraIdxBody,
+      pageNav: ephemeraIdxNav,
+      metaTitle: getMetaTitle('Ephemera')
+    })
   );
-  for (let i = 0; i < ephemeraPosts.length; i++) {
-    const post = ephemeraPosts[i];
-    const postDir = path.join(ephemeraDir, post.id);
-    await ensureDir(postDir);
-    const postPath = path.join(postDir, 'index.html');
-    const pageBody = await getEphemera(post);
-    const metaTitle = getEphemeraMetaTitle(post);
-    await writeFile(postPath, mustache.render(template, { pageBody, metaTitle }));
+  for (let i = 0; i < ephemeraResources.length; i++) {
+    const resource = ephemeraResources[i];
+    const resourceDir = path.join(ephemeraDir, resource.id);
+    await ensureDir(resourceDir);
+    const resourcePath = path.join(resourceDir, 'index.html');
+    const pageBody = await getEphemera(resource);
+    const pageNav = getMainMenu(resource);
+    const metaTitle = getEphemeraMetaTitle(resource);
+    await writeFile(resourcePath, mustache.render(template, { pageBody, pageNav, metaTitle }));
   }
 };
 
@@ -136,68 +149,105 @@ const getBody = (
 </article>`;
 };
 
-const getPage = async (post: PageType): Promise<string> => {
-  return getBody(post.content.title, await markdownToHtml(post.content.text));
+const getPage = async (resource: PageType): Promise<string> => {
+  return getBody(resource.content.title, await markdownToHtml(resource.content.text));
 };
 
-const getPageMetaTitle = (post: PageType): string => {
-  if (post.content.slug == 'index') {
+const getPageMetaTitle = (resource: PageType): string => {
+  if (resource.content.slug == 'index') {
     return getMetaTitle('cuibonobo', true);
   }
-  return getMetaTitle(post.content.title);
+  return getMetaTitle(resource.content.title);
 };
 
-const getArticle = async (post: ArticleType): Promise<string> => {
+const getArticle = async (resource: ArticleType): Promise<string> => {
   return getBody(
-    post.content.title,
-    await markdownToHtml(post.content.text),
-    post.created,
-    post.updated,
-    post.content.tags
+    resource.content.title,
+    await markdownToHtml(resource.content.text),
+    resource.created,
+    resource.updated,
+    resource.content.tags
   );
 };
 
-const getArticleCollection = (posts: ArticleType[]): string => {
+const getArticleCollection = (resources: ArticleType[]): string => {
   let listItems: string = '';
-  for (let i = 0; i < posts.length; i++) {
-    listItems += `<li><a href="/articles/${posts[i].content.slug}/">${posts[i].content.title}</a></li>\n`;
+  for (let i = 0; i < resources.length; i++) {
+    listItems += `<li><a href="/articles/${resources[i].content.slug}/">${resources[i].content.title}</a></li>\n`;
   }
   const body = `<ul>${listItems}</ul>`;
   return getBody('Articles', body);
 };
 
-const getArticleMetaTitle = (post: ArticleType): string => {
-  return getMetaTitle(post.content.title);
+const getArticleMetaTitle = (resource: ArticleType): string => {
+  return getMetaTitle(resource.content.title);
 };
 
-const getEphemera = async (post: EphemeraType): Promise<string> => {
+const getEphemera = async (resource: EphemeraType): Promise<string> => {
   return getBody(
-    `Ephemera ${post.id}`,
-    await markdownToHtml(post.content.text),
-    post.created,
-    post.updated,
+    `Ephemera ${resource.id}`,
+    await markdownToHtml(resource.content.text),
+    resource.created,
+    resource.updated,
     undefined,
     false
   );
 };
 
-const getEphemeraCollectionItem = async (post: EphemeraType): Promise<string> => {
+const getEphemeraCollectionItem = async (resource: EphemeraType): Promise<string> => {
   return `<div class="collection-item">
-  ${await markdownToHtml(post.content.text)}
+  ${await markdownToHtml(resource.content.text)}
   <div class="article-metadata">
-    <a href="/ephemera/${post.id}/">${getDisplayDate(post.created, undefined, undefined, true)}</a>
+    <a href="/ephemera/${resource.id}/">${getDisplayDate(
+      resource.created,
+      undefined,
+      undefined,
+      true
+    )}</a>
   </div>
 </div>`;
 };
 
-const getEphemeraCollection = async (posts: EphemeraType[]): Promise<string> => {
+const getEphemeraCollection = async (resources: EphemeraType[]): Promise<string> => {
   let body: string = '';
-  for (let i = 0; i < posts.length; i++) {
-    body += await getEphemeraCollectionItem(posts[i]);
+  for (let i = 0; i < resources.length; i++) {
+    body += await getEphemeraCollectionItem(resources[i]);
   }
   return getBody('Ephemera', body);
 };
 
-const getEphemeraMetaTitle = (post: EphemeraType): string => {
-  return getMetaTitle(`Ephemera ${post.id}`);
+const getEphemeraMetaTitle = (resource: EphemeraType): string => {
+  return getMetaTitle(`Ephemera ${resource.id}`);
+};
+
+export const getResourceUrl = <T extends ResourceTypeName>(
+  origin: string,
+  resource: ResourceType<T>
+): string => {
+  let path = '';
+  if (resource.type === ResourceTypeName.Page) {
+    path = resource.content.slug === 'index' ? '/' : `/${resource.content.slug}`;
+  } else if (resource.type === ResourceTypeName.Article) {
+    path = `/articles/${resource.content.slug}`;
+  } else if (resource.type === ResourceTypeName.Ephemera) {
+    path = `/ephemera/${resource.id}`;
+  }
+  return new URL(path, origin).href;
+};
+
+const getMainMenu = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {
+  return `<nav id="main-menu" class="flex flex-wrap leading-loose">
+  <a class="mr-2 md:mr-4${
+    resource.type === ResourceTypeName.Page && resource.content.slug == 'index' ? ' active' : ''
+  }" href="/">Home</a>
+  <a class="mx-2 md:mx-4${
+    resource.type === ResourceTypeName.Ephemera ? ' active' : ''
+  }" href="/ephemera/">Ephemera</a>
+  <a class="mx-2 md:mx-4${
+    resource.type === ResourceTypeName.Article ? ' active' : ''
+  }" href="/articles/">Articles</a>
+  <a class="ml-2 md:ml-4${
+    resource.type === ResourceTypeName.Page && resource.content.slug == 'about' ? ' active' : ''
+  }" href="/about/">About</a>
+</nav>`;
 };
