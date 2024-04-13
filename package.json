@@ -9,6 +9,7 @@
     "build:sitemap": "npm run cli -- sitemap https://cuibonobo.com",
     "build:site": "npm run cli -- site",
     "build:static": "ncp ./static/ ./build/",
+    "build:min": "mkdir ./build",
     "check": "npm run format && npm run lint",
     "clean": "rimraf ./build",
     "cli": "node --loader ts-node/esm --experimental-modules --es-module-specifier-resolution=node --no-warnings ./src/cli.ts",
