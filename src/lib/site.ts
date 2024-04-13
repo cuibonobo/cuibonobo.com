@@ -33,8 +33,9 @@ export const writeSitePages = async (outputDir: string) => {
       resourcePath = path.join(resourceDir, 'index.html');
     }
     const pageBody = await getPage(resource);
+    const pageNav = getMainMenu(resource);
     const metaTitle = getPageMetaTitle(resource);
-    await writeFile(resourcePath, mustache.render(template, { pageBody, metaTitle }));
+    await writeFile(resourcePath, mustache.render(template, { pageBody, pageNav, metaTitle }));
   }
   const articleDir = path.join(outputDir, 'articles');
   await ensureDir(articleDir);
@@ -42,9 +43,10 @@ export const writeSitePages = async (outputDir: string) => {
   console.log(`Found ${articleResources.length} pages...`);
   const articlesIdxPath = path.join(articleDir, 'index.html');
   const articlesIdxBody = getArticleCollection(articleResources);
+  const articlesIdxNav = getMainMenu(articleResources[0]);
   await writeFile(
     articlesIdxPath,
-    mustache.render(template, { pageBody: articlesIdxBody, metaTitle: getMetaTitle('Articles') })
+    mustache.render(template, { pageBody: articlesIdxBody, pageNav: articlesIdxNav, metaTitle: getMetaTitle('Articles') })
   );
   for (let i = 0; i < articleResources.length; i++) {
     const resource = articleResources[i];
@@ -52,8 +54,9 @@ export const writeSitePages = async (outputDir: string) => {
     await ensureDir(resourceDir);
     const resourcePath = path.join(resourceDir, 'index.html');
     const pageBody = await getArticle(resource);
+    const pageNav = getMainMenu(resource);
     const metaTitle = getArticleMetaTitle(resource);
-    await writeFile(resourcePath, mustache.render(template, { pageBody, metaTitle }));
+    await writeFile(resourcePath, mustache.render(template, { pageBody, pageNav, metaTitle }));
   }
   const ephemeraDir = path.join(outputDir, 'ephemera');
   await ensureDir(ephemeraDir);
@@ -61,9 +64,10 @@ export const writeSitePages = async (outputDir: string) => {
   console.log(`Found ${ephemeraResources.length} pages...`);
   const ephemeraIdxPath = path.join(ephemeraDir, 'index.html');
   const ephemeraIdxBody = await getEphemeraCollection(ephemeraResources);
+  const ephemeraIdxNav = getMainMenu(ephemeraResources[0]);
   await writeFile(
     ephemeraIdxPath,
-    mustache.render(template, { pageBody: ephemeraIdxBody, metaTitle: getMetaTitle('Ephemera') })
+    mustache.render(template, { pageBody: ephemeraIdxBody, pageNav: ephemeraIdxNav, metaTitle: getMetaTitle('Ephemera') })
   );
   for (let i = 0; i < ephemeraResources.length; i++) {
     const resource = ephemeraResources[i];
@@ -71,8 +75,9 @@ export const writeSitePages = async (outputDir: string) => {
     await ensureDir(resourceDir);
     const resourcePath = path.join(resourceDir, 'index.html');
     const pageBody = await getEphemera(resource);
+    const pageNav = getMainMenu(resource);
     const metaTitle = getEphemeraMetaTitle(resource);
-    await writeFile(resourcePath, mustache.render(template, { pageBody, metaTitle }));
+    await writeFile(resourcePath, mustache.render(template, { pageBody, pageNav, metaTitle }));
   }
 };
 
@@ -220,4 +225,13 @@ export const getResourceUrl = <T extends ResourceTypeName>(
     path = `/ephemera/${resource.id}`;
   }
   return new URL(path, origin).href;
+};
+
+const getMainMenu = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {
+  return `<nav id="main-menu" class="flex flex-wrap leading-loose">
+  <a class="mr-2 md:mr-4${resource.type === ResourceTypeName.Page && resource.content.slug == 'index' ? ' active' : ''}" href="/">Home</a>
+  <a class="mx-2 md:mx-4${resource.type === ResourceTypeName.Ephemera ? ' active' : ''}" href="/ephemera/">Ephemera</a>
+  <a class="mx-2 md:mx-4${resource.type === ResourceTypeName.Article ? ' active' : ''}" href="/articles/">Articles</a>
+  <a class="ml-2 md:ml-4${resource.type === ResourceTypeName.Page && resource.content.slug == 'about' ? ' active' : ''}" href="/about/">About</a>
+</nav>`;
 };
