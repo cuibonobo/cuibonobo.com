@@ -1,6 +1,6 @@
 import path from 'path';
 import { ResourceTypeName, ResourceType, resourceTypeToJson } from './types';
-import { getResource, createResource, updateResource } from './api';
+import { getResource, createResource, updateResource, getResourceBySlug } from './api';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists } from './fs';
 import { getDefaultResourceData, getFrontMatter, appendDataToResource } from './resources';
 import { copyMediaToTemp, copyMediaToStorage } from './media';
@@ -55,16 +55,26 @@ const lockResource = async <T extends ResourceTypeName>(
 export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> => {
   const lockData = await lockRead();
   let resource: ResourceType<T>;
-  let isNewResource = true;
   try {
     resource = await getResource(lockData.resourceId);
-    isNewResource = false;
   } catch (e: unknown) {
     resource = getDefaultResourceData<T>(lockData.resourceType as T);
     resource.id = lockData.resourceId;
   }
   const fileStr: string = await readFile(lockData.lockedFilePath, 'utf-8');
   resource = appendDataToResource(resource, fileStr);
+  if (resource.type !== ResourceTypeName.Note) {
+    try {
+      const slugmatch = await getResourceBySlug(resource.content.slug.toString(), resource.type);
+      if (slugmatch.id !== resource.id) {
+        throw new errors.ResourceError(
+          `The slug '${resource.content.slug}' already exists for resource ${slugmatch.id}!`
+        );
+      }
+    } catch (_: unknown) {
+      // Continue if no slug matches were found
+    }
+  }
   if (lockData.mode === LockMode.Edit) {
     resource.updated = new Date();
   }
@@ -73,10 +83,7 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
     resource.created,
     path.dirname(lockData.lockedFilePath)
   );
-  if (lockData.mode === LockMode.New && resource.type !== ResourceTypeName.Note) {
-    throw new errors.ResourceError(`The slug '${resource.content.slug}' already exists!`);
-  }
-  if (isNewResource) {
+  if (lockData.mode === LockMode.New) {
     await createResource(resourceTypeToJson(resource));
   } else {
     await updateResource(resource.id, resourceTypeToJson(resource));

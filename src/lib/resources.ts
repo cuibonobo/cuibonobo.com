@@ -23,11 +23,15 @@ export const getFrontMatter = <T extends ResourceTypeName>(resource: ResourceTyp
   return yamlLines.join('\n');
 };
 
-const convertTitleToSlug = (title: unknown): string => {
-  if (typeof title === 'string') {
-    return slugger(title);
+const isBlankFrontmatter = (record: Record<string, string>, key: string): boolean => {
+  return !record[key] || `${record[key]}` == '.';
+};
+
+const capitalize = (s: string): string => {
+  if (s.length === 0) {
+    return s;
   }
-  return '';
+  return s[0].toUpperCase() + s.slice(1);
 };
 
 export const appendDataToResource = <T extends ResourceTypeName>(
@@ -37,14 +41,18 @@ export const appendDataToResource = <T extends ResourceTypeName>(
   const fileData = matter(str);
   resource.content.text = fileData.content.trim();
   if (resource.type !== ResourceTypeName.Note) {
-    const slug = fileData.data.slug
+    resource.content.title = !isBlankFrontmatter(fileData.data, 'title')
+      ? <string>fileData.data.title
+      : `${capitalize(resource.type)} ${resource.id}`;
+    const slug = !isBlankFrontmatter(fileData.data, 'slug')
       ? <string>fileData.data.slug
-      : convertTitleToSlug(fileData.data.title);
+      : slugger(resource.content.title);
     resource.content.slug = slug;
-    resource.content.title = fileData.data.title ? <string>fileData.data.title : '';
   }
   if (resource.type === ResourceTypeName.Article) {
-    resource.content.tags = fileData.data.tags ? <string>fileData.data.tags : '';
+    resource.content.tags = !isBlankFrontmatter(fileData.data, 'tags')
+      ? <string>fileData.data.tags
+      : '';
   }
   return resource;
 };

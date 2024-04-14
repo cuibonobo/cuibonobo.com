@@ -4,13 +4,16 @@ import { Command } from 'commander';
 import { ResourceTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { getResourcesByType, deleteResource } from './lib/api';
+import { getResourcesByType, deleteResource, getResource } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
+import { getFrontMatter } from './lib/resources';
 import { slugger } from './lib/slugger';
 import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
+
+const MAX_TEXT_LENGTH = 100;
 
 const program = new Command();
 program
@@ -36,14 +39,34 @@ program
   .description('List existing resources of the given resource type')
   .action(async (resourceType: ResourceTypeName) => {
     const resources = await getResourcesByType(resourceType);
+    if (!resources.length) {
+      console.error(`Couldn't find resources of type '${resourceType}'!`);
+      return;
+    }
     resources.forEach((resource) => {
-      console.info(
-        `${resource.id}: ${
-          resource.type === ResourceTypeName.Note ? resource.content.text : resource.content.title
-        }`
-      );
+      let text =
+        resource.type === ResourceTypeName.Note ? resource.content.text : resource.content.title;
+      if (text.length > MAX_TEXT_LENGTH) {
+        text = text.slice(0, MAX_TEXT_LENGTH);
+        text = text.slice(0, text.lastIndexOf(' '));
+      }
+      console.info(`${resource.id}: ${text}`);
     });
     console.info('\n');
+  });
+
+program
+  .command('read <resourceId>')
+  .description('Read an existing resource that matches the given resource ID')
+  .action(async (resourceId: string) => {
+    try {
+      const resource = await getResource(resourceId);
+      const frontMatter = getFrontMatter(resource);
+      console.info(frontMatter);
+      console.info(resource.content.text);
+    } catch (e) {
+      console.error(`Couldn't read resource ID ${resourceId}: `, e);
+    }
   });
 
 program

@@ -37,6 +37,9 @@ npm run cli -- commit
 # List existing resources
 npm run cli -- list <resourceType>
 
+# Read an existing resource
+npm run cli -- read <resourceID>
+
 # Edit an existing resource
 npm run cli -- edit <resourceID>
 
