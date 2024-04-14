@@ -42,6 +42,28 @@
     "@types/prismjs": "^1.26.3",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
+    "wrangler": "^3.50.0"
+  },
+  "type": "module",
+  "jest": {
+    "transform": {
+      "^.+\\.(t|j)s?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(js?|ts?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ],
+    "testPathIgnorePatterns": [
+      "/dist/",
+      "/build/",
+      "/data/"
+    ],
+    "collectCoverage": true
+  },
+  "dependencies": {
     "autoprefixer": "^10.4.16",
     "commander": "^11.1.0",
     "cross-env": "^7.0.3",
@@ -67,28 +89,8 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
-    "wrangler": "^3.50.0",
     "xml-js": "^1.6.11",
     "xss": "^1.0.14",
     "yaml": "^2.3.4"
-  },
-  "type": "module",
-  "jest": {
-    "transform": {
-      "^.+\\.(t|j)s?$": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(js?|ts?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "js",
-      "json",
-      "node"
-    ],
-    "testPathIgnorePatterns": [
-      "/dist/",
-      "/build/",
-      "/data/"
-    ],
-    "collectCoverage": true
   }
 }
