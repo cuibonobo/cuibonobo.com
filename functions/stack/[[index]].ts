@@ -1,50 +1,28 @@
 import { Resources } from './models.js';
 import type { ResourcesDbInput } from './models.js';
+import { isAuthConfigured, isValidAuth } from '../auth.js';
+import { getNormalizedPath } from '../util.js';
 
 interface Env {
   STACK_DB: D1Database;
   API_TOKEN: string;
 }
-type EventCtxt = EventContext<Env, string, Record<string, unknown>>;
 
 const BASE_PATH = '/stack';
-
-const getNormalizedPath = (absPath: string, basePath: string = BASE_PATH): string => {
-  let relPath = absPath;
-  if (absPath.startsWith(basePath)) {
-    relPath = relPath.substring(basePath.length);
-  }
-  if (relPath.startsWith('/')) {
-    relPath = relPath.substring(1);
-  }
-  if (relPath.endsWith('/')) {
-    relPath = relPath.substring(0, relPath.length - 1);
-  }
-  return relPath;
-};
-
-const isValidAuth = (context: EventCtxt): boolean => {
-  const authHeader: string | null = context.request.headers.get('Authorization');
-  if (authHeader) {
-    const authToken = authHeader.replace('Bearer ', '');
-    return authToken == context.env.API_TOKEN;
-  }
-  return false;
-};
 
 // Routes
 export const onRequest: PagesFunction<Env> = async (context) => {
   if (!context.env.STACK_DB) {
     return new Response(JSON.stringify({ message: 'Database not configured!' }), { status: 500 });
   }
-  if (!context.env.API_TOKEN) {
+  if (!isAuthConfigured(context)) {
     return new Response(JSON.stringify({ message: 'API token not set!' }), { status: 500 });
   }
   if (!isValidAuth(context)) {
     return new Response(JSON.stringify({ message: 'Forbidden.' }), { status: 400 });
   }
   const url = new URL(context.request.url);
-  const path = getNormalizedPath(url.pathname);
+  const path = getNormalizedPath(url.pathname, BASE_PATH);
   const pathParts = path.split('/');
   const resources = Resources(context.env.STACK_DB);
   if (pathParts[0] == '') {
