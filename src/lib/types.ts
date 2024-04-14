@@ -1,7 +1,7 @@
 export enum ResourceTypeName {
   Page = 'page',
   Article = 'article',
-  Ephemera = 'ephemera'
+  Note = 'note'
 }
 
 interface BaseResource {
@@ -27,8 +27,8 @@ export interface ArticleType extends BaseResource {
     text: string;
   };
 }
-export interface EphemeraType extends BaseResource {
-  type: ResourceTypeName.Ephemera;
+export interface NoteType extends BaseResource {
+  type: ResourceTypeName.Note;
   content: {
     text: string;
   };
@@ -38,8 +38,8 @@ export type ResourceType<T> = T extends ResourceTypeName.Page
   ? PageType
   : T extends ResourceTypeName.Article
     ? ArticleType
-    : T extends ResourceTypeName.Ephemera
-      ? EphemeraType
+    : T extends ResourceTypeName.Note
+      ? NoteType
       : never;
 
 interface ContentKeyItem {

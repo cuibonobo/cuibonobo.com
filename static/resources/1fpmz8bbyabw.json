@@ -1,9 +1,0 @@
-{
-  "type": "ephemera",
-  "id": "1fpmz8bbyabw",
-  "created": "2021-12-11T14:44:51.710Z",
-  "updated": "2021-12-11T14:44:51.710Z",
-  "content": {
-    "text": "I installed the [Write Good Linter](https://marketplace.visualstudio.com/items?itemName=travisthetechie.write-good-linter) on my Visual Studio Code and it looks like I over-use adverbs. I wish it also suggested alternatives, so I'll have to keep [OneLook](https://onelook.com) close at hand."
-  }
-}

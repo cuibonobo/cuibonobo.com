@@ -2,7 +2,7 @@ import moment from 'moment';
 import mustache from 'mustache';
 import path from 'path';
 import { getResourcesByType } from './api';
-import { ArticleType, EphemeraType, PageType, ResourceTypeName, ResourceType } from './types';
+import { ArticleType, NoteType, PageType, ResourceTypeName, ResourceType } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
 import { markdownToHtml } from './parser';
 
@@ -64,7 +64,7 @@ export const writeSitePages = async (outputDir: string) => {
   }
   const ephemeraDir = path.join(outputDir, 'ephemera');
   await ensureDir(ephemeraDir);
-  const ephemeraResources = await getResourcesByType(ResourceTypeName.Ephemera);
+  const ephemeraResources = await getResourcesByType(ResourceTypeName.Note);
   console.log(`Found ${ephemeraResources.length} pages...`);
   const ephemeraIdxPath = path.join(ephemeraDir, 'index.html');
   const ephemeraIdxBody = await getEphemeraCollection(ephemeraResources);
@@ -183,7 +183,7 @@ const getArticleMetaTitle = (resource: ArticleType): string => {
   return getMetaTitle(resource.content.title);
 };
 
-const getEphemera = async (resource: EphemeraType): Promise<string> => {
+const getEphemera = async (resource: NoteType): Promise<string> => {
   return getBody(
     `Ephemera ${resource.id}`,
     await markdownToHtml(resource.content.text),
@@ -194,7 +194,7 @@ const getEphemera = async (resource: EphemeraType): Promise<string> => {
   );
 };
 
-const getEphemeraCollectionItem = async (resource: EphemeraType): Promise<string> => {
+const getEphemeraCollectionItem = async (resource: NoteType): Promise<string> => {
   return `<div class="collection-item">
   ${await markdownToHtml(resource.content.text)}
   <div class="article-metadata">
@@ -208,7 +208,7 @@ const getEphemeraCollectionItem = async (resource: EphemeraType): Promise<string
 </div>`;
 };
 
-const getEphemeraCollection = async (resources: EphemeraType[]): Promise<string> => {
+const getEphemeraCollection = async (resources: NoteType[]): Promise<string> => {
   let body: string = '';
   for (let i = 0; i < resources.length; i++) {
     body += await getEphemeraCollectionItem(resources[i]);
@@ -216,7 +216,7 @@ const getEphemeraCollection = async (resources: EphemeraType[]): Promise<string>
   return getBody('Ephemera', body);
 };
 
-const getEphemeraMetaTitle = (resource: EphemeraType): string => {
+const getEphemeraMetaTitle = (resource: NoteType): string => {
   return getMetaTitle(`Ephemera ${resource.id}`);
 };
 
@@ -229,7 +229,7 @@ export const getResourceUrl = <T extends ResourceTypeName>(
     path = resource.content.slug === 'index' ? '/' : `/${resource.content.slug}`;
   } else if (resource.type === ResourceTypeName.Article) {
     path = `/articles/${resource.content.slug}`;
-  } else if (resource.type === ResourceTypeName.Ephemera) {
+  } else if (resource.type === ResourceTypeName.Note) {
     path = `/ephemera/${resource.id}`;
   }
   return new URL(path, origin).href;
@@ -241,7 +241,7 @@ const getMainMenu = <T extends ResourceTypeName>(resource: ResourceType<T>): str
     resource.type === ResourceTypeName.Page && resource.content.slug == 'index' ? ' active' : ''
   }" href="/">Home</a>
   <a class="mx-2 md:mx-4${
-    resource.type === ResourceTypeName.Ephemera ? ' active' : ''
+    resource.type === ResourceTypeName.Note ? ' active' : ''
   }" href="/ephemera/">Ephemera</a>
   <a class="mx-2 md:mx-4${
     resource.type === ResourceTypeName.Article ? ' active' : ''

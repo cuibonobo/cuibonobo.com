@@ -65,8 +65,8 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
   slug: string,
   resourceType: T
 ): Promise<ResourceType<T>> => {
-  if (resourceType === ResourceTypeName.Ephemera) {
-    throw new errors.ResourceTypeError('Ephemera do not have slugs!');
+  if (resourceType === ResourceTypeName.Note) {
+    throw new errors.ResourceTypeError('Notes do not have slugs!');
   }
   try {
     const jsonresources = await get<JSONValue>(getUrl(`types/${resourceType}/slug/${slug}`));

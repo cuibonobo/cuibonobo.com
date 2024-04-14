@@ -39,9 +39,7 @@ program
     resources.forEach((resource) => {
       console.info(
         `${resource.id}: ${
-          resource.type === ResourceTypeName.Ephemera
-            ? resource.content.text
-            : resource.content.title
+          resource.type === ResourceTypeName.Note ? resource.content.text : resource.content.title
         }`
       );
     });

@@ -23,8 +23,18 @@ interface FeedLink {
 
 export const writeFeeds = async (originUrl: string, itemLimit = 10): Promise<void> => {
   const allResourcesFeed = await getAllResourcesFeed(originUrl, itemLimit);
-  const ephemeraFeed = await getResourceTypeFeed(ResourceTypeName.Ephemera, originUrl, itemLimit);
-  const articleFeed = await getResourceTypeFeed(ResourceTypeName.Article, originUrl, itemLimit);
+  const ephemeraFeed = await getResourceTypeFeed(
+    'ephemera',
+    ResourceTypeName.Note,
+    originUrl,
+    itemLimit
+  );
+  const articleFeed = await getResourceTypeFeed(
+    'article',
+    ResourceTypeName.Article,
+    originUrl,
+    itemLimit
+  );
   await ensureDir(path.resolve('static'));
   await writeFeed(allResourcesFeed);
   await writeFeed(ephemeraFeed);
@@ -55,16 +65,16 @@ const getAllResourcesFeed = async (originUrl: string, itemLimit: number): Promis
 };
 
 const getResourceTypeFeed = async (
+  feedName: string,
   resourceType: ResourceTypeName,
   originUrl: string,
   itemLimit: number
 ): Promise<Feed> => {
   const { origin, author, feed } = getBaseFeedParts(originUrl);
-  const resourceTypeName = resourceType.toString();
-  feed.options.description = `cuibonobo's personal website feed: ${resourceTypeName}`;
+  feed.options.description = `cuibonobo's personal website feed: ${feedName}`;
   feed.options.feedLinks = {
-    json: origin.path(`/${resourceTypeName}-feed.json`),
-    atom: origin.path(`/${resourceTypeName}-feed.xml`)
+    json: origin.path(`/${feedName}-feed.json`),
+    atom: origin.path(`/${feedName}-feed.xml`)
   };
   const resources = (await getResourcesByType(resourceType)).sort(
     (a, b) => b.created.valueOf() - a.created.valueOf()
@@ -83,9 +93,7 @@ const getFeedItem = async <T extends ResourceTypeName>(
 ): Promise<Item> => {
   return {
     title:
-      resource.type === ResourceTypeName.Ephemera
-        ? `Ephemera: ${resource.id}`
-        : resource.content.title,
+      resource.type === ResourceTypeName.Note ? `Ephemera: ${resource.id}` : resource.content.title,
     id: resource.id,
     link: getResourceUrl(originUrl, resource),
     content: await markdownToHtml(resource.content.text),

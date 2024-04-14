@@ -1,9 +1,0 @@
-{
-  "type": "ephemera",
-  "id": "1fv91nka3e7z",
-  "created": "2022-02-07T02:54:38.915Z",
-  "updated": "2022-02-07T02:54:38.915Z",
-  "content": {
-    "text": "[ANSIWAVE BBS](https://ansiwave.net/) is a retro-futuristic BBS written in [Nim](https://nim-lang.org/). BBS is a little before my time (my first foray into computer networking was on AOL), but the project caught my attention because all posts on the bulletin board start on an 80x80-character square. ASCII characters are used as a primitive for both drawings and text, which I thought was really innovative.\r\n\r\nI think the modern internet needs a similar 'encapsulated' format that is easy to render but isn't as scriptable as HTML. The 'story' format used by Snapchat, Instagram, TikTok, etc. seems like what the industry is converging towards, but each social media network implements it differently (and with varying degrees of ephemerality)."
-  }
-}

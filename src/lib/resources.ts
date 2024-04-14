@@ -1,4 +1,3 @@
-import path from 'path';
 import matter from 'gray-matter';
 import yaml from 'yaml';
 import { generateId } from './id';
@@ -7,10 +6,6 @@ import { ResourceTypeName, ResourceType } from './types';
 
 const yamlDivider = '---';
 const yamlPlaceholder = '.';
-
-export const getResourcesDir = (): string => {
-  return path.join(path.resolve('static'), 'resources');
-};
 
 export const getFrontMatter = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {
   const yamlData = { ...resource.content };
@@ -41,7 +36,7 @@ export const appendDataToResource = <T extends ResourceTypeName>(
 ): ResourceType<T> => {
   const fileData = matter(str);
   resource.content.text = fileData.content.trim();
-  if (resource.type !== ResourceTypeName.Ephemera) {
+  if (resource.type !== ResourceTypeName.Note) {
     const slug = fileData.data.slug
       ? <string>fileData.data.slug
       : convertTitleToSlug(fileData.data.title);
@@ -85,9 +80,9 @@ export const getDefaultResourceData = <T extends ResourceTypeName>(
           text: ''
         }
       };
-    case ResourceTypeName.Ephemera:
+    case ResourceTypeName.Note:
       return <ResourceType<T>>{
-        type: ResourceTypeName.Ephemera,
+        type: ResourceTypeName.Note,
         ...resourceData,
         content: { text: '' }
       };

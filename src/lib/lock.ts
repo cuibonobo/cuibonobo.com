@@ -2,12 +2,7 @@ import path from 'path';
 import { ResourceTypeName, ResourceType, resourceTypeToJson } from './types';
 import { getResource, createResource, updateResource } from './api';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists } from './fs';
-import {
-  getResourcesDir,
-  getDefaultResourceData,
-  getFrontMatter,
-  appendDataToResource
-} from './resources';
+import { getDefaultResourceData, getFrontMatter, appendDataToResource } from './resources';
 import { copyMediaToTemp, copyMediaToStorage } from './media';
 import * as errors from './errors';
 
@@ -78,7 +73,7 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
     resource.created,
     path.dirname(lockData.lockedFilePath)
   );
-  if (lockData.mode === LockMode.New && resource.type !== ResourceTypeName.Ephemera) {
+  if (lockData.mode === LockMode.New && resource.type !== ResourceTypeName.Note) {
     throw new errors.ResourceError(`The slug '${resource.content.slug}' already exists!`);
   }
   if (isNewResource) {
@@ -141,5 +136,5 @@ export const lockDelete = async (): Promise<void> => {
 };
 
 const getLockPath = (): string => {
-  return path.join(getResourcesDir(), lockFileName);
+  return path.join(path.resolve('static'), lockFileName);
 };

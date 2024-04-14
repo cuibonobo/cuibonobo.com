@@ -25,7 +25,7 @@ npm run test
 
 ## CLI
 
-Available resource types: `article`, `ephemera`, `page`
+Available resource types: `article`, `note`, `page`
 
 ```bash
 # Create a new resource and start editing it
@@ -59,5 +59,7 @@ npm run cli -- slugify <quotedText>
 
 ### Environment Variables
 
-- `NODE_VERSION`: `14`
+- `NODE_ENV`: `production`
+- `NODE_VERSION`: `18`
 - `TZ`: `America/New_York`
+- `API_TOKEN`: `<secret>`

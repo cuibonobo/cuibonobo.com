@@ -1,9 +1,0 @@
-{
-  "type": "ephemera",
-  "id": "1fm01hqj2dd1",
-  "created": "2021-11-08T15:09:29.538Z",
-  "updated": "2021-11-08T15:09:29.538Z",
-  "content": {
-    "text": "I recently discovered that [draw.io](https://diagrams.net) will export an \"Editable PNG\" that [embeds the entire diagram into the `zTxt` section of the PNG](https://www.diagrams.net/blog/xml-in-png) and I'm still geeking out about it. The diagram isn't immediately readable though... It has been Base64 encoded and deflated so that it doesn't take up as much space on the image. You can use [TweakPNG](http://entropymine.com/jason/tweakpng/) to view the `zTxt` section in the PNG and this [draw.io convert tool](https://jgraph.github.io/drawio-tools/tools/convert.html).\r\n"
-  }
-}

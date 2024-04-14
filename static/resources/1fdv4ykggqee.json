@@ -1,9 +1,0 @@
-{
-  "id": "1fdv4ykggqee",
-  "type": "ephemera",
-  "created": "2021-08-24T03:58:34.000Z",
-  "updated": "2021-08-24T03:58:34.000Z",
-  "content": {
-    "text": "I made a CLI that automatically generates post front-matter. Now writing on here won't be quite so tedious."
-  }
-}
