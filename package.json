@@ -32,16 +32,6 @@
   },
   "homepage": "https://github.com/cuibonobo/cuibonobo.com#readme",
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231218.0",
-    "@stdlib/datasets-stopwords-en": "0.1.1",
-    "@tailwindcss/typography": "^0.5.10",
-    "@types/glob": "^8.1.0",
-    "@types/jest": "^29.5.11",
-    "@types/marked": "^6.0.0",
-    "@types/mustache": "^4.2.5",
-    "@types/prismjs": "^1.26.3",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
     "wrangler": "^3.50.0"
   },
   "type": "module",
@@ -64,6 +54,16 @@
     "collectCoverage": true
   },
   "dependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@stdlib/datasets-stopwords-en": "0.1.1",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/glob": "^8.1.0",
+    "@types/jest": "^29.5.11",
+    "@types/marked": "^6.0.0",
+    "@types/mustache": "^4.2.5",
+    "@types/prismjs": "^1.26.3",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
     "autoprefixer": "^10.4.16",
     "commander": "^11.1.0",
     "cross-env": "^7.0.3",
