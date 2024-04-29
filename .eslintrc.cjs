@@ -7,7 +7,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended-requiring-type-checking'
   ],
   plugins: ['@typescript-eslint'],
-  ignorePatterns: ['*.cjs'],
+  ignorePatterns: ['*.cjs', '*.test.ts'],
   parserOptions: {
     sourceType: 'module',
     ecmaVersion: 2019,
