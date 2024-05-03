@@ -15,7 +15,8 @@
     "checkJs": true,
     "paths": {
       "@components/*": ["src/components/*"],
-      "@lib/*": ["src/lib/*"]
+      "@lib/*": ["src/lib/*"],
+      "@codec/*": ["codec/*"]
     }
   },
   "include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts"],

@@ -26,7 +26,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const pathParts = path.split('/');
   const resources = Resources(context.env.STACK_DB);
   if (pathParts[0] == '') {
-    return Response.json(['resources', 'types']);
+    return Response.json(['resources', 'types', 'attachments']);
   }
   if (pathParts[0] == 'resources') {
     if (pathParts.length == 1) {
@@ -68,6 +68,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return Response.json(
         await resources.getByContentKey(pathParts[1], pathParts[2], pathParts[3])
       );
+    }
+  }
+  if (pathParts[0] == 'attachments') {
+    if (pathParts.length == 1) {
+      return Response.json(await resources.getAttachments());
+    }
+    if (pathParts.length == 2) {
+      return Response.json(await resources.getByAttachmentId(pathParts[1]));
     }
   }
   return new Response(JSON.stringify({ message: 'Not Found!' }), { status: 404 });

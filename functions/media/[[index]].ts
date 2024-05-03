@@ -1,4 +1,4 @@
-import { BucketFile } from './models.js';
+import { BucketFile } from '@codec/bucket.js';
 import { isAuthConfigured, isValidAuth } from '../auth.js';
 import { getNormalizedPath, getDigest, getHash } from '../util.js';
 
@@ -52,12 +52,18 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         return new Response('Object Not Found', { status: 404 });
       }
 
+      const url = new URL(context.request.url);
       const cacheDate = new Date();
       cacheDate.setDate(cacheDate.getDate() + CACHE_DAYS);
       const headers = new Headers();
       object.writeHttpMetadata(headers);
       headers.set('Expires', cacheDate.toUTCString());
       headers.set('etag', object.httpEtag);
+
+      // Allow files to be downloaded with arbitrary filenames
+      if (url.searchParams.has('filename')) {
+        headers.set('content-disposition', `filename="${url.searchParams.get('filename')}"`);
+      }
 
       return new Response(object.body, { headers });
     }

@@ -1,3 +1,5 @@
+import { Attachment } from '../../codec/resource';
+
 export enum ResourceTypeName {
   Page = 'page',
   Article = 'article',
@@ -8,6 +10,7 @@ interface BaseResource {
   id: string;
   created: Date;
   updated: Date;
+  attachments: Attachment[];
   isPublic?: boolean;
 }
 export interface PageType extends BaseResource {
@@ -76,6 +79,10 @@ export const jsonToResourceType = <T>(json: JSONObject): ResourceType<T> => {
       'updated_date' in json
         ? new Date(json['updated_date'] as string)
         : new Date(json['updated'] as string),
+    attachments:
+      typeof json['attachments'] == 'string'
+        ? (JSON.parse(json['attachments']) as Attachment[])
+        : json['attachments'],
     isPublic: 'is_public' in json ? json['is_public'] : json['isPublic'],
     content:
       typeof json['content'] == 'string'
@@ -91,6 +98,8 @@ export const resourceTypeToJson = <T extends ResourceTypeName>(
   const json: JSONObject = {
     id: resource.id,
     type: resource.type,
+    is_public: resource.isPublic,
+    attachments: JSON.stringify(resource.attachments),
     created_date: resource.created,
     updated_date: resource.updated,
     content: JSON.stringify(resource.content)
