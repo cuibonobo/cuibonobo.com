@@ -29,7 +29,7 @@ export const getBaseMediaUrl = (): URL => {
 
 export const downloadFile = async (fileId: string, destPath: string): Promise<boolean> => {
   try {
-    const response = await fetch(new URL(fileId, BASE_URL));
+    const response = await fetch(new URL(fileId, getBaseMediaUrl()));
     const fileStream = fs.createWriteStream(path.resolve(destPath), { flags: 'wx' });
     await finished(Readable.fromWeb(response.body).pipe(fileStream));
     return true;
@@ -39,20 +39,19 @@ export const downloadFile = async (fileId: string, destPath: string): Promise<bo
 };
 
 export const uploadFile = async (
-  sourcePath: string,
-  url: string | URL = BASE_URL
+  sourcePath: string
 ): Promise<BucketFile> => {
   sourcePath = path.resolve(sourcePath);
   const file = new Blob([await readFile(sourcePath)], { type: mime.getType(sourcePath) });
   const formData = new FormData();
   formData.set('files', file, path.basename(sourcePath));
-  const response = await fetch(url, { method: 'POST', body: formData });
+  const response = await fetch(getBaseMediaUrl(), { method: 'POST', body: formData });
   const bucketFile: BucketFile[] = (await response.json()) as BucketFile[];
   return bucketFile[0];
 };
 
 export const deleteFile = async (fileId: string) => {
-  const response = await fetch(new URL(fileId, BASE_URL), { method: 'DELETE' });
+  const response = await fetch(new URL(fileId, getBaseMediaUrl()), { method: 'DELETE' });
   return response.status >= 200 && response.status < 400;
 };
 
