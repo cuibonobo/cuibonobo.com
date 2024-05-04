@@ -17,8 +17,8 @@
     "lint": "eslint --ignore-path .gitignore .",
     "lint:fix": "eslint --fix --ignore-path .gitignore .",
     "migrate": "npm run migrate:local && npm run migrate:remote",
-    "migrate:local": "npm run migrate:remote -- --local",
-    "migrate:remote": "wrangler d1 migrations apply stack_db",
+    "migrate:local": "wrangler d1 migrations apply stack_db",
+    "migrate:remote": "npm run migrate:local -- --remote",
     "test": "cross-env NODE_ENV=test vitest"
   },
   "repository": {
