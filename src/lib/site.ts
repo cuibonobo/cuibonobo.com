@@ -4,7 +4,8 @@ import path from 'path';
 import { getResourcesByType } from './api';
 import { ArticleType, NoteType, PageType, ResourceTypeName, ResourceType } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
-import { markdownToHtml } from './parser';
+import { markdownToHtml, escapeRegExp } from './parser';
+import { getBaseMediaUrl } from './media';
 
 export const writeSitePages = async (outputDir: string) => {
   const template = (await readFile('./src/layout.html')).toString();
@@ -16,6 +17,7 @@ export const writeSitePages = async (outputDir: string) => {
     created: new Date(),
     updated: new Date(),
     type: ResourceTypeName.Page,
+    attachments: [],
     content: {
       slug: '404',
       title: 'Page Not Found',
@@ -113,6 +115,22 @@ const getDisplayDate = (
 </time>`;
 };
 
+const getTextWithAttachments = <T extends ResourceTypeName>(
+  resource: ResourceType<T>
+): Promise<string> => {
+  let output = resource.content.text;
+  resource.attachments.forEach((attachment) => {
+    const mediaUrl = new URL(attachment.id, getBaseMediaUrl());
+    mediaUrl.searchParams.append('filename', attachment.name);
+    const mediaRegex = new RegExp(
+      '(\\(|"|\')(' + escapeRegExp(attachment.name) + ')(\\)|"|\'|\\\\"\\\\\')',
+      'g'
+    );
+    output = output.replace(mediaRegex, '$1' + mediaUrl.href + '$3');
+  });
+  return markdownToHtml(output);
+};
+
 const getBodyMetadata = (created: Date = null, tags: string = null): string => {
   return `<div class="article-metadata">
   ${created ? getDisplayDate(created) : ''}
@@ -150,7 +168,7 @@ const getBody = (
 };
 
 const getPage = async (resource: PageType): Promise<string> => {
-  return getBody(resource.content.title, await markdownToHtml(resource.content.text));
+  return getBody(resource.content.title, await getTextWithAttachments(resource));
 };
 
 const getPageMetaTitle = (resource: PageType): string => {
@@ -163,7 +181,7 @@ const getPageMetaTitle = (resource: PageType): string => {
 const getArticle = async (resource: ArticleType): Promise<string> => {
   return getBody(
     resource.content.title,
-    await markdownToHtml(resource.content.text),
+    await getTextWithAttachments(resource),
     resource.created,
     resource.updated,
     resource.content.tags
@@ -186,7 +204,7 @@ const getArticleMetaTitle = (resource: ArticleType): string => {
 const getEphemera = async (resource: NoteType): Promise<string> => {
   return getBody(
     `Ephemera ${resource.id}`,
-    await markdownToHtml(resource.content.text),
+    await getTextWithAttachments(resource),
     resource.created,
     resource.updated,
     undefined,
@@ -196,7 +214,7 @@ const getEphemera = async (resource: NoteType): Promise<string> => {
 
 const getEphemeraCollectionItem = async (resource: NoteType): Promise<string> => {
   return `<div class="collection-item">
-  ${await markdownToHtml(resource.content.text)}
+  ${await getTextWithAttachments(resource)}
   <div class="article-metadata">
     <a href="/ephemera/${resource.id}/">${getDisplayDate(
       resource.created,

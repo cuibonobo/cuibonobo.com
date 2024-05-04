@@ -3,7 +3,7 @@ import { ResourceTypeName, ResourceType, resourceTypeToJson } from './types';
 import { getResource, createResource, updateResource, getResourceBySlug } from './api';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists } from './fs';
 import { getDefaultResourceData, getFrontMatter, appendDataToResource } from './resources';
-import { copyMediaToTemp, copyMediaToStorage } from './media';
+import { downloadAttachments, uploadAttachments } from './media';
 import * as errors from './errors';
 
 const lockFileName = '.lock';
@@ -40,8 +40,8 @@ const lockResource = async <T extends ResourceTypeName>(
   const editorDir = await mkTempDir();
   const frontMatter = getFrontMatter(resource);
   const lockedFilePath = path.join(editorDir, `${resource.id}.md`);
-  const resourceContent = await copyMediaToTemp(resource.content.text, resource.created, editorDir);
-  await writeFile(lockedFilePath, frontMatter + resourceContent);
+  await downloadAttachments(resource.attachments, editorDir);
+  await writeFile(lockedFilePath, frontMatter + resource.content.text);
   const lockData: LockData = {
     lockedFilePath,
     resourceId: resource.id,
@@ -78,11 +78,7 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
   if (lockData.mode === LockMode.Edit) {
     resource.updated = new Date();
   }
-  resource.content.text = await copyMediaToStorage(
-    resource.content.text,
-    resource.created,
-    path.dirname(lockData.lockedFilePath)
-  );
+  await uploadAttachments(resource.attachments, path.dirname(lockData.lockedFilePath));
   if (lockData.mode === LockMode.New) {
     await createResource(resourceTypeToJson(resource));
   } else {

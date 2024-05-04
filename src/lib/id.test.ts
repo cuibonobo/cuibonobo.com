@@ -13,7 +13,7 @@ describe('ID generation library', () => {
     expect(crockford32Encode(27)).toBe('v');
     expect(crockford32Encode(31)).toBe('z');
   });
-  
+
   test('Decode Crockford-32 for single digits', () => {
     expect(crockford32Decode('0')).toBe(0);
     expect(crockford32Decode('1')).toBe(1);
@@ -24,7 +24,7 @@ describe('ID generation library', () => {
     expect(crockford32Decode('v')).toBe(27);
     expect(crockford32Decode('z')).toBe(31);
   });
-  
+
   test('Crockford-32 encodes to the correct number of digits', () => {
     expect(crockford32Encode(32)).toBe('10');
     expect(crockford32Encode(1024)).toBe('100');
@@ -36,7 +36,7 @@ describe('ID generation library', () => {
     expect(crockford32Encode(1099511627776)).toBe('100000000');
     expect(crockford32Encode(35184372088832)).toBe('1000000000');
   });
-  
+
   test('Crockford-32 with multiple digits decode to the correct number', () => {
     expect(crockford32Decode('10')).toBe(32);
     expect(crockford32Decode('100')).toBe(1024);
@@ -48,35 +48,35 @@ describe('ID generation library', () => {
     expect(crockford32Decode('100000000')).toBe(1099511627776);
     expect(crockford32Decode('1000000000')).toBe(35184372088832);
   });
-  
+
   test('Crockford-32 encoder throws an error for negative numbers', () => {
     expect(() => crockford32Encode(-1)).toThrow(RangeError);
   });
-  
+
   test('Crockford-32 decoder throws an error for invalid strings', () => {
     expect(() => crockford32Decode('')).toThrow(Error);
     expect(() => crockford32Decode('l')).toThrow(Error);
   });
-  
+
   test('ID contains at least 12 characters', () => {
     const id = generateId();
     expect(typeof id).toBe('string');
     expect(id.length).toBeGreaterThanOrEqual(12);
   });
-  
+
   test('ID gets more digits for dates far into the future', () => {
     const id = generateId(35184372088833);
     expect(typeof id).toBe('string');
     expect(id.length).toBeGreaterThanOrEqual(13);
   });
-  
+
   test('ID reflects current time', () => {
     const now = Date.now();
     const id = generateId(now);
     const timestamp = id.substring(0, 9);
     expect(timestamp).toBe(crockford32Encode(now));
   });
-  
+
   test('IDs generated in the same millisecond will increment the random suffix', () => {
     // The `generateId()` function is time-dependent, so we are freezing
     // time to better test the random suffixes.
@@ -99,7 +99,7 @@ describe('ID generation library', () => {
     }
     timekeeper.reset();
   });
-  
+
   test('Generating too many IDs in the same millisecond will cause an overflow', () => {
     // The `generateId()` function is time-dependent, so we are freezing
     // time to better test the random suffixes.

@@ -31,34 +31,32 @@ export const markdownToHtml = async (markdown: string): Promise<string> => {
   return xss(await marked.parse(markdown), xssOptions);
 };
 
-const getMatchArray = (text: string, regex: RegExp): string[] => {
-  const matches = text.match(regex);
-  if (matches === null) {
-    return [];
-  }
-  return matches;
+const processUrlGroupMatches = (text: string, regex: RegExp): string[] => {
+  const matches = [...text.matchAll(regex)];
+  return matches
+    .filter((match) => match.groups && match.groups.url)
+    .map((match) => match.groups.url!);
 };
 
-const globalMarkdownLinkRegex =
-  /!?\[([^\]]+)\]\(((?!https?)(?!:)(?!\/\/)[\w\d\s:/.?%=&*_\- [\]]+)("(.+)")?\)/g;
+const getMarkdownLinks = (text: string): string[] => {
+  const markdownLinkRegex =
+    /!?\[(?<alt>[^\]]+)\]\((?<url>(?!https?)(?!:)(?!\/\/)[\w\d\s:/.?%=&*_\- [\]]+)("(.+)")?\)/g;
+  return processUrlGroupMatches(text, markdownLinkRegex);
+};
 
-export const getRelativeMediaLinks = (text: string): string[] => {
-  return getMatchArray(text, globalMarkdownLinkRegex)
-    .map(getMarkdownLinkHref)
-    .filter((link: string) => {
-      return link && !link.startsWith('/') && !link.endsWith('/');
-    });
+const getSrcLinks = (text: string): string[] => {
+  const srcRegex = /.src=(?:"|')(?<url>.*)(?:"|')/g;
+  return processUrlGroupMatches(text, srcRegex);
 };
 
 export const getAbsoluteMediaLinks = (text: string): string[] => {
-  return getMatchArray(text, globalMarkdownLinkRegex)
-    .map(getMarkdownLinkHref)
-    .filter((link: string) => {
-      return link && link.startsWith('/') && !link.endsWith('/');
-    });
+  const markdownLinks = getMarkdownLinks(text);
+  return markdownLinks.concat(getSrcLinks(text)).filter((link: string) => {
+    return link && link.startsWith('/') && !link.endsWith('/');
+  });
 };
 
-const getMarkdownLinkHref = (markdownLink: string): string => {
-  const singleMarkdownLinkRegex = /^(?:!?)\[.*\]\((.*)\)$/;
-  return singleMarkdownLinkRegex.exec(markdownLink)[1];
+// https://stackoverflow.com/a/3561711
+export const escapeRegExp = (text: string): string => {
+  return text.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
 };
