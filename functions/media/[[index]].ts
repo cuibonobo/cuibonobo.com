@@ -16,7 +16,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   if (!isAuthConfigured(context)) {
     return new Response('API token not set!', { status: 500 });
   }
-  if (context.request.method in RESTRICTED_METHODS && !isValidAuth(context)) {
+  if (RESTRICTED_METHODS.indexOf(context.request.method) > -1 && !isValidAuth(context)) {
     return new Response('Forbidden', { status: 400 });
   }
   const url = new URL(context.request.url);
