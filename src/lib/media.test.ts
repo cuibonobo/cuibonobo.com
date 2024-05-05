@@ -1,39 +1,12 @@
 import path from 'path';
-import { exec, ChildProcess } from 'child_process';
-import { describe, test, beforeAll, afterAll, afterEach, expect } from 'vitest';
+import { describe, test, afterEach, expect } from 'vitest';
 import { mkTempDir, fileExists, rm } from './fs';
 import { uploadFile, downloadFile, deleteFile } from './media';
 
 const FAVICON_ID = 'fcfccf93f74a574c01098dc5efc5b137d9cb4bfebe1962f88ab36e96b34779e7';
 
-const sleep = (ms: number): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-};
-
+// This test is normally not run because it assumes the dev server is running
 describe.skip('Media library testing', () => {
-  let p: ChildProcess | undefined;
-
-  beforeAll(async () => {
-    // FIXME: There aren't good tools for running Pages Functions via a Node API,
-    // so we resort to calling a child process here.
-    p = exec('npm run dev', (error, stdout, stderr) => {
-      if (error) {
-        throw Error(`Server setup error: ${error.message}`);
-      }
-    });
-    // FIXME: Can we detect when the server is ready instead of sleeping?
-    await sleep(2000);
-  });
-
-  afterAll(async () => {
-    p?.kill();
-
-    // FIXME: Can we detect when the server is ready instead of sleeping?
-    await sleep(2000);
-  });
-
   afterEach(async () => {
     await deleteFile(FAVICON_ID);
   });

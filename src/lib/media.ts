@@ -68,17 +68,21 @@ export const downloadAttachments = async (
   }
 };
 
-export const uploadAttachments = async (
-  attachments: Attachment[],
-  sourceDir: string
-): Promise<void> => {
-  for (let i = 0; i < attachments.length; i++) {
+export const uploadFiles = async (files: string[], tag: string): Promise<Attachment[]> => {
+  const attachments: Attachment[] = [];
+  for (let i = 0; i < files.length; i++) {
     try {
-      await uploadFile(path.join(sourceDir, attachments[i].name));
+      const bucketFile: BucketFile = await uploadFile(files[i]);
+      attachments.push({
+        id: bucketFile.hash,
+        name: bucketFile.name,
+        tag
+      });
     } catch (e: unknown) {
       if (!isNoEntryError(e)) {
         throw e;
       }
     }
   }
+  return attachments;
 };
