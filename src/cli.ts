@@ -1,16 +1,10 @@
 import path from 'path';
 import { exec } from 'child_process';
 import { Command } from 'commander';
-import { ResourceTypeName, resourceTypeToJson } from './lib/types';
+import { ResourceTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
-import { fileExists, openWithEditor, openWithFileExplorer } from './lib/fs';
-import {
-  getResourcesByType,
-  deleteResource,
-  getResource,
-  getAllResources,
-  updateResource
-} from './lib/api';
+import { openWithEditor, openWithFileExplorer } from './lib/fs';
+import { getResourcesByType, deleteResource, getResource } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { getFrontMatter } from './lib/resources';
 import { slugger } from './lib/slugger';
@@ -18,8 +12,6 @@ import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
-import { getAbsoluteMediaLinks, escapeRegExp } from './lib/parser';
-import { uploadFile } from './lib/media';
 
 const MAX_TEXT_LENGTH = 100;
 
@@ -174,50 +166,6 @@ program
   .description('Build the site HTML')
   .action(async () => {
     await writeSitePages('./build');
-  });
-
-program
-  .command('attachments')
-  .description('Populate the attachments column')
-  .action(async () => {
-    const resources = await getAllResources();
-    for (let i = 0; i < resources.length; i++) {
-      const resource = resources[i];
-      const absLinks = getAbsoluteMediaLinks(resource.content.text);
-      for (let j = 0; j < absLinks.length; j++) {
-        const link = absLinks[j];
-        if (link.startsWith('/media')) {
-          const replaced = link.replace('/media/', '/media_old/');
-          const sourcePath = path.resolve(path.join('./static', replaced.substring(1)));
-          if (await fileExists(sourcePath)) {
-            const bucketFile = await uploadFile(sourcePath);
-            if (!resource.attachments.find((a) => a.id == bucketFile.hash)) {
-              resource.attachments.push({
-                id: bucketFile.hash,
-                name: bucketFile.name,
-                tag: 'content:text'
-              });
-            }
-          }
-        }
-      }
-      if (resource.attachments.length) {
-        const relLinks = absLinks.map((l) => path.basename(l));
-        let output = resource.content.text;
-        for (let k = 0; k < absLinks.length; k++) {
-          const linkRegex = new RegExp(
-            '(\\(|"|\')(' + escapeRegExp(absLinks[k]) + ')(\\)|"|\'|\\\\\'|\\\\")',
-            'g'
-          );
-          output = output.replace(linkRegex, '$1' + relLinks[k] + '$3');
-        }
-        if (output !== resource.content.text) {
-          resource.content.text = output;
-          await updateResource(resource.id, resourceTypeToJson(resource));
-          console.log(`uploaded to ${resource.id}`);
-        }
-      }
-    }
   });
 
 program.parse();

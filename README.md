@@ -25,6 +25,8 @@ npm run test
 
 ## CLI
 
+This tool allows interaction with the stack without having to manually update files and databases or generate IDs. By default the CLI will interact with the local Cloudflare development environment, but it's possible to interact with the production Cloudflare instance by adding an `--omit=dev` flag.
+
 Available resource types: `article`, `note`, `page`
 
 ```bash

@@ -38,9 +38,7 @@ export const downloadFile = async (fileId: string, destPath: string): Promise<bo
   }
 };
 
-export const uploadFile = async (
-  sourcePath: string
-): Promise<BucketFile> => {
+export const uploadFile = async (sourcePath: string): Promise<BucketFile> => {
   sourcePath = path.resolve(sourcePath);
   const file = new Blob([await readFile(sourcePath)], { type: mime.getType(sourcePath) });
   const formData = new FormData();
