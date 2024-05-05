@@ -1,16 +1,11 @@
 import { ResourceTypeName, ResourceType, jsonToResourceType, JSONObject, JSONValue } from './types';
 import * as errors from './errors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { getAuthHeaders } from './auth';
 
 const BASE_URL =
   process.env.NODE_ENV == 'production'
     ? 'https://cuibonobo.com/stack/'
     : 'http://127.0.0.1:8788/stack/';
-
-const API_TOKEN = process.env.API_TOKEN ? process.env.API_TOKEN : 'API Token Not Set';
-const AUTH_HEADERS = { Authorization: `Bearer ${API_TOKEN}` };
 
 const getUrl = (path: string): string => {
   const origin = typeof window !== 'undefined' ? window.location.origin : BASE_URL;
@@ -28,7 +23,7 @@ const throwOnResponseError = async (response: Response) => {
 };
 
 const get = async <T>(path: string): Promise<T> => {
-  const response = await fetch(path, { headers: AUTH_HEADERS });
+  const response = await fetch(path, { headers: getAuthHeaders() });
   await throwOnResponseError(response);
   return <T>(<unknown>response.json());
 };
@@ -37,14 +32,14 @@ const update = async <T>(path: string, data: JSONObject): Promise<T> => {
   const response = await fetch(path, {
     method: 'POST',
     body: JSON.stringify(data),
-    headers: AUTH_HEADERS
+    headers: getAuthHeaders()
   });
   await throwOnResponseError(response);
   return <T>(<unknown>response.json());
 };
 
 const remove = async <T>(path: string): Promise<T> => {
-  const response = await fetch(path, { method: 'DELETE', headers: AUTH_HEADERS });
+  const response = await fetch(path, { method: 'DELETE', headers: getAuthHeaders() });
   await throwOnResponseError(response);
   return <T>(<unknown>response.json());
 };

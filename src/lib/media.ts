@@ -3,11 +3,11 @@ import path from 'path';
 import type * as streamWeb from 'node:stream/web';
 import { Readable } from 'stream';
 import { finished } from 'stream/promises';
-import dotenv from 'dotenv';
 import mime from 'mime';
 import { isNoEntryError, readFile } from './fs';
 import { Attachment } from '@codec/resource';
 import { BucketFile } from '@codec/bucket';
+import { getAuthHeaders } from './auth';
 
 // Node fetch is not the same as web fetch! Source: https://stackoverflow.com/a/75843145
 declare global {
@@ -15,8 +15,6 @@ declare global {
     readonly body: streamWeb.ReadableStream<Uint8Array> | null;
   }
 }
-
-dotenv.config();
 
 const BASE_URL =
   process.env.NODE_ENV == 'production'
@@ -43,13 +41,20 @@ export const uploadFile = async (sourcePath: string): Promise<BucketFile> => {
   const file = new Blob([await readFile(sourcePath)], { type: mime.getType(sourcePath) });
   const formData = new FormData();
   formData.set('files', file, path.basename(sourcePath));
-  const response = await fetch(getBaseMediaUrl(), { method: 'POST', body: formData });
+  const response = await fetch(getBaseMediaUrl(), {
+    method: 'POST',
+    body: formData,
+    headers: getAuthHeaders()
+  });
   const bucketFile: BucketFile[] = (await response.json()) as BucketFile[];
   return bucketFile[0];
 };
 
 export const deleteFile = async (fileId: string) => {
-  const response = await fetch(new URL(fileId, getBaseMediaUrl()), { method: 'DELETE' });
+  const response = await fetch(new URL(fileId, getBaseMediaUrl()), {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
   return response.status >= 200 && response.status < 400;
 };
 
