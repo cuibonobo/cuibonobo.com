@@ -2,15 +2,17 @@ import matter from 'gray-matter';
 import yaml from 'yaml';
 import { generateId } from './id';
 import { slugger } from './slugger';
-import { ResourceTypeName, ResourceType } from './types';
+import { ResourceTypeName, ResourceType, ResourceBase } from './types';
 
 const yamlDivider = '---';
 const yamlPlaceholder = '.';
 
+class ResourceError extends Error {}
+
 export const getFrontMatter = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {
-  const yamlData = { ...resource.content };
+  const yamlData: Record<string, unknown> = { ...resource.content };
   delete yamlData.text;
-  let yamlLines = [];
+  let yamlLines: string[] = [];
   if (Object.keys(yamlData).length > 0) {
     const dataLines = yaml.stringify(yamlData).split('\n');
     yamlLines = yamlLines.concat([
@@ -61,7 +63,7 @@ export const getDefaultResourceData = <T extends ResourceTypeName>(
   resourceType: T
 ): ResourceType<T> => {
   const now = new Date();
-  const resourceData = {
+  const resourceData: ResourceBase = {
     id: generateId(now.getTime()),
     created: now,
     updated: now,
@@ -95,5 +97,9 @@ export const getDefaultResourceData = <T extends ResourceTypeName>(
         ...resourceData,
         content: { text: '' }
       };
+    default:
+      throw new ResourceError(
+        `Could not generate default data for resource type '${resourceType}'!`
+      );
   }
 };

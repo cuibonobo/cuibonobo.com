@@ -6,14 +6,14 @@ export enum ResourceTypeName {
   Note = 'note'
 }
 
-interface BaseResource {
+export interface ResourceBase {
   id: string;
   created: Date;
   updated: Date;
   attachments: Attachment[];
   isPublic?: boolean;
 }
-export interface PageType extends BaseResource {
+export interface PageType extends ResourceBase {
   type: ResourceTypeName.Page;
   content: {
     title: string;
@@ -21,7 +21,7 @@ export interface PageType extends BaseResource {
     text: string;
   };
 }
-export interface ArticleType extends BaseResource {
+export interface ArticleType extends ResourceBase {
   type: ResourceTypeName.Article;
   content: {
     title: string;
@@ -30,7 +30,7 @@ export interface ArticleType extends BaseResource {
     text: string;
   };
 }
-export interface NoteType extends BaseResource {
+export interface NoteType extends ResourceBase {
   type: ResourceTypeName.Note;
   content: {
     text: string;
@@ -98,7 +98,7 @@ export const resourceTypeToJson = <T extends ResourceTypeName>(
   const json: JSONObject = {
     id: resource.id,
     type: resource.type,
-    is_public: resource.isPublic,
+    is_public: resource.isPublic ? resource.isPublic : false,
     attachments: JSON.stringify(resource.attachments),
     created_date: resource.created,
     updated_date: resource.updated,

@@ -35,7 +35,7 @@ const processUrlGroupMatches = (text: string, regex: RegExp): string[] => {
   const matches = [...text.matchAll(regex)];
   return matches
     .filter((match) => match.groups && match.groups.url)
-    .map((match) => match.groups.url);
+    .map((match) => match.groups!.url);
 };
 
 const getMarkdownLinks = (text: string): string[] => {

@@ -131,14 +131,14 @@ const getTextWithAttachments = <T extends ResourceTypeName>(
   return markdownToHtml(output);
 };
 
-const getBodyMetadata = (created: Date = null, tags: string = null): string => {
+const getBodyMetadata = (created?: Date, tags?: string): string => {
   return `<div class="article-metadata">
   ${created ? getDisplayDate(created) : ''}
   ${tags ? `<div>${tags}</div>` : ''}
 </div>`;
 };
 
-const getBodyFooter = (created: Date = null, updated: Date = null): string => {
+const getBodyFooter = (created?: Date, updated?: Date): string => {
   if (created && updated && updated > created) {
     return `<footer class="article-metadata mt-4">
   ${getDisplayDate(created, 'Updated on ', 'dateModified')}
@@ -150,9 +150,9 @@ const getBodyFooter = (created: Date = null, updated: Date = null): string => {
 const getBody = (
   title: string,
   text: string,
-  created: Date = null,
-  updated: Date = null,
-  tags: string = null,
+  created?: Date,
+  updated?: Date,
+  tags?: string,
   displayTitle: boolean = true
 ): string => {
   return `<article class="prose" aria-labelledby="accessible-semantic-html">

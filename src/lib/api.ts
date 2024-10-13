@@ -65,7 +65,7 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
   }
   try {
     const jsonresources = await get<JSONValue>(getUrl(`types/${resourceType}/slug/${slug}`));
-    return jsonToResourceType(jsonresources[0] as JSONObject);
+    return jsonToResourceType(jsonresources![0] as JSONObject);
   } catch (e: unknown) {
     throw new errors.ResourceNotFoundError(`No ${resourceType} resources contain slug '${slug}!'`);
   }
