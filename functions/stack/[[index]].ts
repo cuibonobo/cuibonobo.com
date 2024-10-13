@@ -1,7 +1,8 @@
 import { Resources } from './models.js';
 import type { ResourceDbInput } from '@codec/resource.js';
 import { isAuthConfigured, isValidAuth } from '../auth.js';
-import { getNormalizedPath } from '../util.js';
+import { getNormalizedPath, getMethodNotAllowedResponse } from '../util.js';
+import type { Context } from '../util.js';
 
 interface Env {
   STACK_DB: D1Database;
@@ -10,8 +11,7 @@ interface Env {
 
 const BASE_PATH = '/stack';
 
-// Routes
-export const onRequest: PagesFunction<Env> = async (context) => {
+const rejectInvalidConfig = (context: Context<Env>): Response | null => {
   if (!context.env.STACK_DB) {
     return new Response(JSON.stringify({ message: 'Database not configured!' }), { status: 500 });
   }
@@ -21,61 +21,116 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   if (!isValidAuth(context)) {
     return new Response(JSON.stringify({ message: 'Forbidden.' }), { status: 400 });
   }
+  return null
+};
+
+// Routes
+export const onRequest: PagesFunction<Env> = async (context) => {
+  const invalidConfigRejected = rejectInvalidConfig(context);
+  if (invalidConfigRejected) {
+    return invalidConfigRejected;
+  }
   const url = new URL(context.request.url);
   const path = getNormalizedPath(url.pathname, BASE_PATH);
   const pathParts = path.split('/');
   const resources = Resources(context.env.STACK_DB);
-  if (pathParts[0] == '') {
+  const endpoint = pathParts[0];
+  if (endpoint == '') {
     return Response.json(['resources', 'types', 'attachments']);
   }
-  if (pathParts[0] == 'resources') {
+  if (endpoint == 'resources') {
     if (pathParts.length == 1) {
-      if (context.request.method == 'POST') {
-        const data: ResourceDbInput = await context.request.json();
-        return Response.json(await resources.createOne(data));
+      switch(context.request.method) {
+        case 'POST':
+          const data: ResourceDbInput = await context.request.json();
+          return Response.json(await resources.createOne(data));
+        case 'GET':
+          return Response.json(await resources.getAll());
+        default:
+          return getMethodNotAllowedResponse('GET, POST')
       }
-      return Response.json(await resources.getAll());
     }
     if (pathParts.length == 2) {
-      if (context.request.method == 'POST') {
-        const data: Record<string, string> = await context.request.json();
-        if ('id' in data && data['id'].toLowerCase() != pathParts[1].toLowerCase()) {
-          return new Response(JSON.stringify({ message: 'Ids do not match!' }), { status: 422 });
-        }
-        return Response.json(await resources.updateOne(pathParts[1], data));
+      const resourceId = pathParts[1];
+      switch(context.request.method) {
+        case 'POST':
+          const data: Record<string, string> = await context.request.json();
+          if ('id' in data && data['id'].toLowerCase() != resourceId.toLowerCase()) {
+            return new Response(JSON.stringify({ message: 'Ids do not match!' }), { status: 422 });
+          }
+          return Response.json(await resources.updateOne(resourceId, data));
+        case 'DELETE':
+          return Response.json(await resources.deleteOne(resourceId));
+        case 'GET':
+          const result = await resources.getOne(resourceId);
+          if (result == null) {
+            return Response.json({}, { status: 404 });
+          }
+          return Response.json(result);
+        default:
+          return getMethodNotAllowedResponse('GET, POST, DELETE');
       }
-      if (context.request.method == 'DELETE') {
-        return Response.json(await resources.deleteOne(pathParts[1]));
-      }
-      const result = await resources.getOne(pathParts[1]);
-      if (result == null) {
-        return Response.json({}, { status: 404 });
-      }
-      return Response.json(result);
     }
   }
-  if (pathParts[0] == 'types') {
+  if (endpoint == 'types') {
     if (pathParts.length == 1) {
-      return Response.json(await resources.getTypes());
+      switch(context.request.method) {
+        case 'GET':
+          return Response.json(await resources.getTypes());
+        default:
+          return getMethodNotAllowedResponse('GET')
+      }
     }
     if (pathParts.length == 2) {
-      return Response.json(await resources.getAllByType(pathParts[1]));
+      const typeId = pathParts[1];
+      switch(context.request.method) {
+        case 'GET':
+          return Response.json(await resources.getAllByType(typeId));
+        default:
+          return getMethodNotAllowedResponse('GET')
+      }
     }
     if (pathParts.length == 3) {
-      return Response.json(await resources.getContentKey(pathParts[1], pathParts[2]));
+      const typeId = pathParts[1];
+      const key = pathParts[2];
+      switch(context.request.method) {
+        case 'GET':
+          return Response.json(await resources.getContentKey(typeId, key));
+        default:
+          return getMethodNotAllowedResponse('GET')
+      }
     }
     if (pathParts.length == 4) {
-      return Response.json(
-        await resources.getByContentKey(pathParts[1], pathParts[2], pathParts[3])
-      );
+      const typeId = pathParts[1];
+      const key = pathParts[2];
+      const value = pathParts[3];
+      switch(context.request.method) {
+        case 'GET':
+          return Response.json(
+            await resources.getByContentKey(typeId, key, value)
+          );
+        default:
+          return getMethodNotAllowedResponse('GET')
+      }
     }
   }
-  if (pathParts[0] == 'attachments') {
+  if (endpoint == 'attachments') {
     if (pathParts.length == 1) {
-      return Response.json(await resources.getAttachments());
+      switch(context.request.method) {
+        case 'GET':
+          return Response.json(await resources.getAttachments());
+        default:
+          return getMethodNotAllowedResponse('GET')
+      }
     }
     if (pathParts.length == 2) {
-      return Response.json(await resources.getByAttachmentId(pathParts[1]));
+      const attachmentId = pathParts[1];
+      switch(context.request.method) {
+        case 'GET':
+          return Response.json(await resources.getByAttachmentId(attachmentId));
+        default:
+          return getMethodNotAllowedResponse('GET')
+      }
     }
   }
   return new Response(JSON.stringify({ message: 'Not Found!' }), { status: 404 });

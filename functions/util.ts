@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Context<T> = EventContext<T, any, Record<string, unknown>>;
+
 export const getNormalizedPath = (absPath: string, basePath: string): string => {
   let relPath = absPath;
   if (absPath.startsWith(basePath)) {
@@ -20,4 +23,13 @@ export const getHash = (digest: ArrayBuffer): string => {
 export const getDigest = async (file: File): Promise<ArrayBuffer> => {
   const fileData = await file.arrayBuffer();
   return await crypto.subtle.digest('SHA-256', fileData);
+};
+
+export const getMethodNotAllowedResponse = (allowedMethods: string): Response => {
+  return new Response('Method Not Allowed', {
+    status: 405,
+    headers: {
+      Allow: allowedMethods
+    }
+  });
 };

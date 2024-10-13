@@ -1,28 +1,18 @@
 import { BucketFile } from '@codec/bucket.js';
 import { isAuthConfigured, isValidAuth } from '../auth.js';
-import { getNormalizedPath, getDigest, getHash } from '../util.js';
+import { getNormalizedPath, getDigest, getHash, getMethodNotAllowedResponse } from '../util.js';
+import type { Context } from '../util.js';
 
 interface Env {
   MEDIA_BUCKET: R2Bucket;
   API_TOKEN: string;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Context = EventContext<Env, any, Record<string, unknown>>;
 
 const BASE_PATH = '/media';
 const RESTRICTED_METHODS = ['POST', 'DELETE'];
 const CACHE_DAYS = 365;
 
-const getMethodNotAllowedResponse = (allowedMethods: string): Response => {
-  return new Response('Method Not Allowed', {
-    status: 405,
-    headers: {
-      Allow: allowedMethods
-    }
-  });
-};
-
-const rejectInvalidAuth = (context: Context): Response | null => {
+const rejectInvalidConfig = (context: Context<Env>): Response | null => {
   if (!isAuthConfigured(context)) {
     return new Response('API token not set!', { status: 500 });
   }
@@ -32,7 +22,7 @@ const rejectInvalidAuth = (context: Context): Response | null => {
   return null;
 };
 
-const rejectInvalidMethod = (context: Context, url: URL, key: string): Response | null => {
+const rejectInvalidMethod = (context: Context<Env>, url: URL, key: string): Response | null => {
   // Redirect to origin if no key is given for GET
   if (!key && context.request.method == 'GET') {
     return Response.redirect(url.origin, 302);
@@ -64,7 +54,7 @@ const getBucketResponse = (url: URL, object: R2ObjectBody): Response => {
   return new Response(object.body, { headers });
 };
 
-const uploadBucketFile = async (context: Context, file: File): Promise<BucketFile> => {
+const uploadBucketFile = async (context: Context<Env>, file: File): Promise<BucketFile> => {
   const digest = await getDigest(file);
   const hash = getHash(digest);
   const metadata: BucketFile = {
@@ -91,9 +81,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(context.request.url);
   const key = getNormalizedPath(url.pathname, BASE_PATH);
 
-  const invalidAuthRejected = rejectInvalidAuth(context);
-  if (invalidAuthRejected) {
-    return invalidAuthRejected;
+  const invalidConfigRejected = rejectInvalidConfig(context);
+  if (invalidConfigRejected) {
+    return invalidConfigRejected;
   }
 
   const invalidMethodRejected = rejectInvalidMethod(context, url, key);
@@ -125,9 +115,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         const bucketFile = await uploadBucketFile(context, file);
         bucketFiles.push(bucketFile);
       }
-      return new Response(JSON.stringify(bucketFiles), {
-        headers: { 'content-type': 'application/json' }
-      });
+      return Response.json(bucketFiles);
     }
     case 'DELETE': {
       await context.env.MEDIA_BUCKET.delete(key);
