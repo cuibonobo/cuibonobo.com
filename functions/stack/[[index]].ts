@@ -1,5 +1,5 @@
 import { Resources } from './models.js';
-import type { ResourcesDbInput } from './models.js';
+import type { ResourceDbInput } from '@codec/resource.js';
 import { isAuthConfigured, isValidAuth } from '../auth.js';
 import { getNormalizedPath } from '../util.js';
 
@@ -31,7 +31,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   if (pathParts[0] == 'resources') {
     if (pathParts.length == 1) {
       if (context.request.method == 'POST') {
-        const data: ResourcesDbInput = await context.request.json();
+        const data: ResourceDbInput = await context.request.json();
         return Response.json(await resources.createOne(data));
       }
       return Response.json(await resources.getAll());

@@ -29,7 +29,7 @@ export const downloadFile = async (fileId: string, destPath: string): Promise<bo
   try {
     const response = await fetch(new URL(fileId, getBaseMediaUrl()));
     const fileStream = fs.createWriteStream(path.resolve(destPath), { flags: 'wx' });
-    await finished(Readable.fromWeb(response.body).pipe(fileStream));
+    await finished(Readable.fromWeb(response.body!).pipe(fileStream));
     return true;
   } catch {
     return false;
@@ -38,7 +38,8 @@ export const downloadFile = async (fileId: string, destPath: string): Promise<bo
 
 export const uploadFile = async (sourcePath: string): Promise<BucketFile> => {
   sourcePath = path.resolve(sourcePath);
-  const file = new Blob([await readFile(sourcePath)], { type: mime.getType(sourcePath) });
+  const mimeType = mime.getType(sourcePath);
+  const file = new Blob([await readFile(sourcePath)], { type: mimeType ? mimeType : undefined });
   const formData = new FormData();
   formData.set('files', file, path.basename(sourcePath));
   const response = await fetch(getBaseMediaUrl(), {

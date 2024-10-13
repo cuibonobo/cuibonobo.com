@@ -1,20 +1,4 @@
-import { Attachment } from '@codec/resource.js';
-
-interface ResourcesDbRequired {
-  id: string;
-  type: string;
-}
-
-interface ResourcesDbOptional {
-  created_date: string;
-  updated_date: string;
-  is_public: number;
-  attachments: string;
-  content: string;
-}
-
-type ResourcesDbResult = ResourcesDbRequired & ResourcesDbOptional;
-type ResourcesDbInput = ResourcesDbRequired & Partial<ResourcesDbOptional>;
+import { Attachment, ResourceDbInput, ResourceDbResult } from '@codec/resource.js';
 
 const addLimitToQuery = (query: string, limit: number = 50): string => {
   return query + (limit ? ' LIMIT ' + limit : '');
@@ -25,25 +9,25 @@ const getDbPositions = (n: number): string[] => {
   return Array.from({ length: n }, (_, i) => i + 1).map((n) => `?${n}`);
 };
 
-const Resources = (db: D1Database) => {
+export const Resources = (db: D1Database) => {
   return {
-    getAll: async (limit: number = 50): Promise<ResourcesDbResult[]> => {
+    getAll: async (limit: number = 50): Promise<ResourceDbResult[]> => {
       const ps = db.prepare(addLimitToQuery('SELECT * FROM resources', limit));
-      const data = await ps.all<ResourcesDbResult>();
+      const data = await ps.all<ResourceDbResult>();
       return data.results;
     },
-    getAllByType: async (type: string, limit: number = 50): Promise<ResourcesDbResult[]> => {
+    getAllByType: async (type: string, limit: number = 50): Promise<ResourceDbResult[]> => {
       const ps = db
         .prepare(addLimitToQuery('SELECT * FROM resources WHERE type = ?1 ORDER BY id DESC', limit))
         .bind(type);
-      const data = await ps.all<ResourcesDbResult>();
+      const data = await ps.all<ResourceDbResult>();
       return data.results;
     },
-    getOne: async (id: string): Promise<ResourcesDbResult> => {
+    getOne: async (id: string): Promise<ResourceDbResult> => {
       const ps = db.prepare('SELECT * FROM resources where id = ?1 ORDER BY id DESC').bind(id);
-      return await ps.first<ResourcesDbResult>();
+      return await ps.first<ResourceDbResult>();
     },
-    createOne: async (resource: ResourcesDbInput): Promise<boolean> => {
+    createOne: async (resource: ResourceDbInput): Promise<boolean> => {
       const keys = Object.keys(resource);
       const values = Object.values(resource).map((v) =>
         typeof v == 'string' ? v : JSON.stringify(v)
@@ -96,11 +80,11 @@ const Resources = (db: D1Database) => {
       key: string,
       value: string,
       limit: number = 50
-    ): Promise<ResourcesDbResult[]> => {
+    ): Promise<ResourceDbResult[]> => {
       const query =
         'SELECT * FROM resources WHERE type = ?1 AND content->>?2 = ?3 ORDER BY id DESC';
       const ps = db.prepare(addLimitToQuery(query, limit)).bind(type, `$.${key}`, value);
-      const data = await ps.all<ResourcesDbResult>();
+      const data = await ps.all<ResourceDbResult>();
       return data.results;
     },
     getAttachments: async (limit: number = 50): Promise<Attachment[]> => {
@@ -111,17 +95,14 @@ const Resources = (db: D1Database) => {
       const data = await ps.all<Attachment>();
       return data.results;
     },
-    getByAttachmentId: async (id: string, limit: number = 50): Promise<ResourcesDbResult[]> => {
+    getByAttachmentId: async (id: string, limit: number = 50): Promise<ResourceDbResult[]> => {
       const query =
         'SELECT resources.id,resources.type,resources.created_date,resources.updated_date,resources.is_public,' +
         'resources.attachments,resources.content FROM resources, json_each(resources.attachments) ' +
         'WHERE json_extract(json_each.value, "$.id") = ?1';
       const ps = db.prepare(addLimitToQuery(query, limit)).bind(id);
-      const data = await ps.all<ResourcesDbResult>();
+      const data = await ps.all<ResourceDbResult>();
       return data.results;
     }
   };
 };
-
-export { Resources };
-export type { ResourcesDbResult, ResourcesDbInput };

@@ -1,4 +1,4 @@
-import { Attachment } from '../../codec/resource';
+import { Attachment } from '@codec/resource';
 
 export enum ResourceTypeName {
   Page = 'page',
