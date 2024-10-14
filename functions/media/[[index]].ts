@@ -1,6 +1,6 @@
 import { BucketFile } from '@codec/bucket.js';
 import { isAuthConfigured, isValidAuth } from '../auth.js';
-import { getNormalizedPath, getDigest, getHash, getMethodNotAllowedResponse } from '../util.js';
+import { getNormalizedPath, getDigest, getHash, createMethodNotAllowedResponse } from '../util.js';
 import type { Context } from '../util.js';
 
 interface Env {
@@ -29,11 +29,11 @@ const rejectInvalidMethod = (context: Context<Env>, url: URL, key: string): Resp
   }
   // Reject updates at a particular key
   if (key && context.request.method == 'POST') {
-    return getMethodNotAllowedResponse('GET, DELETE');
+    return createMethodNotAllowedResponse('GET, DELETE');
   }
   // Reject deletes if no key is given
   if (!key && context.request.method == 'DELETE') {
-    return getMethodNotAllowedResponse('POST');
+    return createMethodNotAllowedResponse('POST');
   }
   return null;
 };
@@ -122,7 +122,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return new Response('Deleted!');
     }
     default: {
-      return getMethodNotAllowedResponse('GET, POST, DELETE');
+      return createMethodNotAllowedResponse('GET, POST, DELETE');
     }
   }
 };

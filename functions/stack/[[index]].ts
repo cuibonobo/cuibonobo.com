@@ -1,7 +1,7 @@
 import { Resources } from './models.js';
 import type { ResourceDbInput } from '@codec/resource.js';
 import { isAuthConfigured, isValidAuth } from '../auth.js';
-import { getNormalizedPath, getMethodNotAllowedResponse } from '../util.js';
+import { getNormalizedPath, createMethodNotAllowedResponse } from '../util.js';
 import type { Context } from '../util.js';
 
 interface Env {
@@ -13,13 +13,13 @@ const BASE_PATH = '/stack';
 
 const rejectInvalidConfig = (context: Context<Env>): Response | null => {
   if (!context.env.STACK_DB) {
-    return new Response(JSON.stringify({ message: 'Database not configured!' }), { status: 500 });
+    return Response.json({ message: 'Database not configured!' }, { status: 500 });
   }
   if (!isAuthConfigured(context)) {
-    return new Response(JSON.stringify({ message: 'API token not set!' }), { status: 500 });
+    return Response.json({ message: 'API token not set!' }, { status: 500 });
   }
   if (!isValidAuth(context)) {
-    return new Response(JSON.stringify({ message: 'Forbidden.' }), { status: 400 });
+    return Response.json({ message: 'Forbidden.' }, { status: 400 });
   }
   return null;
 };
@@ -90,7 +90,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         case 'GET':
           return getResource(resources, url);
         default:
-          return getMethodNotAllowedResponse('GET, POST');
+          return createMethodNotAllowedResponse('GET, POST');
       }
     }
     if (pathParts.length == 2) {
@@ -103,7 +103,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         case 'GET':
           return getResourceById(resources, resourceId);
         default:
-          return getMethodNotAllowedResponse('GET, POST, DELETE');
+          return createMethodNotAllowedResponse('GET, POST, DELETE');
       }
     }
   }
@@ -113,7 +113,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         case 'GET':
           return Response.json(await resources.getTypes());
         default:
-          return getMethodNotAllowedResponse('GET');
+          return createMethodNotAllowedResponse('GET');
       }
     }
   }
@@ -123,7 +123,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         case 'GET':
           return Response.json(await resources.getAttachments());
         default:
-          return getMethodNotAllowedResponse('GET');
+          return createMethodNotAllowedResponse('GET');
       }
     }
   }

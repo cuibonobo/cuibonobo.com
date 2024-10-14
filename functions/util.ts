@@ -25,7 +25,7 @@ export const getDigest = async (file: File): Promise<ArrayBuffer> => {
   return await crypto.subtle.digest('SHA-256', fileData);
 };
 
-export const getMethodNotAllowedResponse = (allowedMethods: string): Response => {
+export const createMethodNotAllowedResponse = (allowedMethods: string): Response => {
   return new Response('Method Not Allowed', {
     status: 405,
     headers: {
