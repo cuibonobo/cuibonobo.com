@@ -64,7 +64,9 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
     throw new errors.ResourceTypeError('Notes do not have slugs!');
   }
   try {
-    const jsonresources = await get<JSONValue>(getUrl(`types/${resourceType}/slug/${slug}`));
+    const jsonresources = await get<JSONValue>(
+      getUrl(`resources?type=${resourceType}&contentKey=slug&contentValue=${slug}`)
+    );
     return jsonToResourceType(jsonresources![0] as JSONObject);
   } catch (e: unknown) {
     throw new errors.ResourceNotFoundError(`No ${resourceType} resources contain slug '${slug}!'`);
@@ -74,7 +76,7 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
 export const getResourcesByType = async <T extends ResourceTypeName>(
   resourceType: T
 ): Promise<ResourceType<T>[]> => {
-  const jsonresource = await get<JSONObject[]>(getUrl(`types/${resourceType}`));
+  const jsonresource = await get<JSONObject[]>(getUrl(`resources?type=${resourceType}`));
   const resources = jsonresource.map(jsonToResourceType);
   return resources;
 };

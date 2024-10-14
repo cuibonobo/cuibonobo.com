@@ -116,51 +116,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           return getMethodNotAllowedResponse('GET');
       }
     }
-    if (pathParts.length == 2) {
-      const typeId = pathParts[1];
-      switch (context.request.method) {
-        case 'GET':
-          return Response.json(await resources.getAllByType(typeId));
-        default:
-          return getMethodNotAllowedResponse('GET');
-      }
-    }
-    if (pathParts.length == 3) {
-      const typeId = pathParts[1];
-      const key = pathParts[2];
-      switch (context.request.method) {
-        case 'GET':
-          return Response.json(await resources.getContentKey(typeId, key));
-        default:
-          return getMethodNotAllowedResponse('GET');
-      }
-    }
-    if (pathParts.length == 4) {
-      const typeId = pathParts[1];
-      const key = pathParts[2];
-      const value = pathParts[3];
-      switch (context.request.method) {
-        case 'GET':
-          return Response.json(await resources.getByContentKey(typeId, key, value));
-        default:
-          return getMethodNotAllowedResponse('GET');
-      }
-    }
   }
   if (endpoint == 'attachments') {
     if (pathParts.length == 1) {
       switch (context.request.method) {
         case 'GET':
           return Response.json(await resources.getAttachments());
-        default:
-          return getMethodNotAllowedResponse('GET');
-      }
-    }
-    if (pathParts.length == 2) {
-      const attachmentId = pathParts[1];
-      switch (context.request.method) {
-        case 'GET':
-          return Response.json(await resources.getByAttachmentId(attachmentId));
         default:
           return getMethodNotAllowedResponse('GET');
       }
