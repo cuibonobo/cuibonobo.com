@@ -55,7 +55,7 @@ const getAllResourcesFeed = async (originUrl: string, itemLimit: number): Promis
   };
   const resources = (await getAllResources())
     .filter((resource) => resource.type !== ResourceTypeName.Page)
-    .sort((a, b) => b.created.valueOf() - a.created.valueOf());
+    .sort((a, b) => b.created_date.valueOf() - a.created_date.valueOf());
   resources.splice(itemLimit, resources.length - itemLimit);
   for (let i = 0; i < resources.length; i++) {
     const feedItem = await getFeedItem(resources[i], originUrl, author);
@@ -77,7 +77,7 @@ const getResourceTypeFeed = async (
     atom: origin.path(`/${feedName}-feed.xml`)
   };
   const resources = (await getResourcesByType(resourceType)).sort(
-    (a, b) => b.created.valueOf() - a.created.valueOf()
+    (a, b) => b.created_date.valueOf() - a.created_date.valueOf()
   );
   resources.splice(itemLimit, resources.length - itemLimit);
   for (let i = 0; i < resources.length; i++) {
@@ -98,7 +98,7 @@ const getFeedItem = async <T extends ResourceTypeName>(
     link: getResourceUrl(originUrl, resource),
     content: await markdownToHtml(resource.content.text),
     author: [author],
-    date: resource.created,
+    date: resource.created_date,
     category: [{ name: resource.type }]
   };
 };

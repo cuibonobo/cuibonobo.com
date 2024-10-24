@@ -61,7 +61,7 @@ const getUrlElement = <T extends ResourceTypeName>(
         elements: [
           {
             type: 'text',
-            text: moment(resource.updated).format('YYYY-MM-DD')
+            text: moment(resource.updated_date).format('YYYY-MM-DD')
           }
         ]
       }

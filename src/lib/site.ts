@@ -14,8 +14,8 @@ export const writeSitePages = async (outputDir: string) => {
   const pageResources = await getResourcesByType(ResourceTypeName.Page);
   const errorPage: PageType = {
     id: '',
-    created: new Date(),
-    updated: new Date(),
+    created_date: new Date(),
+    updated_date: new Date(),
     type: ResourceTypeName.Page,
     attachments: [],
     content: {
@@ -182,8 +182,8 @@ const getArticle = async (resource: ArticleType): Promise<string> => {
   return getBody(
     resource.content.title,
     await getTextWithAttachments(resource),
-    resource.created,
-    resource.updated,
+    resource.created_date,
+    resource.updated_date,
     resource.content.tags
   );
 };
@@ -205,8 +205,8 @@ const getEphemera = async (resource: NoteType): Promise<string> => {
   return getBody(
     `Ephemera ${resource.id}`,
     await getTextWithAttachments(resource),
-    resource.created,
-    resource.updated,
+    resource.created_date,
+    resource.updated_date,
     undefined,
     false
   );
@@ -217,7 +217,7 @@ const getEphemeraCollectionItem = async (resource: NoteType): Promise<string> =>
   ${await getTextWithAttachments(resource)}
   <div class="article-metadata">
     <a href="/ephemera/${resource.id}/">${getDisplayDate(
-      resource.created,
+      resource.created_date,
       undefined,
       undefined,
       true

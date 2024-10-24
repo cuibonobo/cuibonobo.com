@@ -8,10 +8,10 @@ export enum ResourceTypeName {
 
 export interface ResourceBase {
   id: string;
-  created: Date;
-  updated: Date;
+  created_date: Date;
+  updated_date: Date;
   attachments: Attachment[];
-  isPublic?: boolean;
+  is_public?: boolean;
 }
 export interface PageType extends ResourceBase {
   type: ResourceTypeName.Page;
@@ -69,21 +69,13 @@ export interface JSONArray extends Array<JSONValue> {}
 
 export const jsonToResourceType = <T>(json: JSONObject): ResourceType<T> => {
   const resource = {
-    id: json['id'],
-    type: json['type'],
-    created:
-      'created_date' in json
-        ? new Date(json['created_date'] as string)
-        : new Date(json['created'] as string),
-    updated:
-      'updated_date' in json
-        ? new Date(json['updated_date'] as string)
-        : new Date(json['updated'] as string),
+    ...json,
+    created_date: new Date(json['created_date'] as string),
+    updated_date: new Date(json['updated_date'] as string),
     attachments:
       typeof json['attachments'] == 'string'
         ? (JSON.parse(json['attachments']) as Attachment[])
         : json['attachments'],
-    isPublic: 'is_public' in json ? json['is_public'] : json['isPublic'],
     content:
       typeof json['content'] == 'string'
         ? (JSON.parse(json['content']) as JSONObject)
@@ -96,12 +88,8 @@ export const resourceTypeToJson = <T extends ResourceTypeName>(
   resource: ResourceType<T>
 ): JSONObject => {
   const json: JSONObject = {
-    id: resource.id,
-    type: resource.type,
-    is_public: resource.isPublic ? resource.isPublic : false,
+    ...resource,
     attachments: JSON.stringify(resource.attachments),
-    created_date: resource.created,
-    updated_date: resource.updated,
     content: JSON.stringify(resource.content)
   };
   return json;

@@ -24,7 +24,7 @@ export const lockCreate = async <T extends ResourceTypeName>(
   resourceType: T
 ): Promise<LockData> => {
   const resource = getDefaultResourceData(resourceType);
-  resource.isPublic = true;
+  resource.is_public = true;
   return await lockResource(resource, LockMode.New);
 };
 
@@ -77,7 +77,7 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
     }
   }
   if (lockData.mode === LockMode.Edit) {
-    resource.updated = new Date();
+    resource.updated_date = new Date();
   }
   const dataDir = path.dirname(lockData.lockedFilePath);
   // Collect absolute paths of all files in the data directory that aren't the locked resource file
