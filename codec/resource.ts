@@ -1,4 +1,15 @@
 import { JTDSchemaType } from 'ajv/dist/jtd';
+import { Attachment, AttachmentSchema } from './attachment';
+
+export interface Resource {
+  id: string;
+  type: string;
+  created_date: Date;
+  updated_date: Date;
+  is_public: boolean;
+  attachments: Attachment[];
+  content: Record<string, unknown>;
+}
 
 interface ResourceDbRequired {
   id: string;
@@ -16,21 +27,19 @@ interface ResourceDbOptional {
 export type ResourceDbResult = ResourceDbRequired & ResourceDbOptional;
 export type ResourceDbInput = ResourceDbRequired & Partial<ResourceDbOptional>;
 
-export interface Attachment {
-  id: string;
-  name: string;
-  tag: string;
-}
-
-export interface Resource {
-  id: string;
-  type: string;
-  created_date: Date;
-  updated_date: Date;
-  is_public: boolean;
-  attachments: Attachment[];
-  content: Record<string, unknown>;
-}
+export const ResourceSchema: JTDSchemaType<Resource> = {
+  properties: {
+    id: { type: 'string' },
+    type: { type: 'string' },
+    created_date: { type: 'timestamp' },
+    updated_date: { type: 'timestamp' },
+    is_public: { type: 'boolean' },
+    attachments: { elements: AttachmentSchema },
+    content: {
+      values: {}
+    }
+  }
+} as const;
 
 const ResourceDbRequiredSchema = {
   id: { type: 'string' },
@@ -52,26 +61,4 @@ export const ResourceDbInputSchema: JTDSchemaType<ResourceDbInput> = {
 
 export const ResourceDbResultSchema: JTDSchemaType<ResourceDbResult> = {
   properties: { ...ResourceDbRequiredSchema, ...ResourceDbOptionalSchema }
-} as const;
-
-export const AttachmentSchema: JTDSchemaType<Attachment> = {
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    tag: { type: 'string' }
-  }
-} as const;
-
-export const ResourceSchema: JTDSchemaType<Resource> = {
-  properties: {
-    id: { type: 'string' },
-    type: { type: 'string' },
-    created_date: { type: 'timestamp' },
-    updated_date: { type: 'timestamp' },
-    is_public: { type: 'boolean' },
-    attachments: { elements: AttachmentSchema },
-    content: {
-      values: {}
-    }
-  }
 } as const;

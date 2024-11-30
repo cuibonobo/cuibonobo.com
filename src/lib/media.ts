@@ -5,7 +5,7 @@ import { Readable } from 'stream';
 import { finished } from 'stream/promises';
 import mime from 'mime';
 import { isNoEntryError, readFile } from './fs';
-import { Attachment } from '@codec/resource';
+import { Attachment } from '@codec/attachment';
 import { BucketFile } from '@codec/bucket';
 import { getAuthHeaders } from './auth';
 

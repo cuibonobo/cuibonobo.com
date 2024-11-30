@@ -1,4 +1,5 @@
-import { Attachment, ResourceDbInput, ResourceDbResult } from '@codec/resource.js';
+import { ResourceDbInput, ResourceDbResult } from '@codec/resource.js';
+import { Attachment } from '@codec/attachment.js';
 
 const addLimitToQuery = (query: string, limit: number = 50): string => {
   return query + (limit ? ' LIMIT ' + limit : '');
