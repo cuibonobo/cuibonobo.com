@@ -1,6 +1,7 @@
 import { BucketFile } from '@codec/bucket.js';
+import { getDigestHash, getFileDigest } from '@codec/hash.js';
 import { isAuthConfigured, isValidAuth } from '../auth.js';
-import { getNormalizedPath, getDigest, getHash, createMethodNotAllowedResponse } from '../util.js';
+import { getNormalizedPath, createMethodNotAllowedResponse } from '../util.js';
 import type { Context } from '../util.js';
 
 interface Env {
@@ -55,8 +56,8 @@ const getBucketResponse = (url: URL, object: R2ObjectBody): Response => {
 };
 
 const uploadBucketFile = async (context: Context<Env>, file: File): Promise<BucketFile> => {
-  const digest = await getDigest(file);
-  const hash = getHash(digest);
+  const digest = await getFileDigest(file);
+  const hash = getDigestHash(digest);
   const metadata: BucketFile = {
     name: file.name,
     size: file.size,

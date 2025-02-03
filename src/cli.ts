@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { ResourceTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { getResourcesByType, deleteResource, getResource } from './lib/api';
+import { getResourcesByType, deleteResource, getResource, createType } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { getFrontMatter } from './lib/resources';
 import { slugger } from './lib/slugger';
@@ -12,6 +12,7 @@ import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
+import { getTypeHash, getTypeSchema } from '../codec/type';
 
 const MAX_TEXT_LENGTH = 100;
 
@@ -130,6 +131,73 @@ program
       console.info('Cleared existing editing state.');
     } catch (e) {
       console.info('Editing state was already clear.');
+    }
+  });
+
+program
+  .command('init')
+  .description('Initialize the database with starter types')
+  .action(async () => {
+    console.info('Creating note...');
+    const noteContent = {
+      properties: {
+        text: { type: 'string' }
+      }
+    };
+    try {
+      await createType({
+        name: 'note',
+        singular: 'Note',
+        plural: 'Notes',
+        schema: getTypeSchema(noteContent),
+        hash: await getTypeHash(noteContent)
+      });
+    } catch (e: unknown) {
+      const err = e as Error;
+      console.error(`Couldn't create note: ${err.message}`);
+    }
+
+    console.info('Creating article...');
+    const articleContent = {
+      properties: {
+        title: { type: 'string' },
+        slug: { type: 'string' },
+        tags: { type: 'string' },
+        text: { type: 'string' }
+      }
+    };
+    try {
+      await createType({
+        name: 'article',
+        singular: 'Article',
+        plural: 'Articles',
+        schema: getTypeSchema(articleContent),
+        hash: await getTypeHash(articleContent)
+      });
+    } catch (e: unknown) {
+      const err = e as Error;
+      console.error(`Couldn't create article: ${err.message}`);
+    }
+
+    console.info('Creating page...');
+    const pageContent = {
+      properties: {
+        title: { type: 'string' },
+        slug: { type: 'string' },
+        text: { type: 'string' }
+      }
+    };
+    try {
+      await createType({
+        name: 'page',
+        singular: 'Page',
+        plural: 'Pages',
+        schema: getTypeSchema(pageContent),
+        hash: await getTypeHash(pageContent)
+      });
+    } catch (e: unknown) {
+      const err = e as Error;
+      console.error(`Couldn't create page: ${err.message}`);
     }
   });
 

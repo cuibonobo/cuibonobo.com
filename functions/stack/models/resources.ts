@@ -1,14 +1,6 @@
 import { ResourceDbInput, ResourceDbResult } from '@codec/resource.js';
 import { Attachment } from '@codec/attachment.js';
-
-const addLimitToQuery = (query: string, limit: number = 50): string => {
-  return query + (limit ? ' LIMIT ' + limit : '');
-};
-
-const getDbPositions = (n: number): string[] => {
-  // Create an array containing '?1'..'?N' where N is the number of positions
-  return Array.from({ length: n }, (_, i) => i + 1).map((n) => `?${n}`);
-};
+import { addLimitToQuery, getDbPositions } from './util.js';
 
 export class Resources {
   _db: D1Database;
@@ -63,11 +55,6 @@ export class Resources {
     const ps = this._db.prepare('DELETE FROM resources where id = ?1').bind(id);
     const data = await ps.run();
     return data.success;
-  };
-  getTypes = async (): Promise<string[]> => {
-    const ps = this._db.prepare('SELECT DISTINCT type FROM resources');
-    const data = await ps.all<Record<string, string>>();
-    return data.results.map((item) => item.type);
   };
   getContentKey = async (
     type: string,

@@ -20,6 +20,6 @@
       "@codec/*": ["codec/*"]
     }
   },
-  "include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts"],
+  "include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts", "codec/**/*.ts"],
   "exclude": ["functions/**/*"]
 }

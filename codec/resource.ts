@@ -1,52 +1,27 @@
-import { JTDSchemaType } from 'ajv/dist/jtd';
-import { Attachment, AttachmentSchema } from './attachment';
+import { FromSchema, JSONSchema } from 'json-schema-to-ts';
+import { AttachmentSchema } from './attachment';
 
-export interface Resource {
-  id: string;
-  type: string;
-  created_date: Date;
-  updated_date: Date;
-  is_public: boolean;
-  attachments: Attachment[];
-  content: Record<string, unknown>;
-}
-
-interface ResourceDbRequired {
-  id: string;
-  type: string;
-}
-
-interface ResourceDbOptional {
-  created_date: string;
-  updated_date: string;
-  is_public: boolean;
-  attachments: string;
-  content: string;
-}
-
-export type ResourceDbResult = ResourceDbRequired & ResourceDbOptional;
-export type ResourceDbInput = ResourceDbRequired & Partial<ResourceDbOptional>;
-
-export const ResourceSchema: JTDSchemaType<Resource> = {
+export const ResourceSchema = {
+  type: 'object',
   properties: {
     id: { type: 'string' },
     type: { type: 'string' },
-    created_date: { type: 'timestamp' },
-    updated_date: { type: 'timestamp' },
+    created_date: { type: 'string' },
+    updated_date: { type: 'string' },
     is_public: { type: 'boolean' },
-    attachments: { elements: AttachmentSchema },
+    attachments: { type: 'array', items: AttachmentSchema },
     content: {
-      values: {}
+      type: 'object',
+      additionalProperties: true
     }
-  }
-} as const;
+  },
+  required: ['id', 'type', 'created_date', 'updated_date', 'is_public', 'attachments', 'content'],
+  additionalProperties: false
+} as const satisfies JSONSchema;
 
-const ResourceDbRequiredSchema = {
+const commonResourceDbRequiredProps = {
   id: { type: 'string' },
-  type: { type: 'string' }
-} as const;
-
-const ResourceDbOptionalSchema = {
+  type: { type: 'string' },
   created_date: { type: 'string' },
   updated_date: { type: 'string' },
   is_public: { type: 'boolean' },
@@ -54,11 +29,20 @@ const ResourceDbOptionalSchema = {
   content: { type: 'string' }
 } as const;
 
-export const ResourceDbInputSchema: JTDSchemaType<ResourceDbInput> = {
-  properties: ResourceDbRequiredSchema,
-  optionalProperties: ResourceDbOptionalSchema
-} as const;
+export const ResourceDbInputSchema = {
+  type: 'object',
+  properties: commonResourceDbRequiredProps,
+  required: ['id', 'type'],
+  additionalProperties: false
+} as const satisfies JSONSchema;
 
-export const ResourceDbResultSchema: JTDSchemaType<ResourceDbResult> = {
-  properties: { ...ResourceDbRequiredSchema, ...ResourceDbOptionalSchema }
-} as const;
+export const ResourceDbResultSchema = {
+  type: 'object',
+  properties: commonResourceDbRequiredProps,
+  required: ['id', 'type', 'created_date', 'updated_date', 'is_public', 'attachments', 'content'],
+  additionalProperties: false
+} as const satisfies JSONSchema;
+
+export type ResourceDbInput = FromSchema<typeof ResourceDbInputSchema>;
+export type ResourceDbResult = FromSchema<typeof ResourceDbResultSchema>;
+export type Resource = FromSchema<typeof ResourceSchema>;

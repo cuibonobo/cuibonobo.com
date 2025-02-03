@@ -8,6 +8,9 @@ export default defineConfig({
       enabled: false,
       all: true,
       exclude: ['**/*.config.*', '**/.rc.*', ...coverageConfigDefaults.exclude]
+    },
+    alias: {
+      '@codec/': new URL('./codec/', import.meta.url).pathname
     }
   }
 });

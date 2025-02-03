@@ -17,7 +17,7 @@ export interface PageType extends ResourceBase {
   type: ResourceTypeName.Page;
   content: {
     title: string;
-    slug: string | number;
+    slug: string;
     text: string;
   };
 }

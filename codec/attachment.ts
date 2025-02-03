@@ -1,15 +1,14 @@
-import { JTDSchemaType } from 'ajv/dist/jtd';
+import { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
-export interface Attachment {
-  id: string;
-  name: string;
-  tag: string;
-}
-
-export const AttachmentSchema: JTDSchemaType<Attachment> = {
+export const AttachmentSchema = {
+  type: 'object',
   properties: {
     id: { type: 'string' },
     name: { type: 'string' },
     tag: { type: 'string' }
-  }
-} as const;
+  },
+  required: ['id', 'name', 'tag'],
+  additionalProperties: false
+} as const satisfies JSONSchema;
+
+export type Attachment = FromSchema<typeof AttachmentSchema>;

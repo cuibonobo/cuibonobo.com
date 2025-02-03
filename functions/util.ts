@@ -15,16 +15,6 @@ export const getNormalizedPath = (absPath: string, basePath: string): string => 
   return relPath;
 };
 
-export const getHash = (digest: ArrayBuffer): string => {
-  const array = Array.from(new Uint8Array(digest));
-  return array.map((b) => b.toString(16).padStart(2, '0')).join('');
-};
-
-export const getDigest = async (file: File): Promise<ArrayBuffer> => {
-  const fileData = await file.arrayBuffer();
-  return await crypto.subtle.digest('SHA-256', fileData);
-};
-
 export const createMethodNotAllowedResponse = (allowedMethods: string): Response => {
   return new Response('Method Not Allowed', {
     status: 405,
