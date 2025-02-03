@@ -1,6 +1,14 @@
-import timekeeper from 'timekeeper';
 import { describe, test, expect } from 'vitest';
-import { generateId, crockford32Encode, crockford32Decode, RAND_SUFFIX_LENGTH, BASE } from './id';
+import {
+  generateId,
+  crockford32Encode,
+  crockford32Decode,
+  RAND_SUFFIX_LENGTH,
+  BASE,
+  IdGenerationOverflowError,
+  _setLastNowId,
+  _setLastRandChars
+} from './id';
 
 describe('ID generation library', () => {
   test('Encode Crockford-32 for single digits', () => {
@@ -78,14 +86,11 @@ describe('ID generation library', () => {
   });
 
   test('IDs generated in the same millisecond will increment the random suffix', () => {
-    // The `generateId()` function is time-dependent, so we are freezing
-    // time to better test the random suffixes.
     const currentTime = new Date('2024-01-01T00:00:00.0');
-    timekeeper.freeze(currentTime);
     const numIds = 5;
     const idArray: string[] = [];
     for (let i = 0; i < numIds; i++) {
-      idArray[i] = generateId();
+      idArray[i] = generateId(currentTime.valueOf());
     }
     // All of the timestamp parts of the IDs should be the same
     const timestampSet = new Set(idArray.map((s: string) => s.slice(0, -RAND_SUFFIX_LENGTH)));
@@ -97,26 +102,30 @@ describe('ID generation library', () => {
     for (let i = 1; i < randCharList.length; i++) {
       expect(crockford32Decode(randCharList[i]) - 1).toBe(crockford32Decode(randCharList[i - 1]));
     }
-    timekeeper.reset();
   });
 
   test('Generating too many IDs in the same millisecond will cause an overflow', () => {
-    // The `generateId()` function is time-dependent, so we are freezing
-    // time to better test the random suffixes.
-    const currentTime = new Date();
-    timekeeper.freeze(currentTime);
-    const idArray: string[] = [];
     // Once we have gone through all the possibilities for the random suffix,
     // we should see an overflow.
-    const length = Math.pow(BASE, RAND_SUFFIX_LENGTH) - 1;
-    try {
+    const generateAllSuffixes = () => {
+      const currentTime = new Date();
+      const idArray: string[] = [];
+      const length = Math.pow(BASE, RAND_SUFFIX_LENGTH) - 1;
       for (let i = 0; i < length; i++) {
-        idArray[i] = generateId();
+        idArray[i] = generateId(currentTime.valueOf());
       }
-      throw new Error('Overflow was never reached!');
-    } catch (e) {
-      expect(e instanceof Error).toBe(true);
-    }
-    timekeeper.reset();
+    };
+    expect(generateAllSuffixes).toThrow(IdGenerationOverflowError);
+  });
+
+  test('An incremented random suffix that starts with zero will generate a correct ID. Fixes #90.', () => {
+    // The `now` value below is equivalent to a timestamp prefix of '1hk1p9749'
+    const now = 1704085200009;
+    _setLastNowId('1hk1p9749');
+    // Set the last random characters to start with 0 to trigger a potential increment padding bug
+    _setLastRandChars('0ar');
+    const newId = generateId(now);
+    // A buggy padding increment will be missing the leading zero in '0as'
+    expect(newId).toBe('1hk1p97490as');
   });
 });
