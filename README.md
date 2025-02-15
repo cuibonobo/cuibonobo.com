@@ -55,6 +55,15 @@ npm run cli -- status
 npm run cli -- slugify <quotedText>
 ```
 
+## Setup
+> **FIXME:** These instructions do not include how to download existing media
+1. Create an `.env` file and a `.dev.vars` file with `API_TOKEN=<token>`
+2. Log in to Cloudflare: `npx wrangler login`
+3. Download the existing remote database to a file: `npx wrangler d1 export stack_db --remote --output=./database.sql`
+4. Initialize the local database with the downloaded data: `npx wrangler d1 execute stack_db --local --file=database.sql`
+5. Run `npm run dev` to run a local server, and then run `npm run build` to build the pages
+6. Visit `http://localhost:8788/` in a browser to navigate the site
+
 ## Building on Cloudflare Pages
 
 ### Build Configuration
