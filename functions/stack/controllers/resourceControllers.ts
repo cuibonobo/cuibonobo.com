@@ -1,6 +1,6 @@
-import type { Resources, ResourceDbCreate } from '../models/resources.js';
+import type { IResources, ResourceDbCreate } from '../models/resources.js';
 
-export const getResources = async (resources: Resources, url: URL): Promise<Response> => {
+export const getResources = async (resources: IResources, url: URL): Promise<Response> => {
   const typeId = url.searchParams.get('type');
   const contentKey = url.searchParams.get('contentKey');
   const contentValue = url.searchParams.get('contentValue');
@@ -22,7 +22,7 @@ export const getResources = async (resources: Resources, url: URL): Promise<Resp
 };
 
 export const getResourceById = async (
-  resources: Resources,
+  resources: IResources,
   resourceId: string
 ): Promise<Response> => {
   const result = await resources.getOne(resourceId);
@@ -33,14 +33,14 @@ export const getResourceById = async (
 };
 
 export const postResource = async (
-  resources: Resources,
+  resources: IResources,
   data: ResourceDbCreate
 ): Promise<Response> => {
   return Response.json(await resources.createOne(data));
 };
 
 export const postResourceById = async (
-  resources: Resources,
+  resources: IResources,
   resourceId: string,
   data: Record<string, string>
 ): Promise<Response> => {

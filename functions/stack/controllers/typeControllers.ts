@@ -1,6 +1,6 @@
 import { isSchema, isValidSchema } from 'jtd';
 import {
-  Types,
+  ITypes,
   TypeDbCreate,
   TypeDbUpdate,
   TypeDbCreateSchema,
@@ -27,11 +27,11 @@ export const validateTypeUpdate = async (data: TypeDbUpdate): Promise<void> => {
   }
 };
 
-export const getTypes = async (types: Types): Promise<Response> => {
+export const getTypes = async (types: ITypes): Promise<Response> => {
   return Response.json(await types.getAll());
 };
 
-export const getTypeByName = async (types: Types, typeName: string): Promise<Response> => {
+export const getTypeByName = async (types: ITypes, typeName: string): Promise<Response> => {
   const result = await types.getOne(typeName);
   if (result == null) {
     return Response.json({}, { status: 404 });
@@ -51,7 +51,7 @@ const handleDbError = (err: Error, data: TypeDbCreate | TypeDbUpdate): Response 
   return Response.json({ error: err.message }, { status: 409 });
 };
 
-export const postType = async (types: Types, data: string): Promise<Response> => {
+export const postType = async (types: ITypes, data: string): Promise<Response> => {
   const type = TypeDbCreateSchema.parse(data);
   await validateUntrustedSchema(type.schema, type.hash);
   try {
@@ -62,7 +62,7 @@ export const postType = async (types: Types, data: string): Promise<Response> =>
 };
 
 export const postTypeByName = async (
-  types: Types,
+  types: ITypes,
   typeName: string,
   data: string
 ): Promise<Response> => {

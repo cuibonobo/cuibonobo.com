@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { parseJsonPreprocessor } from '@codec/preprocessors.js';
 import { Attachment } from '@codec/attachment.js';
+import { IDatabase } from './db.js';
 import { addLimitToQuery, getDbPositions } from './util.js';
 
 const ResourceDbResultShapeSchema = z.object({
@@ -42,11 +43,29 @@ export type ResourceDbCreate = z.infer<typeof ResourceDbCreateSchema>;
 export type ResourceDbUpdate = z.infer<typeof ResourceDbUpdateSchema>;
 export type ResourceDbResult = z.infer<typeof ResourceDbResultSchema>;
 
-export class Resources {
-  _db: D1Database;
+export interface IResources {
+  getAll(limit?: number): Promise<ResourceDbResult[]>;
+  getAllByType(type: string, limit?: number): Promise<ResourceDbResult[]>;
+  getOne(id: string): Promise<ResourceDbResult>;
+  createOne(resource: ResourceDbCreate): Promise<boolean>;
+  updateOne(id: string, updates: ResourceDbUpdate): Promise<boolean>;
+  deleteOne(id: string): Promise<boolean>;
+  getContentKey(type: string, key: string, limit?: number): Promise<Record<string, string>[]>;
+  getByContentKey(
+    type: string,
+    key: string,
+    value: string,
+    limit?: number
+  ): Promise<ResourceDbResult[]>;
+  getAttachments(limit: number): Promise<Attachment[]>;
+  getByAttachmentId(id: string, limit?: number): Promise<ResourceDbResult[]>;
+}
 
-  constructor(d1: D1Database) {
-    this._db = d1;
+export class Resources implements IResources {
+  _db: IDatabase;
+
+  constructor(database: IDatabase) {
+    this._db = database;
   }
 
   getAll = async (limit: number = 50): Promise<ResourceDbResult[]> => {
