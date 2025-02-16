@@ -1,14 +1,9 @@
-import { FromSchema, JSONSchema } from 'json-schema-to-ts';
+import { z } from 'zod';
 
-export const AttachmentSchema = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    tag: { type: 'string' }
-  },
-  required: ['id', 'name', 'tag'],
-  additionalProperties: false
-} as const satisfies JSONSchema;
+export const AttachmentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  tag: z.string()
+});
 
-export type Attachment = FromSchema<typeof AttachmentSchema>;
+export type Attachment = z.infer<typeof AttachmentSchema>;

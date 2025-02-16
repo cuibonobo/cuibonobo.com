@@ -1,8 +1,19 @@
-import { Validator, Schema } from '@cfworker/json-schema';
-import { Type, TypeSchema, TypeArraySchema, TypeDbCreate, TypeDbUpdate } from '../../codec/type';
+import { z } from 'zod';
+import { Type, TypeSchema } from '../../codec/type';
 import { ResourceTypeName, ResourceType, jsonToResourceType, JSONObject, JSONValue } from './types';
 import * as errors from './errors';
 import { getAuthHeaders } from './auth';
+
+interface TypeApiCreate {
+  name: string;
+  singular: string;
+  plural: string;
+  schema: string;
+  hash: string;
+  created_date?: Date;
+  updated_date?: Date;
+}
+type TypeApiUpdate = Partial<TypeApiCreate>;
 
 const BASE_URL =
   process.env.NODE_ENV == 'production'
@@ -111,31 +122,21 @@ export const deleteResource = async (resourceId: string): Promise<boolean> => {
 };
 
 export const getAllTypes = async (): Promise<Type[]> => {
-  const text = await get(getUrl('types'));
-  const validator = new Validator(TypeArraySchema as unknown as Schema);
-  if (!validator.validate(text)) {
-    throw new Error('Could not parse server response!');
-  }
-  const types: Type[] = JSON.parse(text);
-  return types;
+  const data = await get(getUrl('types'));
+  return z.array(TypeSchema).parse(data);
 };
 
 export const getType = async (typeName: string): Promise<Type> => {
-  const text = await get(getUrl(`types/${typeName}`));
-  const validator = new Validator(TypeSchema as unknown as Schema);
-  if (!validator.validate(text)) {
-    throw new Error('Could not parse server response!');
-  }
-  const type: Type = JSON.parse(text);
-  return type;
+  const data = await get(getUrl(`types/${typeName}`));
+  return TypeSchema.parse(data);
 };
 
-export const createType = async (data: TypeDbCreate): Promise<boolean> => {
+export const createType = async (data: TypeApiCreate): Promise<boolean> => {
   const text = await update(getUrl('types'), JSON.stringify(data));
   return JSON.parse(text);
 };
 
-export const updateType = async (typeName: string, data: TypeDbUpdate): Promise<boolean> => {
+export const updateType = async (typeName: string, data: TypeApiUpdate): Promise<boolean> => {
   const text = await update(getUrl(`types/${typeName}`), JSON.stringify(data));
   return JSON.parse(text);
 };

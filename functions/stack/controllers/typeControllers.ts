@@ -1,25 +1,27 @@
-import { Validator, Schema } from '@cfworker/json-schema';
-import { Types } from '../models/index.js';
-import { getStringHash } from '@codec/hash.js';
+import { isSchema, isValidSchema } from 'jtd';
 import {
+  Types,
+  TypeDbCreate,
+  TypeDbUpdate,
   TypeDbCreateSchema,
-  TypeDbUpdateSchema,
-  type TypeDbCreate,
-  type TypeDbUpdate
-} from '@codec/type.js';
+  TypeDbUpdateSchema
+} from '../models/types.js';
+import { getStringHash } from '@codec/hash.js';
 
-export const validateType = async (schema: string, hash: string): Promise<void> => {
-  const computedHash = await getStringHash(schema);
+export const validateUntrustedSchema = async (schemaText: string, hash: string): Promise<void> => {
+  const computedHash = await getStringHash(schemaText);
   if (hash != computedHash) {
     throw new Error('Given hash does not match computed hash of schema!');
   }
-  JSON.parse(schema);
-  // FIXME: Need to check if the schema itself is valid
+  const schema: unknown = JSON.parse(schemaText);
+  if (!isSchema(schema) || !isValidSchema(schema)) {
+    throw new Error('Given schema is not valid JTD!');
+  }
 };
 
 export const validateTypeUpdate = async (data: TypeDbUpdate): Promise<void> => {
   if (Object.hasOwn(data, 'hash') && Object.hasOwn(data, 'schema')) {
-    await validateType(data.schema, data.hash);
+    await validateUntrustedSchema(data.schema, data.hash);
   } else if (Object.hasOwn(data, 'hash') || Object.hasOwn(data, 'schema')) {
     throw new Error('Schema and hash must be updated at the same time!');
   }
@@ -49,37 +51,26 @@ const handleDbError = (err: Error, data: TypeDbCreate | TypeDbUpdate): Response 
   return Response.json({ error: err.message }, { status: 409 });
 };
 
-export const postType = async (types: Types, text: string): Promise<Response> => {
-  const validator = new Validator(TypeDbCreateSchema as unknown as Schema);
-  if (!validator.validate(text)) {
-    throw new Error('The uploaded type has invalid schema!');
-  }
-  const data: TypeDbCreate = JSON.parse(text);
-  if (!data) {
-    throw new Error('Could not parse type data!');
-  }
-  await validateType(data.schema, data.hash);
+export const postType = async (types: Types, data: string): Promise<Response> => {
+  const type = TypeDbCreateSchema.parse(data);
+  await validateUntrustedSchema(type.schema, type.hash);
   try {
-    return Response.json(await types.createOne(data));
+    return Response.json(await types.createOne(type));
   } catch (e: unknown) {
-    return handleDbError(e as Error, data);
+    return handleDbError(e as Error, type);
   }
 };
 
 export const postTypeByName = async (
   types: Types,
   typeName: string,
-  text: string
+  data: string
 ): Promise<Response> => {
-  const validator = new Validator(TypeDbUpdateSchema);
-  if (!validator.validate(text)) {
-    throw new Error('The uploaded type has invalid schema!');
-  }
-  const data: TypeDbUpdate = JSON.parse(text);
-  await validateTypeUpdate(data);
+  const type = TypeDbUpdateSchema.parse(data);
+  await validateTypeUpdate(type);
   try {
-    return Response.json(await types.updateOne(typeName, data));
+    return Response.json(await types.updateOne(typeName, type));
   } catch (e: unknown) {
-    return handleDbError(e as Error, data);
+    return handleDbError(e as Error, type);
   }
 };

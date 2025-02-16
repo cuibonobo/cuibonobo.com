@@ -1,28 +1,30 @@
 import { test, expect, describe } from 'vitest';
 import { getStringHash } from '../../../codec/hash.js';
-import { validateType, validateTypeUpdate } from './typeControllers.js';
+import { validateUntrustedSchema, validateTypeUpdate } from './typeControllers.js';
 import { getTypeHash } from '@codec/type.js';
 
 describe('Type codec tests', () => {
   test('Invalid JSON throws', async () => {
     const schema = '{foo: "bar"}';
     const hash = await getStringHash(schema);
-    await expect(() => validateType(schema, hash)).rejects.toThrow(
-      'Unexpected token f in JSON at position 1'
+    await expect(() => validateUntrustedSchema(schema, hash)).rejects.toThrow(
+      "Expected property name or '}' in JSON at position 1"
     );
   });
 
-  // test('Invalid JTD schema throws', async () => {
-  //   const schema = '{"foo":"bar"}';
-  //   const hash = await getStringHash(schema);
-  //   await expect(() => validateType(schema, hash)).rejects.toThrow('Given schema is not valid JTD!');
-  // });
+  test('Invalid JTD schema throws', async () => {
+    const schema = '{"foo":"bar"}';
+    const hash = await getStringHash(schema);
+    await expect(() => validateUntrustedSchema(schema, hash)).rejects.toThrow(
+      'Given schema is not valid JTD!'
+    );
+  });
 
   test('Valid JTD schema with correct hash will not throw', async () => {
     const schemaObj = { properties: { name: { type: 'string' } } };
     const schema = JSON.stringify(schemaObj);
     const hash = await getStringHash(schema);
-    expect(await validateType(schema, hash));
+    expect(await validateUntrustedSchema(schema, hash));
   });
 
   test('A given schema generates the same hash regardless of property ordering', async () => {

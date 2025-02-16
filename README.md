@@ -56,7 +56,9 @@ npm run cli -- slugify <quotedText>
 ```
 
 ## Setup
+
 > **FIXME:** These instructions do not include how to download existing media
+
 1. Create an `.env` file and a `.dev.vars` file with `API_TOKEN=<token>`
 2. Log in to Cloudflare: `npx wrangler login`
 3. Download the existing remote database to a file: `npx wrangler d1 export stack_db --remote --output=./database.sql`

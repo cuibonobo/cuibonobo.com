@@ -1,48 +1,14 @@
-import { FromSchema, JSONSchema } from 'json-schema-to-ts';
+import { z } from 'zod';
 import { AttachmentSchema } from './attachment';
 
-export const ResourceSchema = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    type: { type: 'string' },
-    created_date: { type: 'string' },
-    updated_date: { type: 'string' },
-    is_public: { type: 'boolean' },
-    attachments: { type: 'array', items: AttachmentSchema },
-    content: {
-      type: 'object',
-      additionalProperties: true
-    }
-  },
-  required: ['id', 'type', 'created_date', 'updated_date', 'is_public', 'attachments', 'content'],
-  additionalProperties: false
-} as const satisfies JSONSchema;
+export const ResourceSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  create_date: z.date(),
+  updated_date: z.date(),
+  is_public: z.boolean(),
+  attachments: z.array(AttachmentSchema),
+  content: z.object({}).partial()
+});
 
-const commonResourceDbRequiredProps = {
-  id: { type: 'string' },
-  type: { type: 'string' },
-  created_date: { type: 'string' },
-  updated_date: { type: 'string' },
-  is_public: { type: 'boolean' },
-  attachments: { type: 'string' },
-  content: { type: 'string' }
-} as const;
-
-export const ResourceDbInputSchema = {
-  type: 'object',
-  properties: commonResourceDbRequiredProps,
-  required: ['id', 'type'],
-  additionalProperties: false
-} as const satisfies JSONSchema;
-
-export const ResourceDbResultSchema = {
-  type: 'object',
-  properties: commonResourceDbRequiredProps,
-  required: ['id', 'type', 'created_date', 'updated_date', 'is_public', 'attachments', 'content'],
-  additionalProperties: false
-} as const satisfies JSONSchema;
-
-export type ResourceDbInput = FromSchema<typeof ResourceDbInputSchema>;
-export type ResourceDbResult = FromSchema<typeof ResourceDbResultSchema>;
-export type Resource = FromSchema<typeof ResourceSchema>;
+export type Resource = z.infer<typeof ResourceSchema>;

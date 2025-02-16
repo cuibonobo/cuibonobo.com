@@ -1,6 +1,33 @@
-import { ResourceDbInput, ResourceDbResult } from '@codec/resource.js';
+import { z } from 'zod';
 import { Attachment } from '@codec/attachment.js';
 import { addLimitToQuery, getDbPositions } from './util.js';
+
+const ResourceDbResultSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  is_public: z.boolean(),
+  attachments: z.string(),
+  content: z.string(),
+  created_date: z.string().datetime(),
+  updated_date: z.string().datetime()
+});
+
+export const ResourceDbCreateSchema = ResourceDbResultSchema.partial({
+  created_date: true,
+  updated_date: true
+});
+
+export const ResourceDbUpdateSchema = ResourceDbResultSchema.partial({
+  is_public: true,
+  attachments: true,
+  content: true,
+  created_date: true,
+  updated_date: true
+});
+
+export type ResourceDbCreate = z.infer<typeof ResourceDbCreateSchema>;
+export type ResourceDbUpdate = z.infer<typeof ResourceDbUpdateSchema>;
+export type ResourceDbResult = z.infer<typeof ResourceDbResultSchema>;
 
 export class Resources {
   _db: D1Database;
@@ -25,7 +52,7 @@ export class Resources {
     const ps = this._db.prepare('SELECT * FROM resources where id = ?1 ORDER BY id DESC').bind(id);
     return await ps.first<ResourceDbResult>();
   };
-  createOne = async (resource: ResourceDbInput): Promise<boolean> => {
+  createOne = async (resource: ResourceDbCreate): Promise<boolean> => {
     const keys = Object.keys(resource);
     const values = Object.values(resource).map((v) =>
       typeof v == 'string' ? v : JSON.stringify(v)
@@ -37,7 +64,7 @@ export class Resources {
     const data = await ps.run();
     return data.success;
   };
-  updateOne = async (id: string, updates: Record<string, string>): Promise<boolean> => {
+  updateOne = async (id: string, updates: ResourceDbUpdate): Promise<boolean> => {
     delete updates['id'];
     const keys = Object.keys(updates);
     const values = Object.values(updates).map((v) =>

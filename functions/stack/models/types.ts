@@ -1,5 +1,19 @@
-import { TypeDbCreate, TypeDbUpdate, Type } from '@codec/type.js';
+import { z } from 'zod';
+import { Type } from '@codec/type.js';
 import { addLimitToQuery, getDbPositions } from './util.js';
+
+export const TypeDbCreateSchema = z.object({
+  name: z.string(),
+  hash: z.string(),
+  schema: z.string(),
+  singular: z.string(),
+  plural: z.string()
+});
+
+export const TypeDbUpdateSchema = TypeDbCreateSchema.partial();
+
+export type TypeDbCreate = z.infer<typeof TypeDbCreateSchema>;
+export type TypeDbUpdate = z.infer<typeof TypeDbUpdateSchema>;
 
 export class Types {
   _db: D1Database;

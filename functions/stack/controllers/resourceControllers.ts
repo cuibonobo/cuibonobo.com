@@ -1,5 +1,4 @@
-import { Resources } from '../models/index.js';
-import type { ResourceDbInput } from '@codec/resource.js';
+import type { Resources, ResourceDbCreate } from '../models/resources.js';
 
 export const getResources = async (resources: Resources, url: URL): Promise<Response> => {
   const typeId = url.searchParams.get('type');
@@ -35,7 +34,7 @@ export const getResourceById = async (
 
 export const postResource = async (
   resources: Resources,
-  data: ResourceDbInput
+  data: ResourceDbCreate
 ): Promise<Response> => {
   return Response.json(await resources.createOne(data));
 };

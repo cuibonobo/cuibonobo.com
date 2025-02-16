@@ -1,19 +1,11 @@
-import { JTDSchemaType } from 'ajv/dist/jtd';
+import { z } from 'zod';
 
-export interface BucketFile {
-  name: string;
-  size: number;
-  mtime: Date;
-  mime: string;
-  hash: string;
-}
+export const BucketFileSchema = z.object({
+  name: z.string(),
+  size: z.number(),
+  mtime: z.date(),
+  mime: z.string(),
+  hash: z.string()
+});
 
-export const BucketFileSchema: JTDSchemaType<BucketFile> = {
-  properties: {
-    name: { type: 'string' },
-    size: { type: 'uint32' },
-    mtime: { type: 'timestamp' },
-    mime: { type: 'string' },
-    hash: { type: 'string' }
-  }
-} as const;
+export type BucketFile = z.infer<typeof BucketFileSchema>;

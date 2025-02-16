@@ -1,46 +1,17 @@
-import { FromSchema, JSONSchema } from 'json-schema-to-ts';
+import { z } from 'zod';
 import { getStringHash } from './hash';
 
-const commonTypeProps = {
-  name: { type: 'string' },
-  hash: { type: 'string' },
-  schema: { type: 'string' },
-  singular: { type: 'string' },
-  plural: { type: 'string' }
-} as const;
+export const TypeSchema = z.object({
+  name: z.string(),
+  hash: z.string(),
+  schema: z.string(),
+  singular: z.string(),
+  plural: z.string(),
+  created_date: z.date(),
+  updated_date: z.date()
+});
 
-export const TypeDbCreateSchema = {
-  type: 'object',
-  properties: commonTypeProps,
-  required: ['name', 'hash', 'schema', 'singular', 'plural'],
-  additionalProperties: false
-} as const satisfies JSONSchema;
-
-export const TypeDbUpdateSchema = {
-  type: 'object',
-  properties: commonTypeProps,
-  additionalProperties: false
-} as const satisfies JSONSchema;
-
-export const TypeSchema = {
-  type: 'object',
-  properties: {
-    ...commonTypeProps,
-    created_date: { type: 'string' },
-    updated_date: { type: 'string' }
-  },
-  required: ['name', 'hash', 'schema', 'singular', 'plural', 'created_date', 'updated_date'],
-  additionalProperties: false
-} as const satisfies JSONSchema;
-
-export const TypeArraySchema = {
-  type: 'array',
-  items: TypeSchema
-} as const satisfies JSONSchema;
-
-export type TypeDbCreate = FromSchema<typeof TypeDbCreateSchema>;
-export type TypeDbUpdate = FromSchema<typeof TypeDbUpdateSchema>;
-export type Type = FromSchema<typeof TypeSchema>;
+export type Type = z.infer<typeof TypeSchema>;
 
 const sortObj = (unsortedObj: unknown): unknown => {
   if (Array.isArray(unsortedObj)) {
