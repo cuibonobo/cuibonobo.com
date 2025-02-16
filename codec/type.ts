@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { parseJsonPreprocessor } from './preprocessors';
 import { getStringHash } from './hash';
 
-export const TypeSchema = z.object({
+const TypeShapeSchema = z.object({
   name: z.string(),
   hash: z.string(),
   schema: z.string(),
@@ -10,6 +11,7 @@ export const TypeSchema = z.object({
   created_date: z.date(),
   updated_date: z.date()
 });
+export const TypeSchema = z.preprocess(parseJsonPreprocessor, TypeShapeSchema);
 
 export type Type = z.infer<typeof TypeSchema>;
 

@@ -1,16 +1,19 @@
 import { z } from 'zod';
 import { Type } from '@codec/type.js';
+import { parseJsonPreprocessor } from '@codec/preprocessors.js';
 import { addLimitToQuery, getDbPositions } from './util.js';
 
-export const TypeDbCreateSchema = z.object({
+const TypeDbCreateShapeSchema = z.object({
   name: z.string(),
   hash: z.string(),
   schema: z.string(),
   singular: z.string(),
   plural: z.string()
 });
+export const TypeDbCreateSchema = z.preprocess(parseJsonPreprocessor, TypeDbCreateShapeSchema);
 
-export const TypeDbUpdateSchema = TypeDbCreateSchema.partial();
+const TypeDbUpdateShapeSchema = TypeDbCreateShapeSchema.partial();
+export const TypeDbUpdateSchema = z.preprocess(parseJsonPreprocessor, TypeDbUpdateShapeSchema);
 
 export type TypeDbCreate = z.infer<typeof TypeDbCreateSchema>;
 export type TypeDbUpdate = z.infer<typeof TypeDbUpdateSchema>;

@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { parseJsonPreprocessor } from '@codec/preprocessors.js';
 import { Attachment } from '@codec/attachment.js';
 import { addLimitToQuery, getDbPositions } from './util.js';
 
-const ResourceDbResultSchema = z.object({
+const ResourceDbResultShapeSchema = z.object({
   id: z.string(),
   type: z.string(),
   is_public: z.boolean(),
@@ -11,19 +12,31 @@ const ResourceDbResultSchema = z.object({
   created_date: z.string().datetime(),
   updated_date: z.string().datetime()
 });
+export const ResourceDbResultSchema = z.preprocess(
+  parseJsonPreprocessor,
+  ResourceDbResultShapeSchema
+);
 
-export const ResourceDbCreateSchema = ResourceDbResultSchema.partial({
+const ResourceDbCreateShapeSchema = ResourceDbResultShapeSchema.partial({
   created_date: true,
   updated_date: true
 });
+export const ResourceDbCreateSchema = z.preprocess(
+  parseJsonPreprocessor,
+  ResourceDbCreateShapeSchema
+);
 
-export const ResourceDbUpdateSchema = ResourceDbResultSchema.partial({
+const ResourceDbUpdateShapeSchema = ResourceDbResultShapeSchema.partial({
   is_public: true,
   attachments: true,
   content: true,
   created_date: true,
   updated_date: true
 });
+export const ResourceDbUpdateSchema = z.preprocess(
+  parseJsonPreprocessor,
+  ResourceDbUpdateShapeSchema
+);
 
 export type ResourceDbCreate = z.infer<typeof ResourceDbCreateSchema>;
 export type ResourceDbUpdate = z.infer<typeof ResourceDbUpdateSchema>;

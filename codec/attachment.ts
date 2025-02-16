@@ -1,9 +1,11 @@
 import { z } from 'zod';
+import { parseJsonPreprocessor } from './preprocessors';
 
-export const AttachmentSchema = z.object({
+const AttachmentShapeSchema = z.object({
   id: z.string(),
   name: z.string(),
   tag: z.string()
 });
+export const AttachmentSchema = z.preprocess(parseJsonPreprocessor, AttachmentShapeSchema);
 
 export type Attachment = z.infer<typeof AttachmentSchema>;
