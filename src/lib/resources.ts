@@ -65,6 +65,7 @@ export const getDefaultResourceData = <T extends ResourceTypeName>(
   const now = new Date();
   const resourceData: ResourceBase = {
     id: generateId(now.getTime()),
+    is_public: true,
     created_date: now,
     updated_date: now,
     attachments: []

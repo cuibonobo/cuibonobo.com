@@ -2,6 +2,8 @@ import { Schema, validate } from 'jtd';
 import { IResources, ResourceDbCreateSchema, ResourceDbUpdateSchema } from '../models/resources.js';
 import type { ITypes } from '../models/types.js';
 
+const jtdOpts = { maxDepth: 32, maxErrors: 16 };
+
 export const getResources = async (resources: IResources, url: URL): Promise<Response> => {
   const typeId = url.searchParams.get('type');
   const contentKey = url.searchParams.get('contentKey');
@@ -51,7 +53,13 @@ export const postResource = async (
     return Response.json({ error: `Type '${data.type}' does not exist.` }, { status: 422 });
   }
   const schema: Schema = JSON.parse(type.schema);
-  const issues = validate(schema, data.content, { maxDepth: 32, maxErrors: 0 });
+  let content: unknown = null;
+  try {
+    content = JSON.parse(data.content);
+  } catch (e) {
+    return Response.json({ error: `Could not parse content: ${e}` }, { status: 422 });
+  }
+  const issues = validate(schema, content, jtdOpts);
   if (issues.length !== 0) {
     return Response.json(
       { error: `Validation error for '${data.type}' content type.`, issues },
@@ -96,7 +104,13 @@ export const postResourceById = async (
         return Response.json({ error: `Type '${data.type}' does not exist.` }, { status: 422 });
       }
       const schema: Schema = JSON.parse(type.schema);
-      const issues = validate(schema, data.content, { maxDepth: 32, maxErrors: 0 });
+      let content: unknown = null;
+      try {
+        content = JSON.parse(data.content!);
+      } catch (e) {
+        return Response.json({ error: `Could not parse content: ${e}` }, { status: 422 });
+      }
+      const issues = validate(schema, content, jtdOpts);
       if (issues.length !== 0) {
         return Response.json(
           { error: `Validation error for '${dataType}' content type.`, issues },
