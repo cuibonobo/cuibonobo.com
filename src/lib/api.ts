@@ -92,7 +92,7 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
     throw new errors.ResourceTypeError('Notes do not have slugs!');
   }
   try {
-    const jsonresources = await getJson<JSONValue>(
+    const jsonresources = await getJson<JSONValue[]>(
       getUrl(`resources?type=${resourceType}&contentKey=slug&contentValue=${slug}`)
     );
     return jsonToResourceType(jsonresources![0] as JSONObject);

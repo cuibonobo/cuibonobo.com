@@ -9,7 +9,7 @@ import { getBaseMediaUrl } from './media';
 
 export const writeSitePages = async (outputDir: string) => {
   const template = (await readFile('./src/layout.html')).toString();
-  console.log('Building site HTML...');
+  console.info('Building site HTML...');
   await ensureDir(outputDir);
   const pageResources = await getResourcesByType(ResourceTypeName.Page);
   const errorPage: PageType = {
@@ -25,7 +25,7 @@ export const writeSitePages = async (outputDir: string) => {
     }
   };
   pageResources.push(errorPage);
-  console.log(`Found ${pageResources.length} pages...`);
+  console.info(`Found ${pageResources.length} pages...`);
   for (let i = 0; i < pageResources.length; i++) {
     const resource = pageResources[i];
     let resourcePath = path.join(outputDir, `${resource.content.slug}.html`);
@@ -42,7 +42,7 @@ export const writeSitePages = async (outputDir: string) => {
   const articleDir = path.join(outputDir, 'articles');
   await ensureDir(articleDir);
   const articleResources = await getResourcesByType(ResourceTypeName.Article);
-  console.log(`Found ${articleResources.length} pages...`);
+  console.info(`Found ${articleResources.length} articles...`);
   const articlesIdxPath = path.join(articleDir, 'index.html');
   const articlesIdxBody = getArticleCollection(articleResources);
   const articlesIdxNav = getMainMenu(articleResources[0]);
@@ -67,7 +67,7 @@ export const writeSitePages = async (outputDir: string) => {
   const ephemeraDir = path.join(outputDir, 'ephemera');
   await ensureDir(ephemeraDir);
   const ephemeraResources = await getResourcesByType(ResourceTypeName.Note);
-  console.log(`Found ${ephemeraResources.length} pages...`);
+  console.info(`Found ${ephemeraResources.length} notes...`);
   const ephemeraIdxPath = path.join(ephemeraDir, 'index.html');
   const ephemeraIdxBody = await getEphemeraCollection(ephemeraResources);
   const ephemeraIdxNav = getMainMenu(ephemeraResources[0]);

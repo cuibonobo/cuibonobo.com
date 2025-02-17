@@ -9,7 +9,7 @@ export const rm = util.promisify(fs.unlink);
 export const rmDir = util.promisify(fs.rmdir);
 export const copyFile = util.promisify(fs.copyFile);
 const mkDirp = util.promisify(
-  (path: string, callback: (err: NodeJS.ErrnoException, path?: string) => void) => {
+  (path: string, callback: (err: NodeJS.ErrnoException | null, path?: string) => void) => {
     return fs.mkdir(path, { recursive: true }, callback);
   }
 );
@@ -18,7 +18,7 @@ const lstat = util.promisify(fs.lstat);
 export const writeFile = util.promisify(fs.writeFile);
 
 export const mkTempDir = util.promisify(
-  (callback: (err: NodeJS.ErrnoException, folder: string) => void) => {
+  (callback: (err: NodeJS.ErrnoException | null, folder: string) => void) => {
     return fs.mkdtemp(path.join(os.tmpdir(), 'cuibonobo-'), callback);
   }
 );

@@ -6,6 +6,7 @@ import {
   postResourceById
 } from './controllers/resourceControllers.js';
 import {
+  deleteTypeByName,
   getTypes,
   getTypeByName,
   postType,
@@ -54,7 +55,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     if (pathParts.length == 1) {
       switch (context.request.method) {
         case 'POST':
-          return postResource(resources, await context.request.json());
+          return postResource(resources, types, await context.request.json());
         case 'GET':
           return getResources(resources, url);
         default:
@@ -65,9 +66,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const resourceId = pathParts[1];
       switch (context.request.method) {
         case 'POST':
-          return postResourceById(resources, resourceId, await context.request.json());
+          return postResourceById(resources, types, resourceId, await context.request.json());
         case 'DELETE':
-          return Response.json(await resources.deleteOne(resourceId));
+          return Response.json(resources.deleteOne(resourceId));
         case 'GET':
           return getResourceById(resources, resourceId);
         default:
@@ -92,7 +93,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         case 'POST':
           return postTypeByName(types, typeName, await context.request.text());
         case 'DELETE':
-          return Response.json(await types.deleteOne(typeName));
+          return deleteTypeByName(types, resources, typeName);
         case 'GET':
           return getTypeByName(types, typeName);
         default:

@@ -1,12 +1,12 @@
-export interface IDatabaseResult<T = Record<string, unknown>> {
+export interface IDatabaseResult<T extends Record<string, unknown> = Record<string, unknown>> {
   success: boolean;
-  results: T;
+  results: T[];
 }
 export interface IDatabasePreparedStatement {
   bind(...values: unknown[]): IDatabasePreparedStatement;
-  run<T>(): Promise<IDatabaseResult<T>>;
-  first<T>(): Promise<T>;
-  all<T>(): Promise<IDatabaseResult<T[]>>;
+  run<T extends Record<string, unknown> = Record<string, unknown>>(): Promise<IDatabaseResult<T>>;
+  first<T extends Record<string, unknown> = Record<string, unknown>>(): Promise<T>;
+  all<T extends Record<string, unknown> = Record<string, unknown>>(): Promise<IDatabaseResult<T>>;
 }
 export interface IDatabase {
   prepare(query: string): IDatabasePreparedStatement;

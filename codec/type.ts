@@ -28,8 +28,8 @@ const sortObj = (unsortedObj: unknown): unknown => {
   }
   return Object.keys(unsortedObj)
     .sort()
-    .reduce((obj, key) => {
-      obj[key] = sortObj(unsortedObj[key]);
+    .reduce((obj: Record<string, unknown>, key) => {
+      obj[key] = sortObj(obj[key]);
       return obj;
     }, {});
 };

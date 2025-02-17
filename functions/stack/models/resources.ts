@@ -27,13 +27,7 @@ export const ResourceDbCreateSchema = z.preprocess(
   ResourceDbCreateShapeSchema
 );
 
-const ResourceDbUpdateShapeSchema = ResourceDbResultShapeSchema.partial({
-  is_public: true,
-  attachments: true,
-  content: true,
-  created_date: true,
-  updated_date: true
-});
+const ResourceDbUpdateShapeSchema = ResourceDbResultShapeSchema.partial();
 export const ResourceDbUpdateSchema = z.preprocess(
   parseJsonPreprocessor,
   ResourceDbUpdateShapeSchema
@@ -46,7 +40,7 @@ export type ResourceDbResult = z.infer<typeof ResourceDbResultSchema>;
 export interface IResources {
   getAll(limit?: number): Promise<ResourceDbResult[]>;
   getAllByType(type: string, limit?: number): Promise<ResourceDbResult[]>;
-  getOne(id: string): Promise<ResourceDbResult>;
+  getOne(id: string): Promise<ResourceDbResult | null>;
   createOne(resource: ResourceDbCreate): Promise<boolean>;
   updateOne(id: string, updates: ResourceDbUpdate): Promise<boolean>;
   deleteOne(id: string): Promise<boolean>;
@@ -80,7 +74,7 @@ export class Resources implements IResources {
     const data = await ps.all<ResourceDbResult>();
     return data.results;
   };
-  getOne = async (id: string): Promise<ResourceDbResult> => {
+  getOne = async (id: string): Promise<ResourceDbResult | null> => {
     const ps = this._db.prepare('SELECT * FROM resources where id = ?1 ORDER BY id DESC').bind(id);
     return await ps.first<ResourceDbResult>();
   };

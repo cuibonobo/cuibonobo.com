@@ -1,4 +1,5 @@
 import { isSchema, isValidSchema } from 'jtd';
+import { IResources } from '../models/resources.js';
 import {
   ITypes,
   TypeDbCreate,
@@ -20,9 +21,9 @@ export const validateUntrustedSchema = async (schemaText: string, hash: string):
 };
 
 export const validateTypeUpdate = async (data: TypeDbUpdate): Promise<void> => {
-  if (Object.hasOwn(data, 'hash') && Object.hasOwn(data, 'schema')) {
-    await validateUntrustedSchema(data.schema, data.hash);
-  } else if (Object.hasOwn(data, 'hash') || Object.hasOwn(data, 'schema')) {
+  if ('schema' in data && 'hash' in data) {
+    await validateUntrustedSchema(data.schema!, data.hash!);
+  } else if ('hash' in data || 'schema' in data) {
     throw new Error('Schema and hash must be updated at the same time!');
   }
 };
@@ -73,4 +74,19 @@ export const postTypeByName = async (
   } catch (e: unknown) {
     return handleDbError(e as Error, type);
   }
+};
+
+export const deleteTypeByName = async (
+  types: ITypes,
+  resources: IResources,
+  typeName: string
+): Promise<Response> => {
+  const typeResults = await resources.getAllByType(typeName, 1);
+  if (typeResults.length > 0) {
+    return Response.json(
+      { error: `Cannot delete '${typeName}' if resources with this type still exist.` },
+      { status: 409 }
+    );
+  }
+  return Response.json(await types.deleteOne(typeName));
 };

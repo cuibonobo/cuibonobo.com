@@ -108,7 +108,7 @@ export const lockRead = async (): Promise<LockData> => {
   try {
     lockFileStr = await readFile(getLockPath(), 'utf-8');
   } catch (e: unknown) {
-    if (e instanceof Error && e['code'] == 'ENOENT') {
+    if (e instanceof Error && 'code' in e && e.code == 'ENOENT') {
       throw new errors.MissingLockfileError();
     }
     throw e;

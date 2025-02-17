@@ -28,7 +28,7 @@ export type TypeDbUpdate = z.infer<typeof TypeDbUpdateSchema>;
 
 export interface ITypes {
   getAll(limit?: number): Promise<TypeDbResult[]>;
-  getOne(name: string): Promise<TypeDbResult>;
+  getOne(name: string): Promise<TypeDbResult | null>;
   createOne(t: TypeDbCreate): Promise<boolean>;
   updateOne(name: string, updates: TypeDbUpdate): Promise<boolean>;
   deleteOne(name: string): Promise<boolean>;
@@ -46,7 +46,7 @@ export class Types implements ITypes {
     const data = await ps.all<TypeDbResult>();
     return data.results;
   };
-  getOne = async (name: string): Promise<TypeDbResult> => {
+  getOne = async (name: string): Promise<TypeDbResult | null> => {
     const ps = this._db
       .prepare('SELECT * FROM types where name = ?1 ORDER BY name DESC')
       .bind(name);
