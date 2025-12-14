@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "The website at cuibonobo.com",
   "scripts": {
-    "dev": "wrangler pages dev ./build",
+    "dev": "wrangler pages dev --ip 0.0.0.0 ./build",
     "build": "npm run clean && npm run build:sitemap && npm run build:feed && npm run build:site && npm run build:static",
     "build:feed": "npm run cli -- feed https://cuibonobo.com",
     "build:sitemap": "npm run cli -- sitemap https://cuibonobo.com",
