@@ -3,7 +3,17 @@
 {
 	"name": "Node.js & TypeScript",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm"
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+
+	// Pass a Cloudflare API token from the host into the container so `wrangler`
+	// can use it headlessly (avoids the OAuth browser/cURL dance).
+	// On the host set `CLOUDFLARE_API_TOKEN` before opening the devcontainer.
+	"containerEnv": {
+		"CLOUDFLARE_API_TOKEN": "${localEnv:CLOUDFLARE_API_TOKEN}"
+	},
+
+	// Install `wrangler` and make the helper script executable after container creation.
+	"postCreateCommand": "npm i -g wrangler && chmod +x .devcontainer/wrangler-setup.sh"
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
