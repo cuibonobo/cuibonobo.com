@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "The website at cuibonobo.com",
   "scripts": {
-    "dev": "wrangler pages dev --ip 0.0.0.0 ./build",
+    "dev": "npx serve ./build --listen 8788",
     "build": "npm run clean && npm run build:sitemap && npm run build:feed && npm run build:site && npm run build:static",
     "build:feed": "npm run cli -- feed https://cuibonobo.com",
     "build:sitemap": "npm run cli -- sitemap https://cuibonobo.com",
@@ -16,9 +16,6 @@
     "format": "prettier --ignore-path .gitignore --write .",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "migrate": "npm run migrate:local && npm run migrate:remote",
-    "migrate:local": "wrangler d1 migrations apply stack_db",
-    "migrate:remote": "npm run migrate:local -- --remote",
     "test": "cross-env NODE_ENV=test vitest"
   },
   "repository": {
@@ -45,7 +42,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@cloudflare/workers-types": "^4.20241011.0",
     "@stdlib/datasets-stopwords-en": "0.2.2",
     "@tailwindcss/typography": "^0.5.15",
     "@types/glob": "^8.1.0",

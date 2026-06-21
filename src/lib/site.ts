@@ -5,7 +5,7 @@ import { getResourcesByType } from './api';
 import { ArticleType, NoteType, PageType, ResourceTypeName, ResourceType } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
 import { markdownToHtml, escapeRegExp } from './parser';
-import { getBaseMediaUrl } from './media';
+import { getBaseServerUrl } from './media';
 
 export const writeSitePages = async (outputDir: string) => {
   const template = (await readFile('./src/layout.html')).toString();
@@ -14,8 +14,8 @@ export const writeSitePages = async (outputDir: string) => {
   const pageResources = await getResourcesByType(ResourceTypeName.Page);
   const errorPage: PageType = {
     id: '',
-    created_date: new Date(),
-    updated_date: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
     type: ResourceTypeName.Page,
     attachments: [],
     content: {
@@ -120,8 +120,7 @@ const getTextWithAttachments = <T extends ResourceTypeName>(
 ): Promise<string> => {
   let output = resource.content.text;
   resource.attachments.forEach((attachment) => {
-    const mediaUrl = new URL(attachment.id, getBaseMediaUrl());
-    mediaUrl.searchParams.append('filename', attachment.name);
+    const mediaUrl = new URL(`attachments/${attachment.fileId}`, getBaseServerUrl());
     const mediaRegex = new RegExp(
       '(\\(|"|\')(' + escapeRegExp(attachment.name) + ')(\\)|"|\'|\\\\"\\\\\')',
       'g'
@@ -182,8 +181,8 @@ const getArticle = async (resource: ArticleType): Promise<string> => {
   return getBody(
     resource.content.title,
     await getTextWithAttachments(resource),
-    resource.created_date,
-    resource.updated_date,
+    resource.createdAt,
+    resource.updatedAt,
     resource.content.tags
   );
 };
@@ -205,8 +204,8 @@ const getEphemera = async (resource: NoteType): Promise<string> => {
   return getBody(
     `Ephemera ${resource.id}`,
     await getTextWithAttachments(resource),
-    resource.created_date,
-    resource.updated_date,
+    resource.createdAt,
+    resource.updatedAt,
     undefined,
     false
   );
@@ -217,7 +216,7 @@ const getEphemeraCollectionItem = async (resource: NoteType): Promise<string> =>
   ${await getTextWithAttachments(resource)}
   <div class="article-metadata">
     <a href="/ephemera/${resource.id}/">${getDisplayDate(
-      resource.created_date,
+      resource.createdAt,
       undefined,
       undefined,
       true

@@ -1,87 +1,156 @@
-import { z } from 'zod';
-import { Type, TypeSchema } from '../../codec/type';
-import { ResourceTypeName, ResourceType, jsonToResourceType, JSONObject, JSONValue } from './types';
+import { ResourceTypeName, ResourceType } from './types';
+import { Attachment } from '@codec/attachment';
 import * as errors from './errors';
 import { getAuthHeaders } from './auth';
 
-interface TypeApiCreate {
-  name: string;
-  singular: string;
-  plural: string;
-  schema: string;
-  hash: string;
-  created_date?: Date;
-  updated_date?: Date;
+// ---------------------------------------------------------------------------
+// Wire types (haverstack server format)
+// ---------------------------------------------------------------------------
+
+interface WireRecord {
+  id: string;
+  typeId: string;
+  createdAt: string;
+  updatedAt: string;
+  content: Record<string, unknown>;
+  version: number;
+  parentId?: string;
+  entityId?: string;
+  appId?: string;
+  deletedAt?: string;
+  permissions?: unknown[];
+  associations?: unknown[];
 }
-type TypeApiUpdate = Partial<TypeApiCreate>;
 
-const BASE_URL =
-  process.env.NODE_ENV == 'production'
-    ? 'https://cuibonobo.com/stack/'
-    : 'http://127.0.0.1:8788/stack/';
+interface WireListResult {
+  records: WireRecord[];
+  cursor?: string;
+  total: number;
+}
 
-const getUrl = (path: string): string => {
-  const origin = typeof window !== 'undefined' ? window.location.origin : BASE_URL;
-  return new URL(path, origin).href;
+export interface WireType {
+  id: string;
+  baseId: string;
+  version: number;
+  name: string;
+  schema: Record<string, unknown>;
+  schemaHash: string;
+  migratesFrom?: string;
+  createdAt: string;
+}
+
+export interface TypeCreate {
+  id: string;
+  baseId: string;
+  version: number;
+  name: string;
+  schema: Record<string, unknown>;
+  schemaHash: string;
+}
+
+// ---------------------------------------------------------------------------
+// URL helpers
+// ---------------------------------------------------------------------------
+
+const getBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return process.env.STACK_SERVER_URL ?? 'http://127.0.0.1:3000';
 };
 
-const isResponseError = (response: Response) => {
-  return response.status < 200 || response.status >= 400;
+const getUrl = (path: string): string => `${getBaseUrl()}/${path}`;
+
+export const toTypeId = (type: ResourceTypeName): string => `${type}@1`;
+
+const CONTENT_TYPE_BASES = new Set<string>(Object.values(ResourceTypeName));
+
+// ---------------------------------------------------------------------------
+// Wire → app model
+// ---------------------------------------------------------------------------
+
+const wireToResource = <T extends ResourceTypeName>(wire: WireRecord): ResourceType<T> => {
+  const rawContent = wire.content;
+  const attachments: Attachment[] = Array.isArray(rawContent.attachments)
+    ? (rawContent.attachments as Attachment[])
+    : [];
+  // Strip the stored attachments array so typed content fields are clean
+  const { attachments: _a, ...content } = rawContent;
+  return {
+    id: wire.id,
+    type: wire.typeId.split('@')[0] as ResourceTypeName,
+    createdAt: new Date(wire.createdAt),
+    updatedAt: new Date(wire.updatedAt),
+    attachments,
+    content
+  } as unknown as ResourceType<T>;
 };
 
-const throwOnResponseError = async (response: Response) => {
-  if (isResponseError(response)) {
+// Merge typed content with attachments array for API writes
+const toWireContent = <T extends ResourceTypeName>(
+  resource: ResourceType<T>
+): Record<string, unknown> => ({
+  ...resource.content,
+  attachments: resource.attachments
+});
+
+// ---------------------------------------------------------------------------
+// HTTP helpers
+// ---------------------------------------------------------------------------
+
+const throwOnError = async (response: Response): Promise<void> => {
+  if (response.status < 200 || response.status >= 400) {
     throw new Error(`Error at '${response.url}': ${await response.text()}`);
   }
 };
 
-const get = async (path: string): Promise<string> => {
-  const response = await fetch(path, { headers: getAuthHeaders() });
-  await throwOnResponseError(response);
-  return response.text();
+const getJson = async <T>(url: string): Promise<T> => {
+  const response = await fetch(url, { headers: getAuthHeaders() });
+  await throwOnError(response);
+  return response.json() as Promise<T>;
 };
 
-const getJson = async <T>(path: string): Promise<T> => {
-  const text = await get(path);
-  return <T>(<unknown>JSON.parse(text));
-};
-
-const update = async (path: string, data: string): Promise<string> => {
-  const response = await fetch(path, {
+const postJson = async <T>(url: string, data: unknown): Promise<T> => {
+  const response = await fetch(url, {
     method: 'POST',
-    body: data,
-    headers: getAuthHeaders()
+    body: JSON.stringify(data),
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
   });
-  await throwOnResponseError(response);
-  return response.text();
+  await throwOnError(response);
+  return response.json() as Promise<T>;
 };
 
-const updateJson = async <T>(path: string, data: JSONObject): Promise<T> => {
-  const text = await update(path, JSON.stringify(data));
-  return <T>(<unknown>JSON.parse(text));
+const patchJson = async <T>(url: string, data: unknown): Promise<T> => {
+  const response = await fetch(url, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
+  });
+  await throwOnError(response);
+  return response.json() as Promise<T>;
 };
 
-const remove = async (path: string): Promise<string> => {
-  const response = await fetch(path, { method: 'DELETE', headers: getAuthHeaders() });
-  await throwOnResponseError(response);
-  return response.text();
+const deleteReq = async (url: string): Promise<void> => {
+  const response = await fetch(url, { method: 'DELETE', headers: getAuthHeaders() });
+  await throwOnError(response);
 };
 
-const removeJson = async <T>(path: string): Promise<T> => {
-  const text = await remove(path);
-  return <T>(<unknown>JSON.parse(text));
-};
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 export const getAllResources = async <T extends ResourceTypeName>(): Promise<ResourceType<T>[]> => {
-  const jsonresources = await getJson<JSONObject[]>(getUrl('resources'));
-  const resources = jsonresources.map(jsonToResourceType);
-  return resources;
+  const result = await getJson<WireListResult>(getUrl('records'));
+  return result.records
+    .filter((r) => CONTENT_TYPE_BASES.has(r.typeId.split('@')[0]))
+    .map((r) => wireToResource<T>(r));
 };
 
 export const getResource = async <T extends ResourceTypeName>(
   resourceId: string
 ): Promise<ResourceType<T>> => {
-  return jsonToResourceType(await getJson(getUrl(`resources/${resourceId}`)));
+  const wire = await getJson<WireRecord>(getUrl(`records/${resourceId}`));
+  return wireToResource<T>(wire);
 };
 
 export const getResourceBySlug = async <T extends ResourceTypeName>(
@@ -91,56 +160,55 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
   if (resourceType === ResourceTypeName.Note) {
     throw new errors.ResourceTypeError('Notes do not have slugs!');
   }
-  try {
-    const jsonresources = await getJson<JSONValue[]>(
-      getUrl(`resources?type=${resourceType}&contentKey=slug&contentValue=${slug}`)
+  const result = await postJson<WireListResult>(getUrl('records/query'), {
+    filter: { typeId: toTypeId(resourceType), content: { slug } }
+  });
+  if (!result.records.length) {
+    throw new errors.ResourceNotFoundError(
+      `No ${resourceType} resources contain slug '${slug}'!`
     );
-    return jsonToResourceType(jsonresources![0] as JSONObject);
-  } catch (e: unknown) {
-    throw new errors.ResourceNotFoundError(`No ${resourceType} resources contain slug '${slug}!'`);
   }
+  return wireToResource<T>(result.records[0]);
 };
 
 export const getResourcesByType = async <T extends ResourceTypeName>(
   resourceType: T
 ): Promise<ResourceType<T>[]> => {
-  const jsonresource = await getJson<JSONObject[]>(getUrl(`resources?type=${resourceType}`));
-  const resources = jsonresource.map(jsonToResourceType);
-  return resources;
+  const result = await getJson<WireListResult>(
+    getUrl(`records?typeId=${encodeURIComponent(toTypeId(resourceType))}`)
+  );
+  return result.records.map((r) => wireToResource<T>(r));
 };
 
-export const createResource = async (data: JSONObject): Promise<boolean> => {
-  return await updateJson(getUrl(`resources`), data);
+export const createResource = async <T extends ResourceTypeName>(
+  resource: ResourceType<T>
+): Promise<ResourceType<T>> => {
+  const created = await postJson<WireRecord>(getUrl('records'), {
+    typeId: toTypeId(resource.type),
+    content: toWireContent(resource),
+    permissions: [{ access: 'public' }]
+  });
+  return wireToResource<T>(created);
 };
 
-export const updateResource = async (resourceId: string, data: JSONObject): Promise<boolean> => {
-  return await updateJson(getUrl(`resources/${resourceId}`), data);
+export const updateResource = async <T extends ResourceTypeName>(
+  resourceId: string,
+  resource: ResourceType<T>
+): Promise<ResourceType<T>> => {
+  const updated = await patchJson<WireRecord>(getUrl(`records/${resourceId}`), {
+    content: toWireContent(resource)
+  });
+  return wireToResource<T>(updated);
 };
 
-export const deleteResource = async (resourceId: string): Promise<boolean> => {
-  return await removeJson(getUrl(`resources/${resourceId}`));
+export const deleteResource = async (resourceId: string): Promise<void> => {
+  await deleteReq(getUrl(`records/${resourceId}`));
 };
 
-export const getAllTypes = async (): Promise<Type[]> => {
-  const data = await get(getUrl('types'));
-  return z.array(TypeSchema).parse(data);
+export const getAllTypes = async (): Promise<WireType[]> => {
+  return getJson<WireType[]>(getUrl('types'));
 };
 
-export const getType = async (typeName: string): Promise<Type> => {
-  const data = await get(getUrl(`types/${typeName}`));
-  return TypeSchema.parse(data);
-};
-
-export const createType = async (data: TypeApiCreate): Promise<boolean> => {
-  const text = await update(getUrl('types'), JSON.stringify(data));
-  return JSON.parse(text);
-};
-
-export const updateType = async (typeName: string, data: TypeApiUpdate): Promise<boolean> => {
-  const text = await update(getUrl(`types/${typeName}`), JSON.stringify(data));
-  return JSON.parse(text);
-};
-
-export const deleteType = async (typeName: string): Promise<boolean> => {
-  return await removeJson(getUrl(`types/${typeName}`));
+export const createType = async (data: TypeCreate): Promise<WireType> => {
+  return postJson<WireType>(getUrl('types'), data);
 };

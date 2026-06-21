@@ -1,18 +1,2 @@
 name = "cuibonobo-website"
 pages_build_output_dir = "./build"
-
-compatibility_flags = [ "nodejs_compat" ]
-compatibility_date = "2024-09-23"
-
-[vars]
-NODE_ENV = "production"
-TZ = "America/New_York"
-
-[[r2_buckets]]
-binding = 'MEDIA_BUCKET'
-bucket_name = 'cuibonobo-media'
-
-[[d1_databases]]
-binding = "STACK_DB"
-database_name = "stack_db"
-database_id = "74d928c9-2649-4a29-84bb-187562fb48c9"

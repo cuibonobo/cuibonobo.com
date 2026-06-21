@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { parseJsonPreprocessor } from './preprocessors';
 
 const AttachmentShapeSchema = z.object({
-  id: z.string(),
+  fileId: z.string(),
   name: z.string(),
   tag: z.string()
 });

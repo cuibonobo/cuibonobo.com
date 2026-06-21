@@ -6,7 +6,6 @@ import { finished } from 'stream/promises';
 import mime from 'mime';
 import { isNoEntryError, readFile } from './fs';
 import { Attachment } from '@codec/attachment';
-import { BucketFile } from '@codec/bucket';
 import { getAuthHeaders } from './auth';
 
 // Node fetch is not the same as web fetch! Source: https://stackoverflow.com/a/75843145
@@ -16,18 +15,16 @@ declare global {
   }
 }
 
-const BASE_URL =
-  process.env.NODE_ENV == 'production'
-    ? 'https://cuibonobo.com/media/'
-    : 'http://127.0.0.1:8788/media/';
-
-export const getBaseMediaUrl = (): URL => {
-  return new URL(BASE_URL);
+export const getBaseServerUrl = (): URL => {
+  const base = process.env.STACK_SERVER_URL ?? 'http://127.0.0.1:3000';
+  return new URL(base.endsWith('/') ? base : base + '/');
 };
 
 export const downloadFile = async (fileId: string, destPath: string): Promise<boolean> => {
   try {
-    const response = await fetch(new URL(fileId, getBaseMediaUrl()));
+    const response = await fetch(new URL(`attachments/${fileId}`, getBaseServerUrl()), {
+      headers: getAuthHeaders()
+    });
     const fileStream = fs.createWriteStream(path.resolve(destPath), { flags: 'wx' });
     await finished(Readable.fromWeb(response.body!).pipe(fileStream));
     return true;
@@ -36,23 +33,28 @@ export const downloadFile = async (fileId: string, destPath: string): Promise<bo
   }
 };
 
-export const uploadFile = async (sourcePath: string): Promise<BucketFile> => {
+export const uploadFile = async (sourcePath: string): Promise<{ fileId: string }> => {
   sourcePath = path.resolve(sourcePath);
-  const mimeType = mime.getType(sourcePath);
-  const file = new Blob([await readFile(sourcePath)], { type: mimeType ? mimeType : undefined });
-  const formData = new FormData();
-  formData.set('files', file, path.basename(sourcePath));
-  const response = await fetch(getBaseMediaUrl(), {
+  const mimeType = mime.getType(sourcePath) ?? 'application/octet-stream';
+  const filename = path.basename(sourcePath);
+  const data = await readFile(sourcePath);
+  const response = await fetch(new URL('attachments', getBaseServerUrl()), {
     method: 'POST',
-    body: formData,
-    headers: getAuthHeaders()
+    body: data,
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': mimeType,
+      'Content-Disposition': `attachment; filename="${filename}"`
+    }
   });
-  const bucketFile: BucketFile[] = (await response.json()) as BucketFile[];
-  return bucketFile[0];
+  if (response.status < 200 || response.status >= 400) {
+    throw new Error(`Failed to upload ${filename}: ${await response.text()}`);
+  }
+  return response.json() as Promise<{ fileId: string }>;
 };
 
-export const deleteFile = async (fileId: string) => {
-  const response = await fetch(new URL(fileId, getBaseMediaUrl()), {
+export const deleteFile = async (fileId: string): Promise<boolean> => {
+  const response = await fetch(new URL(`attachments/${fileId}`, getBaseServerUrl()), {
     method: 'DELETE',
     headers: getAuthHeaders()
   });
@@ -63,9 +65,9 @@ export const downloadAttachments = async (
   attachments: Attachment[],
   destDir: string
 ): Promise<void> => {
-  for (let i = 0; i < attachments.length; i++) {
+  for (const attachment of attachments) {
     try {
-      await downloadFile(attachments[i].id, path.join(destDir, attachments[i].name));
+      await downloadFile(attachment.fileId, path.join(destDir, attachment.name));
     } catch (e: unknown) {
       if (!isNoEntryError(e)) {
         throw e;
@@ -76,14 +78,10 @@ export const downloadAttachments = async (
 
 export const uploadFiles = async (files: string[], tag: string): Promise<Attachment[]> => {
   const attachments: Attachment[] = [];
-  for (let i = 0; i < files.length; i++) {
+  for (const filePath of files) {
     try {
-      const bucketFile: BucketFile = await uploadFile(files[i]);
-      attachments.push({
-        id: bucketFile.hash,
-        name: bucketFile.name,
-        tag
-      });
+      const { fileId } = await uploadFile(filePath);
+      attachments.push({ fileId, name: path.basename(filePath), tag });
     } catch (e: unknown) {
       if (!isNoEntryError(e)) {
         throw e;

@@ -12,7 +12,7 @@ import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
-import { getTypeHash, getTypeSchema } from '../codec/type';
+import { getTypeHash } from '../codec/type';
 
 const MAX_TEXT_LENGTH = 100;
 
@@ -136,68 +136,76 @@ program
 
 program
   .command('init')
-  .description('Initialize the database with starter types')
+  .description('Initialize the stack with starter types')
   .action(async () => {
-    console.info('Creating note...');
-    const noteContent = {
+    const attachmentsSchema = { elements: { properties: { fileId: { type: 'string' }, name: { type: 'string' }, tag: { type: 'string' } } } };
+
+    console.info('Creating note type...');
+    const noteSchema = {
       properties: {
-        text: { type: 'string' }
+        text: { type: 'string' },
+        attachments: attachmentsSchema
       }
     };
     try {
       await createType({
-        name: 'note',
-        singular: 'Note',
-        plural: 'Notes',
-        schema: getTypeSchema(noteContent),
-        hash: await getTypeHash(noteContent)
+        id: 'note@1',
+        baseId: 'note',
+        version: 1,
+        name: 'Note',
+        schema: noteSchema,
+        schemaHash: await getTypeHash(noteSchema)
       });
     } catch (e: unknown) {
       const err = e as Error;
-      console.error(`Couldn't create note: ${err.message}`);
+      console.error(`Couldn't create note type: ${err.message}`);
     }
 
-    console.info('Creating article...');
-    const articleContent = {
+    console.info('Creating article type...');
+    const articleSchema = {
       properties: {
         title: { type: 'string' },
         slug: { type: 'string' },
         tags: { type: 'string' },
-        text: { type: 'string' }
+        text: { type: 'string' },
+        attachments: attachmentsSchema
       }
     };
     try {
       await createType({
-        name: 'article',
-        singular: 'Article',
-        plural: 'Articles',
-        schema: getTypeSchema(articleContent),
-        hash: await getTypeHash(articleContent)
+        id: 'article@1',
+        baseId: 'article',
+        version: 1,
+        name: 'Article',
+        schema: articleSchema,
+        schemaHash: await getTypeHash(articleSchema)
       });
     } catch (e: unknown) {
       const err = e as Error;
-      console.error(`Couldn't create article: ${err.message}`);
+      console.error(`Couldn't create article type: ${err.message}`);
     }
 
-    console.info('Creating page...');
-    const pageContent = {
+    console.info('Creating page type...');
+    const pageSchema = {
       properties: {
         title: { type: 'string' },
         slug: { type: 'string' },
-        text: { type: 'string' }
+        text: { type: 'string' },
+        attachments: attachmentsSchema
       }
     };
     try {
       await createType({
-        name: 'page',
-        singular: 'Page',
-        plural: 'Pages',
-        schema: getTypeSchema(pageContent),
-        hash: await getTypeHash(pageContent)
+        id: 'page@1',
+        baseId: 'page',
+        version: 1,
+        name: 'Page',
+        schema: pageSchema,
+        schemaHash: await getTypeHash(pageSchema)
       });
     } catch (e: unknown) {
       const err = e as Error;
-      console.error(`Couldn't create page: ${err.message}`);
+      console.error(`Couldn't create page type: ${err.message}`);
     }
   });
 

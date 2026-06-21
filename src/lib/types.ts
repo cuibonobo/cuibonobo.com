@@ -8,10 +8,9 @@ export enum ResourceTypeName {
 
 export interface ResourceBase {
   id: string;
-  created_date: Date;
-  updated_date: Date;
+  createdAt: Date;
+  updatedAt: Date;
   attachments: Attachment[];
-  is_public?: boolean;
 }
 export interface PageType extends ResourceBase {
   type: ResourceTypeName.Page;
@@ -67,30 +66,3 @@ export interface JSONObject {
 
 export interface JSONArray extends Array<JSONValue> {}
 
-export const jsonToResourceType = <T>(json: JSONObject): ResourceType<T> => {
-  const resource = {
-    ...json,
-    created_date: new Date(json['created_date'] as string),
-    updated_date: new Date(json['updated_date'] as string),
-    attachments:
-      typeof json['attachments'] == 'string'
-        ? (JSON.parse(json['attachments']) as Attachment[])
-        : json['attachments'],
-    content:
-      typeof json['content'] == 'string'
-        ? (JSON.parse(json['content']) as JSONObject)
-        : json['content']
-  };
-  return resource as ResourceType<T>;
-};
-
-export const resourceTypeToJson = <T extends ResourceTypeName>(
-  resource: ResourceType<T>
-): JSONObject => {
-  const json: JSONObject = {
-    ...resource,
-    attachments: JSON.stringify(resource.attachments),
-    content: JSON.stringify(resource.content)
-  };
-  return json;
-};

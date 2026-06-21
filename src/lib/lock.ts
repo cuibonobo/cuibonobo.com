@@ -1,5 +1,5 @@
 import path from 'path';
-import { ResourceTypeName, ResourceType, resourceTypeToJson } from './types';
+import { ResourceTypeName, ResourceType } from './types';
 import { getResource, createResource, updateResource, getResourceBySlug } from './api';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists, readDir } from './fs';
 import { getDefaultResourceData, getFrontMatter, appendDataToResource } from './resources';
@@ -24,7 +24,6 @@ export const lockCreate = async <T extends ResourceTypeName>(
   resourceType: T
 ): Promise<LockData> => {
   const resource = getDefaultResourceData(resourceType);
-  resource.is_public = true;
   return await lockResource(resource, LockMode.New);
 };
 
@@ -77,7 +76,7 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
     }
   }
   if (lockData.mode === LockMode.Edit) {
-    resource.updated_date = new Date();
+    resource.updatedAt = new Date();
   }
   const dataDir = path.dirname(lockData.lockedFilePath);
   // Collect absolute paths of all files in the data directory that aren't the locked resource file
@@ -86,9 +85,9 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
     .filter((f) => f !== lockData.lockedFilePath);
   resource.attachments = await uploadFiles(files, 'content:text');
   if (lockData.mode === LockMode.New) {
-    await createResource(resourceTypeToJson(resource));
+    await createResource(resource);
   } else {
-    await updateResource(resource.id, resourceTypeToJson(resource));
+    await updateResource(resource.id, resource);
   }
   await lockDelete();
 };
