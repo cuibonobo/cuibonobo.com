@@ -11,6 +11,7 @@ export interface ResourceBase {
   createdAt: Date;
   updatedAt: Date;
   attachments: Attachment[];
+  parentId?: string;
 }
 export interface PageType extends ResourceBase {
   type: ResourceTypeName.Page;
@@ -25,7 +26,6 @@ export interface ArticleType extends ResourceBase {
   content: {
     title: string;
     tags: string;
-    slug: string;
     text: string;
   };
 }
@@ -43,6 +43,19 @@ export type ResourceType<T> = T extends ResourceTypeName.Page
     : T extends ResourceTypeName.Note
       ? NoteType
       : never;
+
+// Site generator system type — not a user content resource
+export interface PageMetaType {
+  id: string;
+  parentId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  content: {
+    slug: string;
+    publishedAt?: string;
+    summary?: string;
+  };
+}
 
 interface ContentKeyItem {
   id: string;

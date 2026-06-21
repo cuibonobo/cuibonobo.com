@@ -3,8 +3,8 @@ import moment from 'moment';
 import xml from 'xml-js';
 import { writeFile, ensureDir } from './fs';
 import { getResourceUrl } from './site';
-import { getAllResources } from './api';
-import { ResourceType, ResourceTypeName } from './types';
+import { getAllResources, buildPageMetaMap } from './api';
+import { ResourceType, ResourceTypeName, PageMetaType } from './types';
 
 export const writeSitemap = async (origin: string): Promise<void> => {
   const sitemap = await getSitemap(origin);
@@ -14,6 +14,7 @@ export const writeSitemap = async (origin: string): Promise<void> => {
 
 const getSitemap = async (origin: string): Promise<string> => {
   const resources = await getAllResources();
+  const pageMetaMap = await buildPageMetaMap();
   return xml.js2xml(
     {
       declaration: {
@@ -29,7 +30,7 @@ const getSitemap = async (origin: string): Promise<string> => {
           attributes: {
             xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9'
           },
-          elements: resources.map((p) => getUrlElement(origin, p))
+          elements: resources.map((p) => getUrlElement(origin, p, pageMetaMap))
         }
       ]
     },
@@ -39,7 +40,8 @@ const getSitemap = async (origin: string): Promise<string> => {
 
 const getUrlElement = <T extends ResourceTypeName>(
   origin: string,
-  resource: ResourceType<T>
+  resource: ResourceType<T>,
+  pageMetaMap: Map<string, PageMetaType>
 ): xml.Element => {
   return {
     type: 'element',
@@ -51,7 +53,7 @@ const getUrlElement = <T extends ResourceTypeName>(
         elements: [
           {
             type: 'text',
-            text: getResourceUrl(origin, resource)
+            text: getResourceUrl(origin, resource, pageMetaMap)
           }
         ]
       },

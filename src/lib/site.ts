@@ -1,8 +1,8 @@
 import moment from 'moment';
 import mustache from 'mustache';
 import path from 'path';
-import { getResourcesByType } from './api';
-import { ArticleType, NoteType, PageType, ResourceTypeName, ResourceType } from './types';
+import { getResourcesByType, buildPageMetaMap } from './api';
+import { ArticleType, NoteType, PageType, PageMetaType, ResourceTypeName, ResourceType } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
 import { markdownToHtml, escapeRegExp } from './parser';
 import { getBaseServerUrl } from './media';
@@ -42,9 +42,10 @@ export const writeSitePages = async (outputDir: string) => {
   const articleDir = path.join(outputDir, 'articles');
   await ensureDir(articleDir);
   const articleResources = await getResourcesByType(ResourceTypeName.Article);
+  const pageMetaMap = await buildPageMetaMap();
   console.info(`Found ${articleResources.length} articles...`);
   const articlesIdxPath = path.join(articleDir, 'index.html');
-  const articlesIdxBody = getArticleCollection(articleResources);
+  const articlesIdxBody = getArticleCollection(articleResources, pageMetaMap);
   const articlesIdxNav = getMainMenu(articleResources[0]);
   await writeFile(
     articlesIdxPath,
@@ -56,7 +57,8 @@ export const writeSitePages = async (outputDir: string) => {
   );
   for (let i = 0; i < articleResources.length; i++) {
     const resource = articleResources[i];
-    const resourceDir = path.join(articleDir, resource.content.slug);
+    const slug = pageMetaMap.get(resource.id)?.content.slug ?? resource.id;
+    const resourceDir = path.join(articleDir, slug);
     await ensureDir(resourceDir);
     const resourcePath = path.join(resourceDir, 'index.html');
     const pageBody = await getArticle(resource);
@@ -187,10 +189,14 @@ const getArticle = async (resource: ArticleType): Promise<string> => {
   );
 };
 
-const getArticleCollection = (resources: ArticleType[]): string => {
+const getArticleCollection = (
+  resources: ArticleType[],
+  pageMetaMap: Map<string, PageMetaType>
+): string => {
   let listItems: string = '';
   for (let i = 0; i < resources.length; i++) {
-    listItems += `<li><a href="/articles/${resources[i].content.slug}/">${resources[i].content.title}</a></li>\n`;
+    const slug = pageMetaMap.get(resources[i].id)?.content.slug ?? resources[i].id;
+    listItems += `<li><a href="/articles/${slug}/">${resources[i].content.title}</a></li>\n`;
   }
   const body = `<ul>${listItems}</ul>`;
   return getBody('Articles', body);
@@ -239,17 +245,19 @@ const getEphemeraMetaTitle = (resource: NoteType): string => {
 
 export const getResourceUrl = <T extends ResourceTypeName>(
   origin: string,
-  resource: ResourceType<T>
+  resource: ResourceType<T>,
+  pageMetaMap?: Map<string, PageMetaType>
 ): string => {
-  let path = '';
+  let urlPath = '';
   if (resource.type === ResourceTypeName.Page) {
-    path = resource.content.slug === 'index' ? '/' : `/${resource.content.slug}`;
+    urlPath = resource.content.slug === 'index' ? '/' : `/${resource.content.slug}`;
   } else if (resource.type === ResourceTypeName.Article) {
-    path = `/articles/${resource.content.slug}`;
+    const slug = pageMetaMap?.get(resource.id)?.content.slug ?? resource.id;
+    urlPath = `/articles/${slug}`;
   } else if (resource.type === ResourceTypeName.Note) {
-    path = `/ephemera/${resource.id}`;
+    urlPath = `/ephemera/${resource.id}`;
   }
-  return new URL(path, origin).href;
+  return new URL(urlPath, origin).href;
 };
 
 const getMainMenu = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {

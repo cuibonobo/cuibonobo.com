@@ -9,8 +9,15 @@ const yamlPlaceholder = '.';
 
 class ResourceError extends Error {}
 
-export const getFrontMatter = <T extends ResourceTypeName>(resource: ResourceType<T>): string => {
-  const yamlData: Record<string, unknown> = { ...resource.content };
+export const parseFrontmatter = (str: string): Record<string, unknown> => {
+  return matter(str).data;
+};
+
+export const getFrontMatter = <T extends ResourceTypeName>(
+  resource: ResourceType<T>,
+  extraFields?: Record<string, unknown>
+): string => {
+  const yamlData: Record<string, unknown> = { ...resource.content, ...extraFields };
   delete yamlData.text;
   let yamlLines: string[] = [];
   if (Object.keys(yamlData).length > 0) {
@@ -42,10 +49,12 @@ export const appendDataToResource = <T extends ResourceTypeName>(
 ): ResourceType<T> => {
   const fileData = matter(str);
   resource.content.text = fileData.content.trim();
-  if (resource.type !== ResourceTypeName.Note) {
+  if (resource.type === ResourceTypeName.Page || resource.type === ResourceTypeName.Article) {
     resource.content.title = !isBlankFrontmatter(fileData.data, 'title')
       ? <string>fileData.data.title
       : `${capitalize(resource.type)} ${resource.id}`;
+  }
+  if (resource.type === ResourceTypeName.Page) {
     const slug = !isBlankFrontmatter(fileData.data, 'slug')
       ? <string>fileData.data.slug
       : slugger(resource.content.title);
@@ -87,7 +96,6 @@ export const getDefaultResourceData = <T extends ResourceTypeName>(
         content: {
           title: yamlPlaceholder,
           tags: yamlPlaceholder,
-          slug: yamlPlaceholder,
           text: ''
         }
       };

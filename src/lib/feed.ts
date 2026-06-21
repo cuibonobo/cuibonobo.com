@@ -1,8 +1,8 @@
 import path from 'path';
 import { Author, Feed, Item } from 'feed';
 import { getResourceUrl } from './site';
-import { getAllResources, getResourcesByType } from './api';
-import { ResourceType, ResourceTypeName } from './types';
+import { getAllResources, getResourcesByType, buildPageMetaMap } from './api';
+import { ResourceType, ResourceTypeName, PageMetaType } from './types';
 import { writeFile, ensureDir } from './fs';
 import { markdownToHtml } from './parser';
 
@@ -22,18 +22,21 @@ interface FeedLink {
 }
 
 export const writeFeeds = async (originUrl: string, itemLimit = 10): Promise<void> => {
-  const allResourcesFeed = await getAllResourcesFeed(originUrl, itemLimit);
+  const pageMetaMap = await buildPageMetaMap();
+  const allResourcesFeed = await getAllResourcesFeed(originUrl, itemLimit, pageMetaMap);
   const ephemeraFeed = await getResourceTypeFeed(
     'ephemera',
     ResourceTypeName.Note,
     originUrl,
-    itemLimit
+    itemLimit,
+    pageMetaMap
   );
   const articleFeed = await getResourceTypeFeed(
     'article',
     ResourceTypeName.Article,
     originUrl,
-    itemLimit
+    itemLimit,
+    pageMetaMap
   );
   await ensureDir(path.resolve('static'));
   await writeFeed(allResourcesFeed);
@@ -46,7 +49,11 @@ const writeFeed = async (feed: Feed): Promise<void> => {
   await writeFile(getFeedPath(feed, FeedType.Json), feed.json1());
 };
 
-const getAllResourcesFeed = async (originUrl: string, itemLimit: number): Promise<Feed> => {
+const getAllResourcesFeed = async (
+  originUrl: string,
+  itemLimit: number,
+  pageMetaMap: Map<string, PageMetaType>
+): Promise<Feed> => {
   const { origin, author, feed } = getBaseFeedParts(originUrl);
   feed.options.description = "cuibonobo's personal website feed: all resources";
   feed.options.feedLinks = {
@@ -58,7 +65,7 @@ const getAllResourcesFeed = async (originUrl: string, itemLimit: number): Promis
     .sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
   resources.splice(itemLimit, resources.length - itemLimit);
   for (let i = 0; i < resources.length; i++) {
-    const feedItem = await getFeedItem(resources[i], originUrl, author);
+    const feedItem = await getFeedItem(resources[i], originUrl, author, pageMetaMap);
     feed.addItem(feedItem);
   }
   return feed;
@@ -68,7 +75,8 @@ const getResourceTypeFeed = async (
   feedName: string,
   resourceType: ResourceTypeName,
   originUrl: string,
-  itemLimit: number
+  itemLimit: number,
+  pageMetaMap: Map<string, PageMetaType>
 ): Promise<Feed> => {
   const { origin, author, feed } = getBaseFeedParts(originUrl);
   feed.options.description = `cuibonobo's personal website feed: ${feedName}`;
@@ -81,7 +89,7 @@ const getResourceTypeFeed = async (
   );
   resources.splice(itemLimit, resources.length - itemLimit);
   for (let i = 0; i < resources.length; i++) {
-    feed.addItem(await getFeedItem(resources[i], originUrl, author));
+    feed.addItem(await getFeedItem(resources[i], originUrl, author, pageMetaMap));
   }
   return feed;
 };
@@ -89,13 +97,14 @@ const getResourceTypeFeed = async (
 const getFeedItem = async <T extends ResourceTypeName>(
   resource: ResourceType<T>,
   originUrl: string,
-  author: Author
+  author: Author,
+  pageMetaMap: Map<string, PageMetaType>
 ): Promise<Item> => {
   return {
     title:
       resource.type === ResourceTypeName.Note ? `Ephemera: ${resource.id}` : resource.content.title,
     id: resource.id,
-    link: getResourceUrl(originUrl, resource),
+    link: getResourceUrl(originUrl, resource, pageMetaMap),
     content: await markdownToHtml(resource.content.text),
     author: [author],
     date: resource.createdAt,

@@ -1,9 +1,24 @@
 import path from 'path';
 import { ResourceTypeName, ResourceType } from './types';
-import { getResource, createResource, updateResource, getResourceBySlug } from './api';
+import {
+  getResource,
+  createResource,
+  updateResource,
+  getResourceBySlug,
+  getPageMetaForRecord,
+  getPageMetaBySlug,
+  createPageMeta,
+  updatePageMeta
+} from './api';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists, readDir } from './fs';
-import { getDefaultResourceData, getFrontMatter, appendDataToResource } from './resources';
+import {
+  getDefaultResourceData,
+  getFrontMatter,
+  appendDataToResource,
+  parseFrontmatter
+} from './resources';
 import { downloadAttachments, uploadFiles } from './media';
+import { slugger } from './slugger';
 import * as errors from './errors';
 
 const lockFileName = '.lock';
@@ -24,21 +39,29 @@ export const lockCreate = async <T extends ResourceTypeName>(
   resourceType: T
 ): Promise<LockData> => {
   const resource = getDefaultResourceData(resourceType);
-  return await lockResource(resource, LockMode.New);
+  const extraFields =
+    resourceType === ResourceTypeName.Article ? { slug: '.' } : undefined;
+  return await lockResource(resource, LockMode.New, extraFields);
 };
 
 export const lockEdit = async (resourceId: string): Promise<LockData> => {
   const resource = await getResource(resourceId);
-  return await lockResource(resource, LockMode.Edit);
+  let extraFields: Record<string, unknown> | undefined;
+  if (resource.type === ResourceTypeName.Article) {
+    const meta = await getPageMetaForRecord(resource.id);
+    extraFields = { slug: meta?.content.slug ?? '.' };
+  }
+  return await lockResource(resource, LockMode.Edit, extraFields);
 };
 
 const lockResource = async <T extends ResourceTypeName>(
   resource: ResourceType<T>,
-  mode: LockMode
+  mode: LockMode,
+  extraFields?: Record<string, unknown>
 ): Promise<LockData> => {
   await throwOnLock();
   const editorDir = await mkTempDir();
-  const frontMatter = getFrontMatter(resource);
+  const frontMatter = getFrontMatter(resource, extraFields);
   const lockedFilePath = path.join(editorDir, `${resource.id}.md`);
   await downloadAttachments(resource.attachments, editorDir);
   await writeFile(lockedFilePath, frontMatter + resource.content.text);
@@ -63,9 +86,11 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
   }
   const fileStr: string = await readFile(lockData.lockedFilePath, 'utf-8');
   resource = appendDataToResource(resource, fileStr);
-  if (resource.type !== ResourceTypeName.Note) {
+
+  // Slug uniqueness check for pages (pages carry slug in content)
+  if (resource.type === ResourceTypeName.Page) {
     try {
-      const slugmatch = await getResourceBySlug(resource.content.slug.toString(), resource.type);
+      const slugmatch = await getResourceBySlug(resource.content.slug, ResourceTypeName.Page);
       if (slugmatch.id !== resource.id) {
         throw new errors.ResourceError(
           `The slug '${resource.content.slug}' already exists for resource ${slugmatch.id}!`
@@ -75,6 +100,7 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
       // Continue if no slug matches were found
     }
   }
+
   if (lockData.mode === LockMode.Edit) {
     resource.updatedAt = new Date();
   }
@@ -89,6 +115,27 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
   } else {
     await updateResource(resource.id, resource);
   }
+
+  // Articles use page-meta to store slug
+  if (resource.type === ResourceTypeName.Article) {
+    const frontmatterData = parseFrontmatter(fileStr);
+    const rawSlug = frontmatterData.slug as string | undefined;
+    const slug =
+      rawSlug && rawSlug !== '.' ? rawSlug : slugger(resource.content.title);
+
+    const existingBySlug = await getPageMetaBySlug(slug);
+    if (existingBySlug && existingBySlug.parentId !== resource.id) {
+      throw new errors.ResourceError(`The slug '${slug}' already exists!`);
+    }
+
+    const existingMeta = await getPageMetaForRecord(resource.id);
+    if (existingMeta) {
+      await updatePageMeta(existingMeta.id, slug);
+    } else {
+      await createPageMeta(resource.id, slug);
+    }
+  }
+
   await lockDelete();
 };
 

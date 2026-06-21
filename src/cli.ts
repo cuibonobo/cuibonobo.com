@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { ResourceTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { getResourcesByType, deleteResource, getResource, createType } from './lib/api';
+import { getResourcesByType, deleteResource, getResource, createType, getPageMetaForRecord } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { getFrontMatter } from './lib/resources';
 import { slugger } from './lib/slugger';
@@ -62,7 +62,12 @@ program
   .action(async (resourceId: string) => {
     try {
       const resource = await getResource(resourceId);
-      const frontMatter = getFrontMatter(resource);
+      let extraFields: Record<string, unknown> | undefined;
+      if (resource.type === ResourceTypeName.Article) {
+        const meta = await getPageMetaForRecord(resource.id);
+        extraFields = { slug: meta?.content.slug ?? '(none)' };
+      }
+      const frontMatter = getFrontMatter(resource, extraFields);
       console.info(frontMatter);
       console.info(resource.content.text);
     } catch (e) {
@@ -165,7 +170,6 @@ program
     const articleSchema = {
       properties: {
         title: { type: 'string' },
-        slug: { type: 'string' },
         tags: { type: 'string' },
         text: { type: 'string' },
         attachments: attachmentsSchema
@@ -183,6 +187,28 @@ program
     } catch (e: unknown) {
       const err = e as Error;
       console.error(`Couldn't create article type: ${err.message}`);
+    }
+
+    console.info('Creating page-meta type...');
+    const pageMetaSchema = {
+      properties: {
+        slug: { type: 'string' },
+        publishedAt: { type: 'string' },
+        summary: { type: 'string' }
+      }
+    };
+    try {
+      await createType({
+        id: 'site.gen/page-meta@1',
+        baseId: 'site.gen/page-meta',
+        version: 1,
+        name: 'Page Meta',
+        schema: pageMetaSchema,
+        schemaHash: await getTypeHash(pageMetaSchema)
+      });
+    } catch (e: unknown) {
+      const err = e as Error;
+      console.error(`Couldn't create page-meta type: ${err.message}`);
     }
 
     console.info('Creating page type...');

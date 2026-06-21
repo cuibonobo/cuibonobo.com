@@ -1,4 +1,4 @@
-import { ResourceTypeName, ResourceType } from './types';
+import { ResourceTypeName, ResourceType, PageMetaType } from './types';
 import { Attachment } from '@codec/attachment';
 import * as errors from './errors';
 import { getAuthHeaders } from './auth';
@@ -65,6 +65,8 @@ export const toTypeId = (type: ResourceTypeName): string => `${type}@1`;
 
 const CONTENT_TYPE_BASES = new Set<string>(Object.values(ResourceTypeName));
 
+const PAGE_META_TYPE_ID = 'site.gen/page-meta@1';
+
 // ---------------------------------------------------------------------------
 // Wire → app model
 // ---------------------------------------------------------------------------
@@ -82,9 +84,18 @@ const wireToResource = <T extends ResourceTypeName>(wire: WireRecord): ResourceT
     createdAt: new Date(wire.createdAt),
     updatedAt: new Date(wire.updatedAt),
     attachments,
+    parentId: wire.parentId,
     content
   } as unknown as ResourceType<T>;
 };
+
+const wireToPageMeta = (wire: WireRecord): PageMetaType => ({
+  id: wire.id,
+  parentId: wire.parentId,
+  createdAt: new Date(wire.createdAt),
+  updatedAt: new Date(wire.updatedAt),
+  content: wire.content as PageMetaType['content']
+});
 
 // Merge typed content with attachments array for API writes
 const toWireContent = <T extends ResourceTypeName>(
@@ -203,6 +214,55 @@ export const updateResource = async <T extends ResourceTypeName>(
 
 export const deleteResource = async (resourceId: string): Promise<void> => {
   await deleteReq(getUrl(`records/${resourceId}`));
+};
+
+export const getPageMetaForRecord = async (parentId: string): Promise<PageMetaType | null> => {
+  const result = await postJson<WireListResult>(getUrl('records/query'), {
+    filter: { typeId: PAGE_META_TYPE_ID, parentId }
+  });
+  if (!result.records.length) return null;
+  return wireToPageMeta(result.records[0]);
+};
+
+export const getPageMetaBySlug = async (slug: string): Promise<PageMetaType | null> => {
+  const result = await postJson<WireListResult>(getUrl('records/query'), {
+    filter: { typeId: PAGE_META_TYPE_ID, content: { slug } }
+  });
+  if (!result.records.length) return null;
+  return wireToPageMeta(result.records[0]);
+};
+
+export const getAllPageMeta = async (): Promise<PageMetaType[]> => {
+  const result = await getJson<WireListResult>(
+    getUrl(`records?typeId=${encodeURIComponent(PAGE_META_TYPE_ID)}`)
+  );
+  return result.records.map((r) => wireToPageMeta(r));
+};
+
+export const createPageMeta = async (parentId: string, slug: string): Promise<PageMetaType> => {
+  const created = await postJson<WireRecord>(getUrl('records'), {
+    typeId: PAGE_META_TYPE_ID,
+    parentId,
+    content: { slug },
+    permissions: [{ access: 'public' }]
+  });
+  return wireToPageMeta(created);
+};
+
+export const updatePageMeta = async (metaId: string, slug: string): Promise<PageMetaType> => {
+  const updated = await patchJson<WireRecord>(getUrl(`records/${metaId}`), {
+    content: { slug }
+  });
+  return wireToPageMeta(updated);
+};
+
+export const buildPageMetaMap = async (): Promise<Map<string, PageMetaType>> => {
+  const allMeta = await getAllPageMeta();
+  const map = new Map<string, PageMetaType>();
+  for (const meta of allMeta) {
+    if (meta.parentId) map.set(meta.parentId, meta);
+  }
+  return map;
 };
 
 export const getAllTypes = async (): Promise<WireType[]> => {
