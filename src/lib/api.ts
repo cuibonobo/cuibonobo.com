@@ -1,104 +1,72 @@
+import dotenv from 'dotenv';
+import { APIAdapter } from '@haverstack/adapter-api';
+import { hashSchema as _hashSchema } from '@haverstack/core';
+import type { StackRecord, StackType, TypeSchema } from '@haverstack/core';
 import { ResourceTypeName, ResourceType, PageMetaType } from './types';
 import { Attachment } from '@codec/attachment';
+import { generateId } from './id';
 import * as errors from './errors';
-import { getAuthHeaders } from './auth';
+
+dotenv.config();
+
+export type { WireType } from '@haverstack/wire-types';
 
 // ---------------------------------------------------------------------------
-// Wire types (haverstack server format)
+// Adapter singleton
 // ---------------------------------------------------------------------------
 
-interface WireRecord {
-  id: string;
-  typeId: string;
-  createdAt: string;
-  updatedAt: string;
-  content: Record<string, unknown>;
-  version: number;
-  parentId?: string;
-  entityId?: string;
-  appId?: string;
-  deletedAt?: string;
-  permissions?: unknown[];
-  associations?: unknown[];
-}
+let _adapter: APIAdapter | null = null;
 
-interface WireListResult {
-  records: WireRecord[];
-  cursor?: string;
-  total: number;
-}
-
-export interface WireType {
-  id: string;
-  baseId: string;
-  version: number;
-  name: string;
-  schema: Record<string, unknown>;
-  schemaHash: string;
-  migratesFrom?: string;
-  createdAt: string;
-}
-
-export interface TypeCreate {
-  id: string;
-  baseId: string;
-  version: number;
-  name: string;
-  schema: Record<string, unknown>;
-  schemaHash: string;
-}
-
-// ---------------------------------------------------------------------------
-// URL helpers
-// ---------------------------------------------------------------------------
-
-const getBaseUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
+const getAdapter = async (): Promise<APIAdapter> => {
+  if (!_adapter) {
+    _adapter = await APIAdapter.open({
+      url: process.env.STACK_SERVER_URL ?? 'http://127.0.0.1:3000',
+      token: process.env.API_TOKEN
+    });
   }
-  return process.env.STACK_SERVER_URL ?? 'http://127.0.0.1:3000';
+  return _adapter;
 };
 
-const getUrl = (path: string): string => `${getBaseUrl()}/${path}`;
+// ---------------------------------------------------------------------------
+// Type helpers
+// ---------------------------------------------------------------------------
 
 export const toTypeId = (type: ResourceTypeName): string => `${type}@1`;
 
 const CONTENT_TYPE_BASES = new Set<string>(Object.values(ResourceTypeName));
-
 const PAGE_META_TYPE_ID = 'site.gen/page-meta@1';
 
 // ---------------------------------------------------------------------------
-// Wire → app model
+// Model converters
 // ---------------------------------------------------------------------------
 
-const wireToResource = <T extends ResourceTypeName>(wire: WireRecord): ResourceType<T> => {
-  const rawContent = wire.content;
+const stackToResource = <T extends ResourceTypeName>(record: StackRecord): ResourceType<T> => {
+  const rawContent = record.content;
   const attachments: Attachment[] = Array.isArray(rawContent.attachments)
     ? (rawContent.attachments as Attachment[])
     : [];
-  // Strip the stored attachments array so typed content fields are clean
   const { attachments: _a, ...content } = rawContent;
   return {
-    id: wire.id,
-    type: wire.typeId.split('@')[0] as ResourceTypeName,
-    createdAt: new Date(wire.createdAt),
-    updatedAt: new Date(wire.updatedAt),
+    id: record.id,
+    type: record.typeId.split('@')[0] as ResourceTypeName,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
     attachments,
-    parentId: wire.parentId,
+    parentId: record.parentId,
     content
   } as unknown as ResourceType<T>;
 };
 
-const wireToPageMeta = (wire: WireRecord): PageMetaType => ({
-  id: wire.id,
-  parentId: wire.parentId,
-  createdAt: new Date(wire.createdAt),
-  updatedAt: new Date(wire.updatedAt),
-  content: wire.content as PageMetaType['content']
+const stackToPageMeta = (record: StackRecord): PageMetaType => ({
+  id: record.id,
+  parentId: record.parentId,
+  createdAt: record.createdAt,
+  updatedAt: record.updatedAt,
+  content: record.content as PageMetaType['content']
 });
 
-// Merge typed content with attachments array for API writes
-const toWireContent = <T extends ResourceTypeName>(
+// Merge typed content with attachments array for storage
+const toRecordContent = <T extends ResourceTypeName>(
   resource: ResourceType<T>
 ): Record<string, unknown> => ({
   ...resource.content,
@@ -106,62 +74,24 @@ const toWireContent = <T extends ResourceTypeName>(
 });
 
 // ---------------------------------------------------------------------------
-// HTTP helpers
-// ---------------------------------------------------------------------------
-
-const throwOnError = async (response: Response): Promise<void> => {
-  if (response.status < 200 || response.status >= 400) {
-    throw new Error(`Error at '${response.url}': ${await response.text()}`);
-  }
-};
-
-const getJson = async <T>(url: string): Promise<T> => {
-  const response = await fetch(url, { headers: getAuthHeaders() });
-  await throwOnError(response);
-  return response.json() as Promise<T>;
-};
-
-const postJson = async <T>(url: string, data: unknown): Promise<T> => {
-  const response = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
-  });
-  await throwOnError(response);
-  return response.json() as Promise<T>;
-};
-
-const patchJson = async <T>(url: string, data: unknown): Promise<T> => {
-  const response = await fetch(url, {
-    method: 'PATCH',
-    body: JSON.stringify(data),
-    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
-  });
-  await throwOnError(response);
-  return response.json() as Promise<T>;
-};
-
-const deleteReq = async (url: string): Promise<void> => {
-  const response = await fetch(url, { method: 'DELETE', headers: getAuthHeaders() });
-  await throwOnError(response);
-};
-
-// ---------------------------------------------------------------------------
-// Public API
+// Content resource CRUD
 // ---------------------------------------------------------------------------
 
 export const getAllResources = async <T extends ResourceTypeName>(): Promise<ResourceType<T>[]> => {
-  const result = await getJson<WireListResult>(getUrl('records'));
+  const adapter = await getAdapter();
+  const result = await adapter.queryRecords({});
   return result.records
     .filter((r) => CONTENT_TYPE_BASES.has(r.typeId.split('@')[0]))
-    .map((r) => wireToResource<T>(r));
+    .map((r) => stackToResource<T>(r));
 };
 
 export const getResource = async <T extends ResourceTypeName>(
   resourceId: string
 ): Promise<ResourceType<T>> => {
-  const wire = await getJson<WireRecord>(getUrl(`records/${resourceId}`));
-  return wireToResource<T>(wire);
+  const adapter = await getAdapter();
+  const record = await adapter.getRecord(resourceId);
+  if (!record) throw new errors.ResourceNotFoundError(`Record '${resourceId}' not found`);
+  return stackToResource<T>(record);
 };
 
 export const getResourceBySlug = async <T extends ResourceTypeName>(
@@ -171,7 +101,8 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
   if (resourceType === ResourceTypeName.Note) {
     throw new errors.ResourceTypeError('Notes do not have slugs!');
   }
-  const result = await postJson<WireListResult>(getUrl('records/query'), {
+  const adapter = await getAdapter();
+  const result = await adapter.queryRecords({
     filter: { typeId: toTypeId(resourceType), content: { slug } }
   });
   if (!result.records.length) {
@@ -179,81 +110,104 @@ export const getResourceBySlug = async <T extends ResourceTypeName>(
       `No ${resourceType} resources contain slug '${slug}'!`
     );
   }
-  return wireToResource<T>(result.records[0]);
+  return stackToResource<T>(result.records[0]);
 };
 
 export const getResourcesByType = async <T extends ResourceTypeName>(
   resourceType: T
 ): Promise<ResourceType<T>[]> => {
-  const result = await getJson<WireListResult>(
-    getUrl(`records?typeId=${encodeURIComponent(toTypeId(resourceType))}`)
-  );
-  return result.records.map((r) => wireToResource<T>(r));
+  const adapter = await getAdapter();
+  const result = await adapter.queryRecords({
+    filter: { typeId: toTypeId(resourceType) }
+  });
+  return result.records.map((r) => stackToResource<T>(r));
 };
 
 export const createResource = async <T extends ResourceTypeName>(
   resource: ResourceType<T>
 ): Promise<ResourceType<T>> => {
-  const created = await postJson<WireRecord>(getUrl('records'), {
+  const adapter = await getAdapter();
+  const record: StackRecord = {
+    id: resource.id,
     typeId: toTypeId(resource.type),
-    content: toWireContent(resource),
+    content: toRecordContent(resource),
+    createdAt: resource.createdAt,
+    updatedAt: resource.updatedAt,
+    version: 1,
+    parentId: resource.parentId,
     permissions: [{ access: 'public' }]
-  });
-  return wireToResource<T>(created);
+  };
+  const created = await adapter.createRecord(record);
+  return stackToResource<T>(created);
 };
 
 export const updateResource = async <T extends ResourceTypeName>(
   resourceId: string,
   resource: ResourceType<T>
 ): Promise<ResourceType<T>> => {
-  const updated = await patchJson<WireRecord>(getUrl(`records/${resourceId}`), {
-    content: toWireContent(resource)
+  const adapter = await getAdapter();
+  const updated = await adapter.updateRecord(resourceId, {
+    content: toRecordContent(resource)
   });
-  return wireToResource<T>(updated);
+  return stackToResource<T>(updated);
 };
 
 export const deleteResource = async (resourceId: string): Promise<void> => {
-  await deleteReq(getUrl(`records/${resourceId}`));
+  const adapter = await getAdapter();
+  await adapter.deleteRecord(resourceId);
 };
 
+// ---------------------------------------------------------------------------
+// Page-meta (site.gen/page-meta@1)
+// ---------------------------------------------------------------------------
+
 export const getPageMetaForRecord = async (parentId: string): Promise<PageMetaType | null> => {
-  const result = await postJson<WireListResult>(getUrl('records/query'), {
+  const adapter = await getAdapter();
+  const result = await adapter.queryRecords({
     filter: { typeId: PAGE_META_TYPE_ID, parentId }
   });
   if (!result.records.length) return null;
-  return wireToPageMeta(result.records[0]);
+  return stackToPageMeta(result.records[0]);
 };
 
 export const getPageMetaBySlug = async (slug: string): Promise<PageMetaType | null> => {
-  const result = await postJson<WireListResult>(getUrl('records/query'), {
+  const adapter = await getAdapter();
+  const result = await adapter.queryRecords({
     filter: { typeId: PAGE_META_TYPE_ID, content: { slug } }
   });
   if (!result.records.length) return null;
-  return wireToPageMeta(result.records[0]);
+  return stackToPageMeta(result.records[0]);
 };
 
 export const getAllPageMeta = async (): Promise<PageMetaType[]> => {
-  const result = await getJson<WireListResult>(
-    getUrl(`records?typeId=${encodeURIComponent(PAGE_META_TYPE_ID)}`)
-  );
-  return result.records.map((r) => wireToPageMeta(r));
+  const adapter = await getAdapter();
+  const result = await adapter.queryRecords({
+    filter: { typeId: PAGE_META_TYPE_ID }
+  });
+  return result.records.map(stackToPageMeta);
 };
 
 export const createPageMeta = async (parentId: string, slug: string): Promise<PageMetaType> => {
-  const created = await postJson<WireRecord>(getUrl('records'), {
+  const adapter = await getAdapter();
+  const now = new Date();
+  const record: StackRecord = {
+    id: generateId(now.getTime()),
     typeId: PAGE_META_TYPE_ID,
     parentId,
     content: { slug },
+    createdAt: now,
+    updatedAt: now,
+    version: 1,
     permissions: [{ access: 'public' }]
-  });
-  return wireToPageMeta(created);
+  };
+  const created = await adapter.createRecord(record);
+  return stackToPageMeta(created);
 };
 
 export const updatePageMeta = async (metaId: string, slug: string): Promise<PageMetaType> => {
-  const updated = await patchJson<WireRecord>(getUrl(`records/${metaId}`), {
-    content: { slug }
-  });
-  return wireToPageMeta(updated);
+  const adapter = await getAdapter();
+  const updated = await adapter.updateRecord(metaId, { content: { slug } });
+  return stackToPageMeta(updated);
 };
 
 export const buildPageMetaMap = async (): Promise<Map<string, PageMetaType>> => {
@@ -265,10 +219,33 @@ export const buildPageMetaMap = async (): Promise<Map<string, PageMetaType>> => 
   return map;
 };
 
-export const getAllTypes = async (): Promise<WireType[]> => {
-  return getJson<WireType[]>(getUrl('types'));
+// ---------------------------------------------------------------------------
+// Type registry
+// ---------------------------------------------------------------------------
+
+export interface TypeCreate {
+  id: string;
+  baseId: string;
+  version: number;
+  name: string;
+  schema: Record<string, unknown>;
+  schemaHash: string;
+}
+
+export const getAllTypes = async (): Promise<StackType[]> => {
+  const adapter = await getAdapter();
+  return adapter.listTypes();
 };
 
-export const createType = async (data: TypeCreate): Promise<WireType> => {
-  return postJson<WireType>(getUrl('types'), data);
+export const hashSchema = (schema: Record<string, unknown>): Promise<string> =>
+  _hashSchema(schema as TypeSchema);
+
+export const createType = async (data: TypeCreate): Promise<void> => {
+  const adapter = await getAdapter();
+  const type: StackType = {
+    ...data,
+    schema: data.schema as TypeSchema,
+    createdAt: new Date()
+  };
+  await adapter.saveType(type);
 };

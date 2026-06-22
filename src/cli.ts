@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { ResourceTypeName } from './lib/types';
 import { MissingLockfileError } from './lib/errors';
 import { openWithEditor, openWithFileExplorer } from './lib/fs';
-import { getResourcesByType, deleteResource, getResource, createType, getPageMetaForRecord } from './lib/api';
+import { getResourcesByType, deleteResource, getResource, createType, getPageMetaForRecord, hashSchema } from './lib/api';
 import { lockCreate, lockEdit, lockCommit, lockRead, lockDelete } from './lib/lock';
 import { getFrontMatter } from './lib/resources';
 import { slugger } from './lib/slugger';
@@ -12,7 +12,6 @@ import { writeSitemap } from './lib/sitemap';
 import { writeFeeds } from './lib/feed';
 import { writeSitePages } from './lib/site';
 import { generateId } from './lib/id';
-import { getTypeHash } from '../codec/type';
 
 const MAX_TEXT_LENGTH = 100;
 
@@ -159,7 +158,7 @@ program
         version: 1,
         name: 'Note',
         schema: noteSchema,
-        schemaHash: await getTypeHash(noteSchema)
+        schemaHash: await hashSchema(noteSchema)
       });
     } catch (e: unknown) {
       const err = e as Error;
@@ -182,7 +181,7 @@ program
         version: 1,
         name: 'Article',
         schema: articleSchema,
-        schemaHash: await getTypeHash(articleSchema)
+        schemaHash: await hashSchema(articleSchema)
       });
     } catch (e: unknown) {
       const err = e as Error;
@@ -204,7 +203,7 @@ program
         version: 1,
         name: 'Page Meta',
         schema: pageMetaSchema,
-        schemaHash: await getTypeHash(pageMetaSchema)
+        schemaHash: await hashSchema(pageMetaSchema)
       });
     } catch (e: unknown) {
       const err = e as Error;
@@ -227,7 +226,7 @@ program
         version: 1,
         name: 'Page',
         schema: pageSchema,
-        schemaHash: await getTypeHash(pageSchema)
+        schemaHash: await hashSchema(pageSchema)
       });
     } catch (e: unknown) {
       const err = e as Error;

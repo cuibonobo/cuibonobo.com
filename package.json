@@ -42,6 +42,9 @@
   },
   "type": "module",
   "dependencies": {
+    "@haverstack/adapter-api": "^0.5.0",
+    "@haverstack/core": "^0.5.0",
+    "@haverstack/wire-types": "^0.5.0",
     "@stdlib/datasets-stopwords-en": "0.2.2",
     "@tailwindcss/typography": "^0.5.15",
     "@types/glob": "^8.1.0",
