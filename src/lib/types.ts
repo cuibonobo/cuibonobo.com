@@ -1,4 +1,4 @@
-import { Attachment } from '@codec/attachment';
+import type { Association } from '@haverstack/core';
 
 export enum ResourceTypeName {
   Page = 'page',
@@ -10,7 +10,7 @@ export interface ResourceBase {
   id: string;
   createdAt: Date;
   updatedAt: Date;
-  attachments: Attachment[];
+  associations: Association[];
   parentId?: string;
 }
 export interface PageType extends ResourceBase {

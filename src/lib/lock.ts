@@ -1,4 +1,5 @@
 import path from 'path';
+import type { AttachmentAssociation } from '@haverstack/core';
 import { ResourceTypeName, ResourceType } from './types';
 import {
   getResource,
@@ -8,7 +9,8 @@ import {
   getPageMetaForRecord,
   getPageMetaBySlug,
   createPageMeta,
-  updatePageMeta
+  updatePageMeta,
+  getStack
 } from './api';
 import { mkTempDir, writeFile, readFile, rm, rmDir, dirExists, fileExists, readDir } from './fs';
 import {
@@ -17,7 +19,7 @@ import {
   appendDataToResource,
   parseFrontmatter
 } from './resources';
-import { downloadAttachments, uploadFiles } from './media';
+import { downloadAttachments, uploadFile } from './media';
 import { slugger } from './slugger';
 import * as errors from './errors';
 
@@ -63,7 +65,10 @@ const lockResource = async <T extends ResourceTypeName>(
   const editorDir = await mkTempDir();
   const frontMatter = getFrontMatter(resource, extraFields);
   const lockedFilePath = path.join(editorDir, `${resource.id}.md`);
-  await downloadAttachments(resource.attachments, editorDir);
+  const attachments = resource.associations.filter(
+    (a): a is AttachmentAssociation => a.kind === 'attachment'
+  );
+  await downloadAttachments(attachments, editorDir);
   await writeFile(lockedFilePath, frontMatter + resource.content.text);
   const lockData: LockData = {
     lockedFilePath,
@@ -109,11 +114,31 @@ export const lockCommit = async <T extends ResourceTypeName>(): Promise<void> =>
   const files = (await readDir(dataDir))
     .map((f) => path.join(dataDir, f))
     .filter((f) => f !== lockData.lockedFilePath);
-  resource.attachments = await uploadFiles(files, 'content:text');
+
+  const stack = await getStack();
+
+  // Capture existing attachment associations before any mutations
+  const existingAttachments = resource.associations.filter(
+    (a): a is AttachmentAssociation => a.kind === 'attachment'
+  );
+
   if (lockData.mode === LockMode.New) {
     await createResource(resource);
   } else {
     await updateResource(resource.id, resource);
+    for (const assoc of existingAttachments) {
+      await stack.dissociate(resource.id, assoc);
+      try {
+        await stack.deleteAttachment(assoc.fileId);
+      } catch {
+        // File may be referenced elsewhere or already deleted
+      }
+    }
+  }
+
+  for (const filePath of files) {
+    const assoc = await uploadFile(filePath);
+    await stack.associate(resource.id, assoc);
   }
 
   // Articles use page-meta to store slug

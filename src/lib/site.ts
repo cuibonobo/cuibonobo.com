@@ -1,6 +1,7 @@
 import moment from 'moment';
 import mustache from 'mustache';
 import path from 'path';
+import type { AttachmentAssociation } from '@haverstack/core';
 import { getResourcesByType, buildPageMetaMap } from './api';
 import { ArticleType, NoteType, PageType, PageMetaType, ResourceTypeName, ResourceType } from './types';
 import { readFile, writeFile, ensureDir } from './fs';
@@ -17,7 +18,7 @@ export const writeSitePages = async (outputDir: string) => {
     createdAt: new Date(),
     updatedAt: new Date(),
     type: ResourceTypeName.Page,
-    attachments: [],
+    associations: [],
     content: {
       slug: '404',
       title: 'Page Not Found',
@@ -121,10 +122,13 @@ const getTextWithAttachments = <T extends ResourceTypeName>(
   resource: ResourceType<T>
 ): Promise<string> => {
   let output = resource.content.text;
-  resource.attachments.forEach((attachment) => {
+  const attachments = resource.associations.filter(
+    (a): a is AttachmentAssociation => a.kind === 'attachment'
+  );
+  attachments.forEach((attachment) => {
     const mediaUrl = new URL(`attachments/${attachment.fileId}`, getBaseServerUrl());
     const mediaRegex = new RegExp(
-      '(\\(|"|\')(' + escapeRegExp(attachment.name) + ')(\\)|"|\'|\\\\"\\\\\')',
+      '(\\(|"|\')(' + escapeRegExp(attachment.label) + ')(\\)|"|\'|\\\\"\\\\\')',
       'g'
     );
     output = output.replace(mediaRegex, '$1' + mediaUrl.href + '$3');

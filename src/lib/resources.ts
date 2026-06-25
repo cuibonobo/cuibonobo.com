@@ -76,7 +76,7 @@ export const getDefaultResourceData = <T extends ResourceTypeName>(
     id: generateId(now.getTime()),
     createdAt: now,
     updatedAt: now,
-    attachments: []
+    associations: []
   };
   switch (resourceType) {
     case ResourceTypeName.Page:

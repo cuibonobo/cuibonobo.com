@@ -142,13 +142,10 @@ program
   .command('init')
   .description('Initialize the stack with starter types')
   .action(async () => {
-    const attachmentsSchema = { elements: { properties: { fileId: { type: 'string' }, name: { type: 'string' }, tag: { type: 'string' } } } };
-
     console.info('Creating note type...');
     const noteSchema = {
       properties: {
-        text: { type: 'string' },
-        attachments: attachmentsSchema
+        text: { type: 'string' }
       }
     };
     try {
@@ -170,8 +167,7 @@ program
       properties: {
         title: { type: 'string' },
         tags: { type: 'string' },
-        text: { type: 'string' },
-        attachments: attachmentsSchema
+        text: { type: 'string' }
       }
     };
     try {
@@ -215,8 +211,7 @@ program
       properties: {
         title: { type: 'string' },
         slug: { type: 'string' },
-        text: { type: 'string' },
-        attachments: attachmentsSchema
+        text: { type: 'string' }
       }
     };
     try {

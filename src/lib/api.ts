@@ -3,7 +3,6 @@ import { APIAdapter } from '@haverstack/adapter-api';
 import { Stack, hashSchema as _hashSchema } from '@haverstack/core';
 import type { StackRecord, StackType, TypeSchema } from '@haverstack/core';
 import { ResourceTypeName, ResourceType, PageMetaType } from './types';
-import { Attachment } from '@codec/attachment';
 import { generateId } from './id';
 import * as errors from './errors';
 
@@ -49,19 +48,14 @@ const PAGE_META_TYPE_ID = 'site.gen/page-meta@1';
 // ---------------------------------------------------------------------------
 
 const stackToResource = <T extends ResourceTypeName>(record: StackRecord): ResourceType<T> => {
-  const rawContent = record.content;
-  const attachments: Attachment[] = Array.isArray(rawContent.attachments)
-    ? (rawContent.attachments as Attachment[])
-    : [];
-  const { attachments: _a, ...content } = rawContent;
   return {
     id: record.id,
     type: record.typeId.split('@')[0] as ResourceTypeName,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
-    attachments,
+    associations: record.associations ?? [],
     parentId: record.parentId,
-    content
+    content: record.content
   } as unknown as ResourceType<T>;
 };
 
@@ -71,14 +65,6 @@ const stackToPageMeta = (record: StackRecord): PageMetaType => ({
   createdAt: record.createdAt,
   updatedAt: record.updatedAt,
   content: record.content as PageMetaType['content']
-});
-
-// Merge typed content with attachments array for storage
-const toRecordContent = <T extends ResourceTypeName>(
-  resource: ResourceType<T>
-): Record<string, unknown> => ({
-  ...resource.content,
-  attachments: resource.attachments
 });
 
 // ---------------------------------------------------------------------------
@@ -138,7 +124,7 @@ export const createResource = async <T extends ResourceTypeName>(
   const record: StackRecord = {
     id: resource.id,
     typeId: toTypeId(resource.type),
-    content: toRecordContent(resource),
+    content: resource.content,
     createdAt: resource.createdAt,
     updatedAt: resource.updatedAt,
     version: 1,
@@ -154,9 +140,7 @@ export const updateResource = async <T extends ResourceTypeName>(
   resource: ResourceType<T>
 ): Promise<ResourceType<T>> => {
   const adapter = await getAdapter();
-  const updated = await adapter.updateRecord(resourceId, {
-    content: toRecordContent(resource)
-  });
+  const updated = await adapter.updateRecord(resourceId, { content: resource.content });
   return stackToResource<T>(updated);
 };
 
