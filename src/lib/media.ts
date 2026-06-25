@@ -1,19 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import type * as streamWeb from 'node:stream/web';
-import { Readable } from 'stream';
-import { finished } from 'stream/promises';
 import mime from 'mime';
 import { isNoEntryError, readFile } from './fs';
 import { Attachment } from '@codec/attachment';
-import { getAuthHeaders } from './auth';
-
-// Node fetch is not the same as web fetch! Source: https://stackoverflow.com/a/75843145
-declare global {
-  interface Response {
-    readonly body: streamWeb.ReadableStream<Uint8Array> | null;
-  }
-}
+import { getStack } from './api';
 
 export const getBaseServerUrl = (): URL => {
   const base = process.env.STACK_SERVER_URL ?? 'http://127.0.0.1:3000';
@@ -22,11 +12,9 @@ export const getBaseServerUrl = (): URL => {
 
 export const downloadFile = async (fileId: string, destPath: string): Promise<boolean> => {
   try {
-    const response = await fetch(new URL(`attachments/${fileId}`, getBaseServerUrl()), {
-      headers: getAuthHeaders()
-    });
-    const fileStream = fs.createWriteStream(path.resolve(destPath), { flags: 'wx' });
-    await finished(Readable.fromWeb(response.body!).pipe(fileStream));
+    const stack = await getStack();
+    const data = await stack.getAttachment(fileId);
+    fs.writeFileSync(path.resolve(destPath), data, { flag: 'wx' });
     return true;
   } catch {
     return false;
@@ -38,27 +26,19 @@ export const uploadFile = async (sourcePath: string): Promise<{ fileId: string }
   const mimeType = mime.getType(sourcePath) ?? 'application/octet-stream';
   const filename = path.basename(sourcePath);
   const data = await readFile(sourcePath);
-  const response = await fetch(new URL('attachments', getBaseServerUrl()), {
-    method: 'POST',
-    body: data,
-    headers: {
-      ...getAuthHeaders(),
-      'Content-Type': mimeType,
-      'Content-Disposition': `attachment; filename="${filename}"`
-    }
-  });
-  if (response.status < 200 || response.status >= 400) {
-    throw new Error(`Failed to upload ${filename}: ${await response.text()}`);
-  }
-  return response.json() as Promise<{ fileId: string }>;
+  const stack = await getStack();
+  const fileId = await stack.putAttachment(data, mimeType, filename);
+  return { fileId };
 };
 
 export const deleteFile = async (fileId: string): Promise<boolean> => {
-  const response = await fetch(new URL(`attachments/${fileId}`, getBaseServerUrl()), {
-    method: 'DELETE',
-    headers: getAuthHeaders()
-  });
-  return response.status >= 200 && response.status < 400;
+  try {
+    const stack = await getStack();
+    await stack.deleteAttachment(fileId);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 export const downloadAttachments = async (

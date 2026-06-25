@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { APIAdapter } from '@haverstack/adapter-api';
-import { hashSchema as _hashSchema } from '@haverstack/core';
+import { Stack, hashSchema as _hashSchema } from '@haverstack/core';
 import type { StackRecord, StackType, TypeSchema } from '@haverstack/core';
 import { ResourceTypeName, ResourceType, PageMetaType } from './types';
 import { Attachment } from '@codec/attachment';
@@ -12,10 +12,11 @@ dotenv.config();
 export type { WireType } from '@haverstack/wire-types';
 
 // ---------------------------------------------------------------------------
-// Adapter singleton
+// Adapter + Stack singletons
 // ---------------------------------------------------------------------------
 
 let _adapter: APIAdapter | null = null;
+let _stack: Stack | null = null;
 
 const getAdapter = async (): Promise<APIAdapter> => {
   if (!_adapter) {
@@ -25,6 +26,13 @@ const getAdapter = async (): Promise<APIAdapter> => {
     });
   }
   return _adapter;
+};
+
+export const getStack = async (): Promise<Stack> => {
+  if (!_stack) {
+    _stack = await Stack.create(await getAdapter());
+  }
+  return _stack;
 };
 
 // ---------------------------------------------------------------------------
