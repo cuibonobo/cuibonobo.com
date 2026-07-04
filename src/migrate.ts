@@ -22,13 +22,17 @@
  *
  * Usage:
  *   OLD_STACK_URL=... OLD_MEDIA_URL=... OLD_API_TOKEN=... npx tsx src/migrate.ts
+ *
+ * Idempotent: safe to re-run. Skips records and page-meta that already exist.
+ * Attachments are re-uploaded only if any expected filename is missing from
+ * the existing associations; a partial set is cleared and fully re-uploaded.
  */
 
 import dotenv from 'dotenv';
 import mime from 'mime';
 import { APIAdapter } from '@haverstack/adapter-api';
 import { Stack } from '@haverstack/core';
-import type { StackRecord } from '@haverstack/core';
+import type { StackRecord, TypeId, TypeSchema, AttachmentAssociation } from '@haverstack/core';
 import { ResourceTypeName } from './lib/types';
 import { generateId } from './lib/id';
 
@@ -53,6 +57,43 @@ const NEW_API_TOKEN = process.env.API_TOKEN;
 
 const PAGE_META_TYPE_ID = 'site.gen/page-meta@1';
 const CONTENT_TYPES = new Set<string>(Object.values(ResourceTypeName));
+
+// ---------------------------------------------------------------------------
+// Type definitions
+// ---------------------------------------------------------------------------
+
+const TYPE_DEFS: Array<{ id: TypeId; name: string; schema: TypeSchema }> = [
+  {
+    id: 'note@1',
+    name: 'Note',
+    schema: { properties: { text: { type: 'string' } } } as unknown as TypeSchema
+  },
+  {
+    id: 'article@1',
+    name: 'Article',
+    schema: {
+      properties: { title: { type: 'string' }, tags: { type: 'string' }, text: { type: 'string' } }
+    } as unknown as TypeSchema
+  },
+  {
+    id: PAGE_META_TYPE_ID,
+    name: 'Page Meta',
+    schema: {
+      properties: {
+        slug: { type: 'string' },
+        publishedAt: { type: 'string' },
+        summary: { type: 'string' }
+      }
+    } as unknown as TypeSchema
+  },
+  {
+    id: 'page@1',
+    name: 'Page',
+    schema: {
+      properties: { title: { type: 'string' }, slug: { type: 'string' }, text: { type: 'string' } }
+    } as unknown as TypeSchema
+  }
+];
 
 // ---------------------------------------------------------------------------
 // Old API types
@@ -87,7 +128,7 @@ const parseIfString = <T>(value: T | string): T =>
 
 const fetchOldResources = async (): Promise<OldResource[]> => {
   const url = `${OLD_STACK_URL}/resources`;
-  console.info(`Fetching all resources from ${url} ...`);
+  console.info(`Fetching resources from ${url} ...`);
   const res = await fetch(url, { headers: oldHeaders });
   if (!res.ok) throw new Error(`GET ${url} → ${res.status}: ${await res.text()}`);
   return res.json() as Promise<OldResource[]>;
@@ -101,7 +142,69 @@ const downloadOldAttachment = async (attachmentId: string): Promise<Uint8Array> 
 };
 
 // ---------------------------------------------------------------------------
-// Migration
+// Migration steps
+// ---------------------------------------------------------------------------
+
+const ensureTypes = async (stack: Stack, adapter: APIAdapter): Promise<void> => {
+  console.info('Ensuring types...');
+  for (const def of TYPE_DEFS) {
+    const existing = await adapter.getType(def.id);
+    if (existing) {
+      console.info(`  [ok]      ${def.id}`);
+    } else {
+      await stack.defineType(def.id, def.name, def.schema);
+      console.info(`  [created] ${def.id}`);
+    }
+  }
+  console.info('');
+};
+
+const migrateAttachments = async (
+  stack: Stack,
+  resourceId: string,
+  oldAttachments: OldAttachment[],
+  existingAssociations: AttachmentAssociation[]
+): Promise<void> => {
+  if (oldAttachments.length === 0) return;
+
+  // Check whether all expected filenames are already present
+  const existingLabels = new Set(existingAssociations.map((a) => a.label));
+  const allPresent = oldAttachments.every((a) => existingLabels.has(a.name));
+
+  if (allPresent) {
+    console.info(`  [ok] ${oldAttachments.length} attachment(s) already present`);
+    return;
+  }
+
+  // Partial or missing — clear existing and re-upload everything
+  if (existingAssociations.length > 0) {
+    console.info(`  Clearing ${existingAssociations.length} stale attachment(s)...`);
+    for (const assoc of existingAssociations) {
+      await stack.dissociate(resourceId, assoc);
+      try {
+        await stack.deleteAttachment(assoc.fileId);
+      } catch {
+        // may already be deleted or referenced elsewhere
+      }
+    }
+  }
+
+  for (const att of oldAttachments) {
+    try {
+      console.info(`  → ${att.name}`);
+      const data = await downloadOldAttachment(att.id);
+      const mimeType = mime.getType(att.name) ?? 'application/octet-stream';
+      const fileId = await stack.putAttachment(data, mimeType, att.name);
+      await stack.associate(resourceId, { kind: 'attachment', label: att.name, fileId, mimeType });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`  ✗ attachment '${att.name}': ${msg}`);
+    }
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Main
 // ---------------------------------------------------------------------------
 
 const migrate = async (): Promise<void> => {
@@ -110,10 +213,13 @@ const migrate = async (): Promise<void> => {
   const adapter = await APIAdapter.open({ url: NEW_STACK_URL, token: NEW_API_TOKEN });
   const stack = await Stack.create(adapter);
 
+  await ensureTypes(stack, adapter);
+
   const oldResources = await fetchOldResources();
   console.info(`Found ${oldResources.length} resources.\n`);
 
-  let ok = 0;
+  let created = 0;
+  let alreadyExisted = 0;
   let skipped = 0;
   let failed = 0;
 
@@ -142,50 +248,57 @@ const migrate = async (): Promise<void> => {
     console.info(`[${type}] ${old.id}`);
 
     try {
-      // Create the resource record with its original ID and dates
-      const record: StackRecord = {
-        id: old.id,
-        typeId: `${type}@1`,
-        content,
-        createdAt,
-        updatedAt,
-        version: 1,
-        permissions: [{ access: 'public' }]
-      };
-      await adapter.createRecord(record);
+      // Check whether the record already exists
+      const existing = await adapter.getRecord(old.id);
 
-      // Create the page-meta child for articles
-      if (type === ResourceTypeName.Article && articleSlug) {
-        const now = new Date();
-        const metaRecord: StackRecord = {
-          id: generateId(now.getTime()),
-          typeId: PAGE_META_TYPE_ID,
-          parentId: old.id,
-          content: { slug: articleSlug },
-          createdAt: now,
-          updatedAt: now,
+      if (existing) {
+        console.info(`  [exists] skipping record creation`);
+        alreadyExisted++;
+
+        const existingAttachments = (existing.associations ?? []).filter(
+          (a): a is AttachmentAssociation => a.kind === 'attachment'
+        );
+        await migrateAttachments(stack, old.id, oldAttachments, existingAttachments);
+      } else {
+        // Create the record with the original ID and dates
+        const record: StackRecord = {
+          id: old.id,
+          typeId: `${type}@1`,
+          content,
+          createdAt,
+          updatedAt,
           version: 1,
           permissions: [{ access: 'public' }]
         };
-        await adapter.createRecord(metaRecord);
-        console.info(`  → page-meta slug: ${articleSlug}`);
+        await adapter.createRecord(record);
+        created++;
+
+        await migrateAttachments(stack, old.id, oldAttachments, []);
       }
 
-      // Migrate attachments
-      for (const att of oldAttachments) {
-        try {
-          console.info(`  → attachment: ${att.name} (${att.id})`);
-          const data = await downloadOldAttachment(att.id);
-          const mimeType = mime.getType(att.name) ?? 'application/octet-stream';
-          const fileId = await stack.putAttachment(data, mimeType, att.name);
-          await stack.associate(old.id, { kind: 'attachment', label: att.name, fileId, mimeType });
-        } catch (e: unknown) {
-          const msg = e instanceof Error ? e.message : String(e);
-          console.error(`  ✗ attachment '${att.name}': ${msg}`);
+      // Ensure page-meta exists for articles (idempotent)
+      if (type === ResourceTypeName.Article && articleSlug) {
+        const metaResult = await adapter.queryRecords({
+          filter: { typeId: PAGE_META_TYPE_ID, parentId: old.id }
+        });
+        if (metaResult.records.length === 0) {
+          const now = new Date();
+          const metaRecord: StackRecord = {
+            id: generateId(now.getTime()),
+            typeId: PAGE_META_TYPE_ID,
+            parentId: old.id,
+            content: { slug: articleSlug },
+            createdAt: now,
+            updatedAt: now,
+            version: 1,
+            permissions: [{ access: 'public' }]
+          };
+          await adapter.createRecord(metaRecord);
+          console.info(`  → page-meta created: ${articleSlug}`);
+        } else {
+          console.info(`  → page-meta exists: ${articleSlug}`);
         }
       }
-
-      ok++;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error(`  ✗ failed: ${msg}`);
@@ -193,7 +306,9 @@ const migrate = async (): Promise<void> => {
     }
   }
 
-  console.info(`\nDone. ${ok} migrated, ${skipped} skipped, ${failed} failed.`);
+  console.info(
+    `\nDone. ${created} created, ${alreadyExisted} already existed, ${skipped} skipped, ${failed} failed.`
+  );
 
   await stack.close();
 };
