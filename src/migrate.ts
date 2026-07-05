@@ -18,21 +18,28 @@
  *   OLD_STACK_URL   Base URL of the old stack API (default: https://cuibonobo.com/stack/)
  *   OLD_MEDIA_URL   Base URL of the old media bucket  (default: https://cuibonobo.com/media/)
  *   OLD_API_TOKEN   Bearer token for the old API
- *   STACK_SERVER_URL / API_TOKEN  — new stack (standard .env values)
+ *   DB_PATH         Absolute path to the SQLite database file used by the server
+ *   ENTITY_ID       Entity ID (required only when DB_PATH does not exist yet)
+ *   TIMEZONE        IANA timezone string (default: UTC)
  *
  * Usage:
- *   OLD_STACK_URL=... OLD_MEDIA_URL=... OLD_API_TOKEN=... npx tsx src/migrate.ts
+ *   OLD_API_TOKEN=... DB_PATH=/path/to/stack.db npx tsx src/migrate.ts
  *
  * Idempotent: safe to re-run. Skips records and page-meta that already exist.
  * Attachments are re-uploaded only if any expected filename is missing from
  * the existing associations; a partial set is cleared and fully re-uploaded.
+ *
+ * Note: SQLiteAdapter is used directly (not via the HTTP server) so that
+ * original resource IDs and creation/update dates are preserved exactly.
+ * Normal application code continues to use APIAdapter (HTTP) once migrated.
  */
 
+import { existsSync } from 'node:fs';
 import dotenv from 'dotenv';
 import mime from 'mime';
-import { APIAdapter } from '@haverstack/adapter-api';
+import { SQLiteAdapter } from '@haverstack/adapter-sqlite';
 import { Stack } from '@haverstack/core';
-import type { StackRecord, TypeId, TypeSchema, AttachmentAssociation } from '@haverstack/core';
+import type { StackRecord, StackAdapter, TypeId, TypeSchema, AttachmentAssociation } from '@haverstack/core';
 import { ResourceTypeName } from './lib/types';
 import { generateId } from './lib/id';
 
@@ -52,8 +59,9 @@ const OLD_MEDIA_URL = (process.env.OLD_MEDIA_URL ?? 'https://cuibonobo.com/media
 );
 const OLD_API_TOKEN = process.env.OLD_API_TOKEN;
 
-const NEW_STACK_URL = process.env.STACK_SERVER_URL ?? 'http://127.0.0.1:3000';
-const NEW_API_TOKEN = process.env.API_TOKEN;
+const DB_PATH = process.env.DB_PATH;
+const ENTITY_ID = process.env.ENTITY_ID;
+const TIMEZONE = process.env.TIMEZONE ?? 'UTC';
 
 const PAGE_META_TYPE_ID = 'site.gen/page-meta@1';
 const CONTENT_TYPES = new Set<string>(Object.values(ResourceTypeName));
@@ -145,7 +153,7 @@ const downloadOldAttachment = async (attachmentId: string): Promise<Uint8Array> 
 // Migration steps
 // ---------------------------------------------------------------------------
 
-const ensureTypes = async (stack: Stack, adapter: APIAdapter): Promise<void> => {
+const ensureTypes = async (stack: Stack, adapter: SQLiteAdapter): Promise<void> => {
   console.info('Ensuring types...');
   for (const def of TYPE_DEFS) {
     const existing = await adapter.getType(def.id);
@@ -208,10 +216,29 @@ const migrateAttachments = async (
 // ---------------------------------------------------------------------------
 
 const migrate = async (): Promise<void> => {
+  if (!DB_PATH) {
+    throw new Error('DB_PATH environment variable is required');
+  }
+
+  const isNewDb = !existsSync(DB_PATH);
+
+  let adapter: SQLiteAdapter;
+  if (isNewDb) {
+    if (!ENTITY_ID) {
+      throw new Error('ENTITY_ID is required when DB_PATH does not exist yet');
+    }
+    console.info(`Initializing new database at ${DB_PATH} ...`);
+    adapter = await SQLiteAdapter.initialize({ path: DB_PATH, entityId: ENTITY_ID, timezone: TIMEZONE });
+  } else {
+    console.info(`Opening existing database at ${DB_PATH} ...`);
+    adapter = await SQLiteAdapter.open({ path: DB_PATH });
+  }
+
   // adapter.createRecord() is used directly here — intentional exception to the
-  // "use Stack, not adapter" rule so we can preserve original resource IDs.
-  const adapter = await APIAdapter.open({ url: NEW_STACK_URL, token: NEW_API_TOKEN });
-  const stack = await Stack.create(adapter);
+  // "use Stack, not adapter" rule so we can preserve original resource IDs and dates.
+  // Cast needed because adapter-sqlite targets an older @haverstack/core version;
+  // the missing fields (ownerEntityId, timezone) are metadata not used by migrate.ts.
+  const stack = await Stack.create(adapter as unknown as StackAdapter);
 
   await ensureTypes(stack, adapter);
 
@@ -260,7 +287,7 @@ const migrate = async (): Promise<void> => {
         );
         await migrateAttachments(stack, old.id, oldAttachments, existingAttachments);
       } else {
-        // Create the record with the original ID and dates
+        // Create the record with the original ID and dates preserved
         const record: StackRecord = {
           id: old.id,
           typeId: `${type}@1`,
